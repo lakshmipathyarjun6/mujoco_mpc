@@ -37,7 +37,8 @@
 #include "mjpc/tasks/swimmer/swimmer.h"
 #include "mjpc/tasks/walker/walker.h"
 
-namespace mjpc {
+namespace mjpc
+{
 
 std::vector<std::shared_ptr<Task>> GetTasks() {
   return {

@@ -104,20 +104,44 @@ void Hand::TransitionLocked(mjModel* model, mjData* data) {
     }
   }
 
-  double* cube_lin_vel = SensorByName(model, data, "cube_linear_velocity");
-  if (on_floor && mju_norm3(cube_lin_vel) < .001) {
-    // reset box pose, adding a little height
-    int cube_body = mj_name2id(model, mjOBJ_BODY, "cube");
-    if (cube_body != -1) {
-      int jnt_qposadr = model->jnt_qposadr[model->body_jntadr[cube_body]];
-      int jnt_veladr = model->jnt_dofadr[model->body_jntadr[cube_body]];
-      mju_copy(data->qpos + jnt_qposadr, model->qpos0 + jnt_qposadr, 7);
-      mju_zero(data->qvel + jnt_veladr, 6);
+  // ----- Transition for in-hand manipulation task -----
+  //   If cube is within tolerance or floor ->
+  //   reset cube into hand.
+  // -----------------------------------------------
+  void Hand::TransitionLocked(mjModel *model, mjData *data)
+  {
+    // find cube and floor
+    int cube = mj_name2id(model, mjOBJ_GEOM, "cube");
+    int floor = mj_name2id(model, mjOBJ_GEOM, "floor");
+    // look for contacts between the cube and the floor
+    bool on_floor = false;
+    for (int i = 0; i < data->ncon; i++)
+    {
+      mjContact *g = data->contact + i;
+      if ((g->geom1 == cube && g->geom2 == floor) ||
+          (g->geom2 == cube && g->geom1 == floor))
+      {
+        on_floor = true;
+        break;
+      }
     }
-    mutex_.unlock();  // step calls sensor that calls Residual.
-    mj_forward(model, data);  // mj_step1 would suffice, we just need contact
-    mutex_.lock();
-  }
-}
 
-}  // namespace mjpc
+    double *cube_lin_vel = SensorByName(model, data, "cube_linear_velocity");
+    if (on_floor && mju_norm3(cube_lin_vel) < .001)
+    {
+      // reset box pose, adding a little height
+      int cube_body = mj_name2id(model, mjOBJ_BODY, "cube");
+      if (cube_body != -1)
+      {
+        int jnt_qposadr = model->jnt_qposadr[model->body_jntadr[cube_body]];
+        int jnt_veladr = model->jnt_dofadr[model->body_jntadr[cube_body]];
+        mju_copy(data->qpos + jnt_qposadr, model->qpos0 + jnt_qposadr, 7);
+        mju_zero(data->qvel + jnt_veladr, 6);
+      }
+      mutex_.unlock();         // step calls sensor that calls Residual.
+      mj_forward(model, data); // mj_step1 would suffice, we just need contact
+      mutex_.lock();
+    }
+  }
+
+} // namespace mjpc
