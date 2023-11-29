@@ -1,0 +1,65 @@
+<mujoco model="allegro_right_mocap_vis">
+    <body name="palm_mocap" mocap="true">
+        <geom type="mesh" mesh="base_link" size="1 1 1" contype="0" conaffinity="0" rgba="0 1 1 1"/>
+    </body>
+    <body name="th_base_mocap" mocap="true">
+        <geom type="mesh" mesh="link_12.0_right" size="1 1 1" contype="0" conaffinity="0" rgba="0 1 1 1"/>
+    </body>
+    <body name="th_proximal_mocap" mocap="true">
+        <geom type="mesh" mesh="link_13.0" size="1 1 1" contype="0" conaffinity="0" rgba="0 1 1 1"/>
+    </body>
+    <body name="th_medial_mocap" mocap="true">
+        <geom type="mesh" mesh="link_14.0" size="1 1 1" contype="0" conaffinity="0" rgba="0 1 1 1"/>
+    </body>
+    <body name="th_distal_mocap" mocap="true">
+        <geom type="mesh" mesh="link_15.0" size="1 1 1" contype="0" conaffinity="0" rgba="0 1 1 1"/>
+    </body>
+    <body name="th_tip_mocap" mocap="true">
+        <geom type="mesh" mesh="link_15.0_tip" size="1 1 1" contype="0" conaffinity="0" rgba="0 1 1 1"/>
+    </body>
+    <body name="ff_base_mocap" mocap="true">
+        <geom type="mesh" mesh="link_0.0" size="1 1 1" contype="0" conaffinity="0" rgba="0 1 1 1"/>
+    </body>
+    <body name="ff_proximal_mocap" mocap="true">
+        <geom type="mesh" mesh="link_1.0" size="1 1 1" contype="0" conaffinity="0" rgba="0 1 1 1"/>
+    </body>
+    <body name="ff_medial_mocap" mocap="true">
+        <geom type="mesh" mesh="link_2.0" size="1 1 1" contype="0" conaffinity="0" rgba="0 1 1 1"/>
+    </body>
+    <body name="ff_distal_mocap" mocap="true">
+        <geom type="mesh" mesh="link_3.0" size="1 1 1" contype="0" conaffinity="0" rgba="0 1 1 1"/>
+    </body>
+    <body name="ff_tip_mocap" mocap="true">
+        <geom type="mesh" mesh="link_3.0_tip" size="1 1 1" contype="0" conaffinity="0" rgba="0 1 1 1"/>
+    </body>
+    <body name="mf_base_mocap" mocap="true">
+        <geom type="mesh" mesh="link_0.0" size="1 1 1" contype="0" conaffinity="0" rgba="0 1 1 1"/>
+    </body>
+    <body name="mf_proximal_mocap" mocap="true">
+        <geom type="mesh" mesh="link_1.0" size="1 1 1" contype="0" conaffinity="0" rgba="0 1 1 1"/>
+    </body>
+    <body name="mf_medial_mocap" mocap="true">
+        <geom type="mesh" mesh="link_2.0" size="1 1 1" contype="0" conaffinity="0" rgba="0 1 1 1"/>
+    </body>
+    <body name="mf_distal_mocap" mocap="true">
+        <geom type="mesh" mesh="link_3.0" size="1 1 1" contype="0" conaffinity="0" rgba="0 1 1 1"/>
+    </body>
+    <body name="mf_tip_mocap" mocap="true">
+        <geom type="mesh" mesh="link_3.0_tip" size="1 1 1" contype="0" conaffinity="0" rgba="0 1 1 1"/>
+    </body>
+    <body name="rf_base_mocap" mocap="true">
+        <geom type="mesh" mesh="link_0.0" size="1 1 1" contype="0" conaffinity="0" rgba="0 1 1 1"/>
+    </body>
+    <body name="rf_proximal_mocap" mocap="true">
+        <geom type="mesh" mesh="link_1.0" size="1 1 1" contype="0" conaffinity="0" rgba="0 1 1 1"/>
+    </body>
+    <body name="rf_medial_mocap" mocap="true">
+        <geom type="mesh" mesh="link_2.0" size="1 1 1" contype="0" conaffinity="0" rgba="0 1 1 1"/>
+    </body>
+    <body name="rf_distal_mocap" mocap="true">
+        <geom type="mesh" mesh="link_3.0" size="1 1 1" contype="0" conaffinity="0" rgba="0 1 1 1"/>
+    </body>
+    <body name="rf_tip_mocap" mocap="true">
+        <geom type="mesh" mesh="link_3.0_tip" size="1 1 1" contype="0" conaffinity="0" rgba="0 1 1 1"/>
+    </body>
+</mujoco>

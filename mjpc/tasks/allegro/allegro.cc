@@ -55,10 +55,11 @@ namespace mjpc
         offset += 3;
 
         // ---------- Residual (2) ----------
-        int handRootBody = mj_name2id(model, mjOBJ_BODY, ALLEGRO_ROOT);
-        int handQposadr = model->jnt_qposadr[model->body_jntadr[handRootBody]];
+        int handRootBodyId = mj_name2id(model, mjOBJ_BODY, ALLEGRO_ROOT);
+        int bodyJointAdr = model->body_jntadr[handRootBodyId];
+        int handQPosAdr = model->jnt_qposadr[bodyJointAdr];
 
-        mju_sub(residual + offset, data->qpos + handQposadr, r_qpos_buffer_, ALLEGRO_DOFS);
+        mju_sub(residual + offset, data->qpos + handQPosAdr, r_qpos_buffer_, ALLEGRO_DOFS);
 
         offset += ALLEGRO_DOFS;
 
@@ -75,59 +76,68 @@ namespace mjpc
         double rounded_index = floor(data->time * FPS);
         int current_index = int(rounded_index) % num_mocap_frames_;
 
-        current_index = min(current_index, 1);
+        // current_index = min(current_index, 1);
 
-        string handKeyframeName = task_frame_prefix_ + "_hand_" + to_string(current_index + 1);
-        string objectKeyframeName = task_frame_prefix_ + "_object_" + to_string(current_index + 1);
+        int handMocapQOffset = model->nq * current_index;
 
-        double *objectKeyframeMPos = KeyMPosByName(model, data, objectKeyframeName);
-        double *objectKeyframeMQuat = KeyMQuatByName(model, data, objectKeyframeName);
+        mju_copy(residual_.r_qpos_buffer_, model->key_qpos + handMocapQOffset, ALLEGRO_DOFS);
 
-        double *handKeyframeQPos = KeyQPosByName(model, data, handKeyframeName);
+        int objectMocapPosOffset = 3 * model->nmocap * current_index;
+        int objectMocapQuatOffset = 4 * model->nmocap * current_index;
 
-        mju_copy(residual_.r_qpos_buffer_, handKeyframeQPos, ALLEGRO_DOFS);
+        int handPalmBodyId = mj_name2id(model, mjOBJ_BODY, ALLEGRO_MOCAP_ROOT);
+        int handPalmXPosOffset = 3 * handPalmBodyId;
+        int handPalmXQuatOffset = 4 * handPalmBodyId;
 
-        // // DEBUGGING: Uncomment below to view kinematic trajectory
-        // int handRootBody = mj_name2id(model, mjOBJ_BODY, "wrist");
-        // int handQposadr = model->jnt_qposadr[model->body_jntadr[handRootBody]];
-        // mju_copy(data->qpos + handQposadr, handKeyframeQPos, ALLEGRO_DOFS);
+        int handRootBodyId = mj_name2id(model, mjOBJ_BODY, ALLEGRO_ROOT);
+        int bodyJointAdr = model->body_jntadr[handRootBodyId];
+        int handQPosAdr = model->jnt_qposadr[bodyJointAdr];
+
+        // DEBUG ONLY
+        mju_copy(hand_kinematic_buffer_, data->qpos + handQPosAdr, ALLEGRO_DOFS);
+        mju_copy(data->qpos + handQPosAdr, model->key_qpos + handMocapQOffset, ALLEGRO_DOFS);
+        mj_kinematics(model, data);
+        mju_copy(data->mocap_pos + 3, data->xpos + handPalmXPosOffset, 3 * (model->nmocap - 1));
+        mju_copy(data->mocap_quat + 4, data->xquat + handPalmXQuatOffset, 4 * (model->nmocap - 1));
+        mju_copy(data->qpos + handQPosAdr, hand_kinematic_buffer_, ALLEGRO_DOFS);
+        mj_kinematics(model, data);
 
         // Reset
         if (current_index == 0)
         {
-            int objBody = mj_name2id(model, mjOBJ_BODY, sim_body_name_.c_str());
-            int objDofs = model->nq - ALLEGRO_DOFS;
-            bool objectSimBodyExists = objBody != -1;
+            int simObjBodyId = mj_name2id(model, mjOBJ_BODY, object_sim_body_name_.c_str());
+            int simObjDofs = model->nq - ALLEGRO_DOFS;
+
+            bool objectSimBodyExists = simObjBodyId != -1;
 
             if (objectSimBodyExists)
             {
-                int objQposadr = model->jnt_qposadr[model->body_jntadr[objBody]];
+                int objQposadr = model->jnt_qposadr[model->body_jntadr[simObjBodyId]];
 
                 // Free joint is special since the system can't be "zeroed out"
                 // due to it needing to be based off the world frame
-                if (objDofs == 7)
+                if (simObjDofs == 7)
                 {
                     // Reset configuration to first mocap frame
-                    mju_copy3(data->qpos + objQposadr, objectKeyframeMPos);
-                    mju_copy4(data->qpos + objQposadr + 3, objectKeyframeMQuat);
+                    mju_copy3(data->qpos + objQposadr, model->key_mpos + objectMocapPosOffset);
+                    mju_copy4(data->qpos + objQposadr + 3, model->key_mquat + objectMocapQuatOffset);
                 }
                 else
                 {
                     // Otherwise zero out the configuration
-                    mju_zero(data->qvel + objQposadr, objDofs);
+                    mju_zero(data->qvel + objQposadr, simObjDofs);
                 }
             }
 
-            int handRootBody = mj_name2id(model, mjOBJ_BODY, ALLEGRO_ROOT);
-            int handQposadr = model->jnt_qposadr[model->body_jntadr[handRootBody]];
-            mju_copy(data->qpos + handQposadr, handKeyframeQPos, ALLEGRO_DOFS);
+            mju_copy(data->qpos + handQPosAdr, model->key_qpos + handMocapQOffset, ALLEGRO_DOFS);
 
             // Zero out entire system velocity
             mju_zero(data->qvel, model->nq);
         }
 
-        mju_copy3(data->mocap_pos, objectKeyframeMPos);
-        mju_copy4(data->mocap_quat, objectKeyframeMQuat);
+        // Object mocap is first in config
+        mju_copy3(data->mocap_pos, model->key_mpos + objectMocapPosOffset);
+        mju_copy4(data->mocap_quat, model->key_mquat + objectMocapQuatOffset);
     }
 
     string AllegroAppleTask::XmlPath() const

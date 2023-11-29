@@ -24,6 +24,7 @@
 
 #define ALLEGRO_DOFS 23
 #define ALLEGRO_ROOT "wrist"
+#define ALLEGRO_MOCAP_ROOT "palm"
 
 #define OBJECT_TARGET_POSITION "object_traj_position"
 #define OBJECT_TARGET_ORIENTATION "object_traj_orientation"
@@ -62,9 +63,9 @@ namespace mjpc
             double r_qpos_buffer_[ALLEGRO_DOFS];
         };
 
-        AllegroTask(int numMocapFrames, string taskNamePrefix, string bodyName)
+        AllegroTask(int numMocapFrames, string objectSimBodyName)
             : residual_(this), num_mocap_frames_(numMocapFrames),
-              task_frame_prefix_(taskNamePrefix), sim_body_name_(bodyName) {}
+              object_sim_body_name_(objectSimBodyName) {}
 
         // --------------------- Transition for allegro task ------------------------
         //   Set `data->mocap_pos` based on `data->time` to move the object site.
@@ -82,8 +83,9 @@ namespace mjpc
         ResidualFn residual_;
 
         int num_mocap_frames_;
-        string task_frame_prefix_;
-        string sim_body_name_;
+        string object_sim_body_name_;
+
+        double hand_kinematic_buffer_[ALLEGRO_DOFS];
     };
 
     class AllegroAppleTask : public AllegroTask
@@ -92,7 +94,9 @@ namespace mjpc
         string Name() const override;
         string XmlPath() const override;
 
-        AllegroAppleTask() : AllegroTask(703, "apple_pass_1", "apple_sim") {}
+        AllegroAppleTask() : AllegroTask(703, "apple_sim") {}
+
+    private:
     };
 
     class AllegroDoorknobTask : public AllegroTask
@@ -101,7 +105,7 @@ namespace mjpc
         string Name() const override;
         string XmlPath() const override;
 
-        AllegroDoorknobTask() : AllegroTask(1040, "doorknob_use_1", "doorknob_sim") {}
+        AllegroDoorknobTask() : AllegroTask(1040, "doorknob_sim") {}
     };
 } // namespace mjpc
 

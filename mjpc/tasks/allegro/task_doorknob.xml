@@ -17,6 +17,7 @@
         <body name="hand_startclamp" pos="-1.05350866 0.30617798 1.28931948">
             <include file="right_hand_body.xml"/>
         </body>
+        <include file="right_hand_mocap_vis.xml"/>
         <geom name="floor" pos="0 0 -0.2" size="0 0 0.05" type="plane" material="blue_grid"/>
     </worldbody>
 
@@ -27,6 +28,6 @@
         <framequat name="object_orientation" objtype="body" objname="doorknob_sim"/>
     </sensor>
 
-    <include file="./keyframes/doorknob_use_1/doorknob_use_1.xml" />
+    <include file="./keyframes/doorknob_use_1.xml" />
 
 </mujoco>
