@@ -31,10 +31,10 @@ namespace mjpc
 
         // ---------- Residual (0) ----------
         // goal position
-        double *goal_position = SensorByName(model, data, "object_traj_position");
+        double *goal_position = SensorByName(model, data, OBJECT_TARGET_POSITION);
 
         // system's position
-        double *position = SensorByName(model, data, "object_position");
+        double *position = SensorByName(model, data, OBJECT_CURRENT_POSITION);
 
         // position error
         mju_sub3(residual + offset, position, goal_position);
@@ -42,10 +42,10 @@ namespace mjpc
 
         // ---------- Residual (1) ----------
         // goal orientation
-        double *goal_orientation = SensorByName(model, data, "object_traj_orientation");
+        double *goal_orientation = SensorByName(model, data, OBJECT_TARGET_ORIENTATION);
 
         // system's orientation
-        double *orientation = SensorByName(model, data, "object_orientation");
+        double *orientation = SensorByName(model, data, OBJECT_CURRENT_ORIENTATION);
 
         mju_normalize4(goal_orientation);
         mju_normalize4(orientation);
@@ -55,7 +55,7 @@ namespace mjpc
         offset += 3;
 
         // ---------- Residual (2) ----------
-        int handRootBody = mj_name2id(model, mjOBJ_BODY, "wrist");
+        int handRootBody = mj_name2id(model, mjOBJ_BODY, ALLEGRO_ROOT);
         int handQposadr = model->jnt_qposadr[model->body_jntadr[handRootBody]];
 
         mju_sub(residual + offset, data->qpos + handQposadr, r_qpos_buffer_, ALLEGRO_DOFS);
@@ -74,6 +74,8 @@ namespace mjpc
         // indices
         double rounded_index = floor(data->time * FPS);
         int current_index = int(rounded_index) % num_mocap_frames_;
+
+        current_index = min(current_index, 1);
 
         string handKeyframeName = task_frame_prefix_ + "_hand_" + to_string(current_index + 1);
         string objectKeyframeName = task_frame_prefix_ + "_object_" + to_string(current_index + 1);
@@ -116,7 +118,7 @@ namespace mjpc
                 }
             }
 
-            int handRootBody = mj_name2id(model, mjOBJ_BODY, "wrist");
+            int handRootBody = mj_name2id(model, mjOBJ_BODY, ALLEGRO_ROOT);
             int handQposadr = model->jnt_qposadr[model->body_jntadr[handRootBody]];
             mju_copy(data->qpos + handQposadr, handKeyframeQPos, ALLEGRO_DOFS);
 

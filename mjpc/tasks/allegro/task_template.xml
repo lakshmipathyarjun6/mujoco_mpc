@@ -38,6 +38,6 @@
         <user name="Hand State" dim="23" user="0 1.0 0 20"/>
     </sensor>
 
-    <include file="right_hand.xml"/>
+    <include file="right_hand_template.xml"/>
 
 </mujoco>
