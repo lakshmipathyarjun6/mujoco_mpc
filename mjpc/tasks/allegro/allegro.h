@@ -21,7 +21,15 @@
 #include "mjpc/utilities.h"
 
 #define FPS 120
+
 #define ALLEGRO_DOFS 23
+#define ALLEGRO_ROOT "wrist"
+
+#define OBJECT_TARGET_POSITION "object_traj_position"
+#define OBJECT_TARGET_ORIENTATION "object_traj_orientation"
+
+#define OBJECT_CURRENT_POSITION "object_position"
+#define OBJECT_CURRENT_ORIENTATION "object_orientation"
 
 using namespace std;
 

@@ -12,6 +12,9 @@
             <freejoint/>
             <geom name="apple_sim_geom" type="mesh" mesh="apple" mass="2.485148625" rgba="1.0 0 0 1.0"/>
         </body>
+        <body name="hand_startclamp" pos="-0.559216021990488 1.0061246071752599 1.3645857582385554">
+            <include file="right_hand_body.xml"/>
+        </body>
         <geom name="table" pos="0.22647 -0.4 0.34" size="0.5 0.5 0.5" type="box" material="grey_grid"/>
         <geom name="floor" pos="0 0 -0.2" size="0 0 0.05" type="plane" material="blue_grid"/>
     </worldbody>
