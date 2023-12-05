@@ -19,6 +19,8 @@
 #include "mjpc/task.h"
 #include "mjpc/utilities.h"
 
+using namespace std;
+
 namespace mjpc
 {
     class Allegro : public Task
@@ -46,6 +48,11 @@ namespace mjpc
         };
 
         Allegro() : residual_(this) {}
+
+        // --------------------- Transition for allegro task ------------------------
+        //   Set `data->mocap_pos` based on `data->time` to move the object site.
+        // ---------------------------------------------------------------------------
+        void TransitionLocked(mjModel *model, mjData *data) override;
 
     protected:
         std::unique_ptr<mjpc::ResidualFn> ResidualLocked() const override
