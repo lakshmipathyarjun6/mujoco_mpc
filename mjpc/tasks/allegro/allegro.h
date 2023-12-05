@@ -27,23 +27,31 @@ namespace mjpc
         std::string Name() const override;
         std::string XmlPath() const override;
 
-        class ResidualFn : public BaseResidualFn
+        class ResidualFn : public mjpc::BaseResidualFn
         {
         public:
-            explicit ResidualFn(const Allegro *task) : BaseResidualFn(task) {}
+            explicit ResidualFn(const Allegro *task, int current_mode = 0,
+                                double reference_time = 0)
+                : mjpc::BaseResidualFn(task),
+                  current_mode_(current_mode),
+                  reference_time_(reference_time) {}
 
-            // ---------- Residuals for allegro task ---------
-            //  Currently does nothing
-            // ------------------------------------------------------------
             void Residual(const mjModel *model, const mjData *data,
                           double *residual) const override;
+
+        private:
+            friend class Allegro;
+            int current_mode_;
+            double reference_time_;
         };
+
         Allegro() : residual_(this) {}
 
     protected:
         std::unique_ptr<mjpc::ResidualFn> ResidualLocked() const override
         {
-            return std::make_unique<ResidualFn>(this);
+            return std::make_unique<ResidualFn>(this, residual_.current_mode_,
+                                                residual_.reference_time_);
         }
         ResidualFn *InternalResidual() override { return &residual_; }
 
