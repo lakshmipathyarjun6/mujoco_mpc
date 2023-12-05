@@ -4,6 +4,7 @@
   <size memory="1M"/>
 
   <custom>
+    <text name="task_transition" data="ApplePass" />
     <numeric name="agent_planner" data="0" />
     <numeric name="agent_horizon" data="0.25" />
     <numeric name="agent_timestep" data="0.01" />
@@ -28,6 +29,9 @@
   <worldbody>
     <light pos="0 -0.1 0.5" dir="0 0.2 -1" diffuse="0.7 0.7 0.7" specular="0.3 0.3 0.3"
         directional="true" castshadow="true"/>
+    <body name="mocap[object]" mocap="true">
+        <geom type="capsule" size="1 1 1" contype="0" conaffinity="0" rgba="0 1 0 .5" fromto="-0.1 0 0 0.1 0 0"/>
+    </body>
     <geom name="floor" pos="0 0 -0.2" size="0 0 0.05" type="plane" material="blue_grid"/>
   </worldbody>
 
@@ -37,4 +41,7 @@
   </sensor>
 
   <include file="right_hand.xml"/>
+
+  <include file="./keyframes/apple_pass_1/apple_pass_1.xml" />
+
 </mujoco>
