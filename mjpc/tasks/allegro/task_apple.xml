@@ -10,8 +10,9 @@
         </body>
         <body name="apple_sim">
             <freejoint/>
-            <geom name="appleSimGeom" type="mesh" mesh="apple" mass="0.2485148625" rgba="1.0 0 0 1.0"/>
+            <geom name="apple_sim_geom" type="mesh" mesh="apple" mass="2.485148625" rgba="1.0 0 0 1.0"/>
         </body>
+        <geom name="table" pos="0.22647 -0.4 0.34" size="0.5 0.5 0.5" type="box" material="grey_grid"/>
         <geom name="floor" pos="0 0 -0.2" size="0 0 0.05" type="plane" material="blue_grid"/>
     </worldbody>
 
