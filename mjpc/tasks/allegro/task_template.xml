@@ -1,0 +1,41 @@
+<mujoco model="Allegro Task">
+
+    <include file="../common.xml"/>
+
+    <size memory="1M"/>
+
+    <asset>
+        <mesh name="apple" file="apple.obj" />
+        <mesh name="doorknob" file="doorknob.obj" />
+    </asset>
+
+    <custom>
+        <numeric name="agent_planner" data="0" />
+        <numeric name="agent_horizon" data="0.25" />
+        <numeric name="agent_timestep" data="0.01" />
+        <numeric name="agent_policy_width" data="0.0035" />
+        <numeric name="sampling_spline_points" data="6" />
+        <numeric name="sampling_exploration" data="0.1" />
+        <numeric name="robust_xfrc" data="0.004" />
+        <numeric name="gradient_spline_points" data="6" />
+    </custom>
+
+    <statistic extent="0.4" center="0.3 0.1 0"/>
+
+    <visual>
+        <quality shadowsize="8192"/>
+        <global azimuth="180" elevation="-30"/>
+    </visual>
+
+    <default>
+        <geom friction=".6"/>
+    </default>
+
+    <sensor>
+        <user name="In Hand" dim="3" user="1 20 0 100 0.02 2"/>
+        <framepos name="palm_position" objtype="site" objname="grasp_site"/>
+    </sensor>
+
+    <include file="right_hand.xml"/>
+
+</mujoco>
