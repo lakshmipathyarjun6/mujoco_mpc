@@ -1,0 +1,4 @@
+<mujoco>
+  <include file="./keyframes/doorknob_use_1/doorknob_use_1_hand.xml" />
+  <include file="./keyframes/doorknob_use_1/doorknob_use_1_object.xml" />
+</mujoco>
