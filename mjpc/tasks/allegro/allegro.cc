@@ -45,15 +45,26 @@ namespace mjpc
         if (current_index == 0)
         {
             int objBody = mj_name2id(model, mjOBJ_BODY, sim_body_name_.c_str());
+            int objDofs = model->nq - q_hand_dim_;
             bool objectSimBodyExists = objBody != -1;
 
             if (objectSimBodyExists)
             {
                 int objQposadr = model->jnt_qposadr[model->body_jntadr[objBody]];
 
-                // Reset configuration to first mocap frame
-                mju_copy3(data->qpos + objQposadr, objectKeyframeMPos);
-                mju_copy4(data->qpos + objQposadr + 3, objectKeyframeMQuat);
+                // Free joint is special since the system can't be "zeroed out"
+                // due to it needing to be based off the world frame
+                if (objDofs == 7)
+                {
+                    // Reset configuration to first mocap frame
+                    mju_copy3(data->qpos + objQposadr, objectKeyframeMPos);
+                    mju_copy4(data->qpos + objQposadr + 3, objectKeyframeMQuat);
+                }
+                else
+                {
+                    // Otherwise zero out the configuration
+                    mju_zero(data->qvel + objQposadr, objDofs);
+                }
             }
 
             // Zero out entire system velocity

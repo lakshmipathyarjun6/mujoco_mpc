@@ -5,8 +5,14 @@
     <worldbody>
         <light pos="0 -0.1 0.5" dir="0 0.2 -1" diffuse="0.7 0.7 0.7" specular="0.3 0.3 0.3"
             directional="true" castshadow="true"/>
-        <body name="mocap[object]" mocap="true">
+        <body name="doorknob_mocap" mocap="true">
             <geom type="mesh" mesh="doorknob" size="1 1 1" contype="0" conaffinity="0" rgba="0 1 0 1.0"/>
+        </body>
+        <body name="doorknob_attachment" pos="-0.0825822262763977 -0.6478415727615356 0.9384804964065552">
+            <body name="doorknob_sim" pos="-0.04 0 0" quat="0.47815212453295514 0.5128687163825603 -0.5009253359069297 -0.5073559237924161">
+                <joint axis="0 0 1" limited="true" range="0 1" stiffness="100.0" damping="10.0" type="slide"/>
+                <geom name="doorknob_sim_geom" type="mesh" mesh="doorknob" mass="2.485148625" rgba="0.8313 0.686 0.216 1.0"/>
+            </body>
         </body>
         <geom name="floor" pos="0 0 -0.2" size="0 0 0.05" type="plane" material="blue_grid"/>
     </worldbody>
