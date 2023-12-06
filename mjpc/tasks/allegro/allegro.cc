@@ -14,27 +14,8 @@
 
 #include "mjpc/tasks/allegro/allegro.h"
 
-// Hardcoded constant matching keyframes from dataset.
-constexpr double kFps = 120.0;
-
-constexpr int kMotionLengths[] = {
-    703, // Apple Pass 1
-    1040 // Doorknob Use 1
-};
-
-const string kTaskPrefixes[] = {
-    "apple_pass_1",  // Apple Pass 1
-    "doorknob_use_1" // Doorknob Use 1
-};
-
 namespace mjpc
 {
-    AllegroTask::AllegroTask(int taskId) : residual_(this), task_id_(taskId)
-    {
-        num_mocap_frames_ = kMotionLengths[task_id_];
-        task_frame_prefix_ = kTaskPrefixes[task_id_];
-    }
-
     void AllegroTask::ResidualFn::Residual(const mjModel *model, const mjData *data,
                                            double *residual) const {}
 
@@ -44,7 +25,7 @@ namespace mjpc
     void AllegroTask::TransitionLocked(mjModel *model, mjData *data)
     {
         // indices
-        double rounded_index = floor(data->time * kFps);
+        double rounded_index = floor(data->time * fps_);
         int current_index = int(rounded_index) % num_mocap_frames_;
 
         string handKeyframeName = task_frame_prefix_ + "_hand_" + to_string(current_index + 1);
@@ -56,14 +37,28 @@ namespace mjpc
         double *handKeyframeQPos = KeyQPosByName(model, data, handKeyframeName);
 
         // DEBUG ONLY
-        mju_copy(data->qpos, handKeyframeQPos, model->nq);
+        int handRootBody = mj_name2id(model, mjOBJ_BODY, "wrist");
+        int handQposadr = model->jnt_qposadr[model->body_jntadr[handRootBody]];
+        mju_copy(data->qpos + handQposadr, handKeyframeQPos, q_hand_dim_);
 
-        // // Actual Reset
-        // if (current_index == 0)
-        // {
-        //     double *handKeyframeQPos = KeyQPosByName(model, data, handKeyframeName);
-        //     mju_copy(data->qpos, handKeyframeQPos, model->nu);
-        // }
+        // Reset
+        if (current_index == 0)
+        {
+            int objBody = mj_name2id(model, mjOBJ_BODY, sim_body_name_.c_str());
+            bool objectSimBodyExists = objBody != -1;
+
+            if (objectSimBodyExists)
+            {
+                int objQposadr = model->jnt_qposadr[model->body_jntadr[objBody]];
+
+                // Reset configuration to first mocap frame
+                mju_copy3(data->qpos + objQposadr, objectKeyframeMPos);
+                mju_copy4(data->qpos + objQposadr + 3, objectKeyframeMQuat);
+            }
+
+            // Zero out entire system velocity
+            mju_zero(data->qvel, model->nq);
+        }
 
         mju_copy3(data->mocap_pos, objectKeyframeMPos);
         mju_copy4(data->mocap_quat, objectKeyframeMQuat);
