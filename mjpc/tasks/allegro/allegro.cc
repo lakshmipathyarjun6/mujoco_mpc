@@ -18,70 +18,37 @@
 constexpr double kFps = 120.0;
 
 constexpr int kMotionLengths[] = {
-    703 // Apple Pass 1
+    703, // Apple Pass 1
+    1040 // Doorknob Use 1
 };
 
 const string kTaskPrefixes[] = {
-    "apple_pass_1" // Apple Pass 1
+    "apple_pass_1",  // Apple Pass 1
+    "doorknob_use_1" // Doorknob Use 1
 };
-
-// return length of motion trajectory
-int MotionLength(int id) { return kMotionLengths[id]; }
-
-string MotionPrefix(int id) { return kTaskPrefixes[id]; }
-
-// return starting keyframe index for motion
-int MotionStartIndex(int id)
-{
-    int start = 0;
-
-    for (int i = 0; i < id; i++)
-    {
-        start += MotionLength(i);
-    }
-
-    return start;
-}
 
 namespace mjpc
 {
-    std::string Allegro::XmlPath() const
+    AllegroTask::AllegroTask(int taskId) : residual_(this), task_id_(taskId)
     {
-        return GetModelPath("allegro/task.xml");
+        num_mocap_frames_ = kMotionLengths[task_id_];
+        task_frame_prefix_ = kTaskPrefixes[task_id_];
     }
-    std::string Allegro::Name() const { return "Allegro"; }
 
-    void Allegro::ResidualFn::Residual(const mjModel *model, const mjData *data,
-                                       double *residual) const {}
+    void AllegroTask::ResidualFn::Residual(const mjModel *model, const mjData *data,
+                                           double *residual) const {}
 
     // --------------------- Transition for allegro task ------------------------
     //   Set `data->mocap_pos` based on `data->time` to move the object site.
     // ---------------------------------------------------------------------------
-    void Allegro::TransitionLocked(mjModel *model, mjData *data)
+    void AllegroTask::TransitionLocked(mjModel *model, mjData *data)
     {
-        // get motion start index
-        int start = MotionStartIndex(mode);
-
-        // get motion trajectory length
-        int length = MotionLength(mode);
-
-        // get motion trajectory prefix
-        string motionPrefix = MotionPrefix(mode);
-
-        // check for motion switch
-        if (residual_.current_mode_ != mode || data->time == 0.0)
-        {
-            residual_.current_mode_ = mode;         // set motion id
-            residual_.reference_time_ = data->time; // set reference time
-        }
-
         // indices
-        double rounded_index = floor((data->time - residual_.reference_time_) * kFps);
+        double rounded_index = floor(data->time * kFps);
+        int current_index = int(rounded_index) % num_mocap_frames_;
 
-        int current_index = (int(rounded_index) + start) % length;
-
-        string handKeyframeName = motionPrefix + "_hand_" + to_string(current_index + 1);
-        string objectKeyframeName = motionPrefix + "_object_" + to_string(current_index + 1);
+        string handKeyframeName = task_frame_prefix_ + "_hand_" + to_string(current_index + 1);
+        string objectKeyframeName = task_frame_prefix_ + "_object_" + to_string(current_index + 1);
 
         double *objectKeyframeMPos = KeyMPosByName(model, data, objectKeyframeName);
         double *objectKeyframeMQuat = KeyMQuatByName(model, data, objectKeyframeName);
@@ -101,5 +68,19 @@ namespace mjpc
         mju_copy3(data->mocap_pos, objectKeyframeMPos);
         mju_copy4(data->mocap_quat, objectKeyframeMQuat);
     }
+
+    string AllegroAppleTask::XmlPath() const
+    {
+        return GetModelPath("allegro/task_apple.xml");
+    }
+
+    string AllegroAppleTask::Name() const { return "Allegro Apple Pass"; }
+
+    string AllegroDoorknobTask::XmlPath() const
+    {
+        return GetModelPath("allegro/task_doorknob.xml");
+    }
+
+    string AllegroDoorknobTask::Name() const { return "Allegro Doorknob Use"; }
 
 } // namespace mjpc

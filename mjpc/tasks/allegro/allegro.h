@@ -23,31 +23,25 @@ using namespace std;
 
 namespace mjpc
 {
-    class Allegro : public Task
+    class AllegroTask : public Task
     {
     public:
-        std::string Name() const override;
-        std::string XmlPath() const override;
-
         class ResidualFn : public mjpc::BaseResidualFn
         {
         public:
-            explicit ResidualFn(const Allegro *task, int current_mode = 0,
-                                double reference_time = 0)
-                : mjpc::BaseResidualFn(task),
-                  current_mode_(current_mode),
-                  reference_time_(reference_time) {}
+            explicit ResidualFn(const AllegroTask *task)
+                : mjpc::BaseResidualFn(task) {}
 
             void Residual(const mjModel *model, const mjData *data,
                           double *residual) const override;
 
         private:
-            friend class Allegro;
-            int current_mode_;
-            double reference_time_;
+            friend class AllegroTask;
         };
 
-        Allegro() : residual_(this) {}
+        AllegroTask(int taskId);
+
+        // AllegroTask(int taskId) : Task(), residual_(this), task_id_(taskId) {}
 
         // --------------------- Transition for allegro task ------------------------
         //   Set `data->mocap_pos` based on `data->time` to move the object site.
@@ -55,15 +49,36 @@ namespace mjpc
         void TransitionLocked(mjModel *model, mjData *data) override;
 
     protected:
-        std::unique_ptr<mjpc::ResidualFn> ResidualLocked() const override
+        unique_ptr<mjpc::ResidualFn> ResidualLocked() const override
         {
-            return std::make_unique<ResidualFn>(this, residual_.current_mode_,
-                                                residual_.reference_time_);
+            return make_unique<ResidualFn>(this);
         }
         ResidualFn *InternalResidual() override { return &residual_; }
 
     private:
         ResidualFn residual_;
+
+        int task_id_;
+        int num_mocap_frames_;
+        string task_frame_prefix_;
+    };
+
+    class AllegroAppleTask : public AllegroTask
+    {
+    public:
+        string Name() const override;
+        string XmlPath() const override;
+
+        AllegroAppleTask() : AllegroTask(0) {}
+    };
+
+    class AllegroDoorknobTask : public AllegroTask
+    {
+    public:
+        string Name() const override;
+        string XmlPath() const override;
+
+        AllegroDoorknobTask() : AllegroTask(1) {}
     };
 } // namespace mjpc
 
