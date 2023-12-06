@@ -22,7 +22,8 @@ constexpr int kMotionLengths[] = {
 };
 
 const string kTaskPrefixes[] = {
-    "apple_pass_1"};
+    "apple_pass_1" // Apple Pass 1
+};
 
 // return length of motion trajectory
 int MotionLength(int id) { return kMotionLengths[id]; }
@@ -79,13 +80,26 @@ namespace mjpc
 
         int current_index = (int(rounded_index) + start) % length;
 
-        string keyframeName = motionPrefix + "_object_" + to_string(current_index + 1);
+        string handKeyframeName = motionPrefix + "_hand_" + to_string(current_index + 1);
+        string objectKeyframeName = motionPrefix + "_object_" + to_string(current_index + 1);
 
-        double *keyframePos = KeyMPosByName(model, data, keyframeName);
-        double *keyframeQuat = KeyMQuatByName(model, data, keyframeName);
+        double *objectKeyframeMPos = KeyMPosByName(model, data, objectKeyframeName);
+        double *objectKeyframeMQuat = KeyMQuatByName(model, data, objectKeyframeName);
 
-        mju_copy3(data->mocap_pos, keyframePos);
-        mju_copy4(data->mocap_quat, keyframeQuat);
+        double *handKeyframeQPos = KeyQPosByName(model, data, handKeyframeName);
+
+        // DEBUG ONLY
+        mju_copy(data->qpos, handKeyframeQPos, model->nq);
+
+        // // Actual Reset
+        // if (current_index == 0)
+        // {
+        //     double *handKeyframeQPos = KeyQPosByName(model, data, handKeyframeName);
+        //     mju_copy(data->qpos, handKeyframeQPos, model->nu);
+        // }
+
+        mju_copy3(data->mocap_pos, objectKeyframeMPos);
+        mju_copy4(data->mocap_quat, objectKeyframeMQuat);
     }
 
 } // namespace mjpc
