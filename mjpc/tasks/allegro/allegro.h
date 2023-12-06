@@ -16,6 +16,7 @@
 #define MJPC_TASKS_ALLEGRO_HAND_H_
 
 #include <mujoco/mujoco.h>
+
 #include "mjpc/task.h"
 #include "mjpc/utilities.h"
 
@@ -39,9 +40,9 @@ namespace mjpc
             friend class AllegroTask;
         };
 
-        AllegroTask(int taskId);
-
-        // AllegroTask(int taskId) : Task(), residual_(this), task_id_(taskId) {}
+        AllegroTask(int numMocapFrames, string taskNamePrefix, string bodyName)
+            : residual_(this), fps_(120), q_hand_dim_(23), num_mocap_frames_(numMocapFrames),
+              task_frame_prefix_(taskNamePrefix), sim_body_name_(bodyName) {}
 
         // --------------------- Transition for allegro task ------------------------
         //   Set `data->mocap_pos` based on `data->time` to move the object site.
@@ -58,9 +59,12 @@ namespace mjpc
     private:
         ResidualFn residual_;
 
-        int task_id_;
+        double fps_;
+        int q_hand_dim_;
+
         int num_mocap_frames_;
         string task_frame_prefix_;
+        string sim_body_name_;
     };
 
     class AllegroAppleTask : public AllegroTask
@@ -69,7 +73,7 @@ namespace mjpc
         string Name() const override;
         string XmlPath() const override;
 
-        AllegroAppleTask() : AllegroTask(0) {}
+        AllegroAppleTask() : AllegroTask(703, "apple_pass_1", "apple_sim") {}
     };
 
     class AllegroDoorknobTask : public AllegroTask
@@ -78,7 +82,7 @@ namespace mjpc
         string Name() const override;
         string XmlPath() const override;
 
-        AllegroDoorknobTask() : AllegroTask(1) {}
+        AllegroDoorknobTask() : AllegroTask(1040, "doorknob_use_1", "doorknob_sim") {}
     };
 } // namespace mjpc
 
