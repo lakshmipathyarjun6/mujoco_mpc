@@ -41,7 +41,8 @@ namespace mjpc
   {
     return {
         std::make_shared<Acrobot>(),
-        std::make_shared<Allegro>(),
+        std::make_shared<AllegroAppleTask>(),
+        std::make_shared<AllegroDoorknobTask>(),
         std::make_shared<Cartpole>(),
         std::make_shared<Fingers>(),
         std::make_shared<Hand>(),
