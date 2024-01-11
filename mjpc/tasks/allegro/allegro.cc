@@ -16,8 +16,46 @@
 
 namespace mjpc
 {
+    // ---------- Residuals for allegro hand manipulation task ---------
+    //   Number of residuals: 4
+    //     Residual (0): object_position - object_traj_position
+    //     Residual (1): object_orientation - object_traj_orientation
+    // ------------------------------------------------------------
+
+    // NOTE: Currently unclear how to adapt to non-free objects (e.g. doorknob)
     void AllegroTask::ResidualFn::Residual(const mjModel *model, const mjData *data,
-                                           double *residual) const {}
+                                           double *residual) const
+    {
+        int offset = 0;
+
+        // ---------- Residual (0) ----------
+        // goal position
+        double *goal_position = SensorByName(model, data, "object_traj_position");
+
+        // system's position
+        double *position = SensorByName(model, data, "object_position");
+
+        // position error
+        mju_sub3(residual + offset, position, goal_position);
+        offset += 3;
+
+        // ---------- Residual (1) ----------
+        // goal orientation
+        double *goal_orientation = SensorByName(model, data, "object_traj_orientation");
+
+        // system's orientation
+        double *orientation = SensorByName(model, data, "object_orientation");
+
+        mju_normalize4(goal_orientation);
+        mju_normalize4(orientation);
+
+        // orientation error
+        mju_subQuat(residual + offset, goal_orientation, orientation);
+        offset += 3;
+
+        // sensor dim sanity check
+        CheckSensorDim(model, offset);
+    }
 
     // --------------------- Transition for allegro task ------------------------
     //   Set `data->mocap_pos` based on `data->time` to move the object site.
@@ -36,10 +74,10 @@ namespace mjpc
 
         double *handKeyframeQPos = KeyQPosByName(model, data, handKeyframeName);
 
-        // DEBUG ONLY
-        int handRootBody = mj_name2id(model, mjOBJ_BODY, "wrist");
-        int handQposadr = model->jnt_qposadr[model->body_jntadr[handRootBody]];
-        mju_copy(data->qpos + handQposadr, handKeyframeQPos, q_hand_dim_);
+        // // DEBUGGING: Uncomment below to view kinematic trajectory
+        // int handRootBody = mj_name2id(model, mjOBJ_BODY, "wrist");
+        // int handQposadr = model->jnt_qposadr[model->body_jntadr[handRootBody]];
+        // mju_copy(data->qpos + handQposadr, handKeyframeQPos, q_hand_dim_);
 
         // Reset
         if (current_index == 0)
@@ -66,6 +104,10 @@ namespace mjpc
                     mju_zero(data->qvel + objQposadr, objDofs);
                 }
             }
+
+            int handRootBody = mj_name2id(model, mjOBJ_BODY, "wrist");
+            int handQposadr = model->jnt_qposadr[model->body_jntadr[handRootBody]];
+            mju_copy(data->qpos + handQposadr, handKeyframeQPos, q_hand_dim_);
 
             // Zero out entire system velocity
             mju_zero(data->qvel, model->nq);
