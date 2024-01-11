@@ -17,6 +17,13 @@
         <geom name="floor" pos="0 0 -0.2" size="0 0 0.05" type="plane" material="blue_grid"/>
     </worldbody>
 
+    <sensor>
+        <framepos name="object_traj_position" objtype="body" objname="doorknob_mocap"/>
+        <framequat name="object_traj_orientation" objtype="body" objname="doorknob_mocap"/>
+        <framepos name="object_position" objtype="body" objname="doorknob_sim"/>
+        <framequat name="object_orientation" objtype="body" objname="doorknob_sim"/>
+    </sensor>
+
     <include file="./keyframes/doorknob_use_1/doorknob_use_1.xml" />
 
 </mujoco>
