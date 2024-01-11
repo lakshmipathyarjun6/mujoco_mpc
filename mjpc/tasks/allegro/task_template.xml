@@ -31,9 +31,11 @@
         <geom friction=".6"/>
     </default>
 
+    <!-- <See https://github.com/lakshmipathyarjun6/mujoco_mpc/blob/c5c7ead065b7f4034ab265a13023231900dbfaa7/docs/OVERVIEW.md for user sensors used as residuals> -->
     <sensor>
-        <user name="In Hand" dim="3" user="1 20 0 100 0.02 2"/>
-        <framepos name="palm_position" objtype="site" objname="grasp_site"/>
+        <user name="Object Position" dim="3" user="0 1.0 0 20"/>
+        <user name="Object Orientation" dim="3" user="0 1.0 0 20"/>
+        <!-- <framepos name="palm_position" objtype="site" objname="grasp_site"/> -->
     </sensor>
 
     <include file="right_hand.xml"/>
