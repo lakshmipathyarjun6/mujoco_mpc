@@ -20,6 +20,7 @@ namespace mjpc
     //   Number of residuals: 4
     //     Residual (0): object_position - object_traj_position
     //     Residual (1): object_orientation - object_traj_orientation
+    //     Residual (2): hand_state - hand_mocap_state
     // ------------------------------------------------------------
 
     // NOTE: Currently unclear how to adapt to non-free objects (e.g. doorknob)
@@ -53,6 +54,14 @@ namespace mjpc
         mju_subQuat(residual + offset, goal_orientation, orientation);
         offset += 3;
 
+        // ---------- Residual (2) ----------
+        int handRootBody = mj_name2id(model, mjOBJ_BODY, "wrist");
+        int handQposadr = model->jnt_qposadr[model->body_jntadr[handRootBody]];
+
+        mju_sub(residual + offset, data->qpos + handQposadr, r_qpos_buffer_, ALLEGRO_DOFS);
+
+        offset += ALLEGRO_DOFS;
+
         // sensor dim sanity check
         CheckSensorDim(model, offset);
     }
@@ -63,7 +72,7 @@ namespace mjpc
     void AllegroTask::TransitionLocked(mjModel *model, mjData *data)
     {
         // indices
-        double rounded_index = floor(data->time * fps_);
+        double rounded_index = floor(data->time * FPS);
         int current_index = int(rounded_index) % num_mocap_frames_;
 
         string handKeyframeName = task_frame_prefix_ + "_hand_" + to_string(current_index + 1);
@@ -74,16 +83,18 @@ namespace mjpc
 
         double *handKeyframeQPos = KeyQPosByName(model, data, handKeyframeName);
 
+        mju_copy(residual_.r_qpos_buffer_, handKeyframeQPos, ALLEGRO_DOFS);
+
         // // DEBUGGING: Uncomment below to view kinematic trajectory
         // int handRootBody = mj_name2id(model, mjOBJ_BODY, "wrist");
         // int handQposadr = model->jnt_qposadr[model->body_jntadr[handRootBody]];
-        // mju_copy(data->qpos + handQposadr, handKeyframeQPos, q_hand_dim_);
+        // mju_copy(data->qpos + handQposadr, handKeyframeQPos, ALLEGRO_DOFS);
 
         // Reset
         if (current_index == 0)
         {
             int objBody = mj_name2id(model, mjOBJ_BODY, sim_body_name_.c_str());
-            int objDofs = model->nq - q_hand_dim_;
+            int objDofs = model->nq - ALLEGRO_DOFS;
             bool objectSimBodyExists = objBody != -1;
 
             if (objectSimBodyExists)
@@ -107,7 +118,7 @@ namespace mjpc
 
             int handRootBody = mj_name2id(model, mjOBJ_BODY, "wrist");
             int handQposadr = model->jnt_qposadr[model->body_jntadr[handRootBody]];
-            mju_copy(data->qpos + handQposadr, handKeyframeQPos, q_hand_dim_);
+            mju_copy(data->qpos + handQposadr, handKeyframeQPos, ALLEGRO_DOFS);
 
             // Zero out entire system velocity
             mju_zero(data->qvel, model->nq);

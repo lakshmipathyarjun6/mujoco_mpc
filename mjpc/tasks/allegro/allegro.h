@@ -20,6 +20,9 @@
 #include "mjpc/task.h"
 #include "mjpc/utilities.h"
 
+#define FPS 120
+#define ALLEGRO_DOFS 23
+
 using namespace std;
 
 namespace mjpc
@@ -31,17 +34,28 @@ namespace mjpc
         {
         public:
             explicit ResidualFn(const AllegroTask *task)
-                : mjpc::BaseResidualFn(task) {}
+                : mjpc::BaseResidualFn(task)
+            {
+                fill(begin(r_qpos_buffer_), end(r_qpos_buffer_), 0);
+            }
+
+            explicit ResidualFn(const AllegroTask *task, const double qpos_buffer[ALLEGRO_DOFS])
+                : mjpc::BaseResidualFn(task)
+            {
+                mju_copy(r_qpos_buffer_, qpos_buffer, ALLEGRO_DOFS);
+            }
 
             void Residual(const mjModel *model, const mjData *data,
                           double *residual) const override;
 
         private:
             friend class AllegroTask;
+
+            double r_qpos_buffer_[ALLEGRO_DOFS];
         };
 
         AllegroTask(int numMocapFrames, string taskNamePrefix, string bodyName)
-            : residual_(this), fps_(120), q_hand_dim_(23), num_mocap_frames_(numMocapFrames),
+            : residual_(this), num_mocap_frames_(numMocapFrames),
               task_frame_prefix_(taskNamePrefix), sim_body_name_(bodyName) {}
 
         // --------------------- Transition for allegro task ------------------------
@@ -52,15 +66,12 @@ namespace mjpc
     protected:
         unique_ptr<mjpc::ResidualFn> ResidualLocked() const override
         {
-            return make_unique<ResidualFn>(this);
+            return make_unique<ResidualFn>(this, residual_.r_qpos_buffer_);
         }
         ResidualFn *InternalResidual() override { return &residual_; }
 
     private:
         ResidualFn residual_;
-
-        double fps_;
-        int q_hand_dim_;
 
         int num_mocap_frames_;
         string task_frame_prefix_;
