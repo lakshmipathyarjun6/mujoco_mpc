@@ -35,7 +35,7 @@
     <sensor>
         <user name="Object Position" dim="3" user="0 1.0 0 20"/>
         <user name="Object Orientation" dim="3" user="0 1.0 0 20"/>
-        <!-- <framepos name="palm_position" objtype="site" objname="grasp_site"/> -->
+        <user name="Hand State" dim="23" user="0 1.0 0 20"/>
     </sensor>
 
     <include file="right_hand.xml"/>
