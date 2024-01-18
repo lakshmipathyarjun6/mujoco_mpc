@@ -163,12 +163,15 @@ target_compile_definitions(libmjpc PRIVATE MJSIMULATE_STATIC)
 target_link_libraries(
   libmjpc
   absl::any_invocable
+  absl::check
   absl::flat_hash_map
   absl::random_random
+  agent_state_proto_lib
   glfw
   lodepng
   mujoco::mujoco
   mujoco::platform_ui_adapter
+  ${_PROTOBUF_LIBPROTOBUF}
   threadpool
   Threads::Threads
 )
@@ -188,8 +191,10 @@ target_link_libraries(
   absl::flags_parse
   absl::random_random
   absl::strings
+  agent_state_proto_lib
   libmjpc
   mujoco::mujoco
+  ${_PROTOBUF_LIBPROTOBUF}
   threadpool
   Threads::Threads
 )
