@@ -23,6 +23,7 @@
 #include "mjpc/tasks/humanoid/stand/stand.h"
 #include "mjpc/tasks/humanoid/tracking/tracking.h"
 #include "mjpc/tasks/humanoid/walk/walk.h"
+#include "mjpc/tasks/panda/panda.h"
 
 namespace mjpc
 {
@@ -36,7 +37,7 @@ namespace mjpc
         std::make_shared<Hand>(),
         std::make_shared<humanoid::Stand>(),
         std::make_shared<humanoid::Tracking>(),
-        std::make_shared<humanoid::Walk>()
-    };
+        std::make_shared<humanoid::Walk>(),
+        std::make_shared<Panda>()};
   }
 } // namespace mjpc

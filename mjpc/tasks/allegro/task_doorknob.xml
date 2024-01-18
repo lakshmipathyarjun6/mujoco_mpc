@@ -14,6 +14,9 @@
                 <geom name="doorknob_sim_geom" type="mesh" mesh="doorknob" mass="2.485148625" rgba="0.8313 0.686 0.216 1.0"/>
             </body>
         </body>
+        <body name="hand_startclamp" pos="-1.05350866 0.30617798 1.28931948">
+            <include file="right_hand_body.xml"/>
+        </body>
         <geom name="floor" pos="0 0 -0.2" size="0 0 0.05" type="plane" material="blue_grid"/>
     </worldbody>
 

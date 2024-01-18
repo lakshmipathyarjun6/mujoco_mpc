@@ -41,7 +41,7 @@
 #include "mjpc/utilities.h"
 
 ABSL_FLAG(std::string, task, "", "Which model to load on startup.");
-ABSL_FLAG(bool, planner_enabled, false,
+ABSL_FLAG(bool, planner_enabled, true,
           "If true, the planner will run on startup");
 ABSL_FLAG(float, sim_percent_realtime, 100,
           "The realtime percentage at which the simulation will be launched.");
@@ -93,6 +93,13 @@ void controller(const mjModel* m, mjData* data) {
     sim->agent->ActivePlanner().ActionFromPolicy(
         data->ctrl, &sim->agent->state.state()[0],
         sim->agent->state.time());
+
+    // *(data->ctrl + 0) = 1.0;
+
+    // for(int i = 0; i < m->nu; i++)
+    // {
+    //   std::cout << i << " " << *(data->ctrl + i) << std::endl;
+    // }
   }
   // if noise
   if (!sim->agent->allocate_enabled && sim->uiloadrequest.load() == 0 &&
