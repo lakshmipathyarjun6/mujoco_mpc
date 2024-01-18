@@ -182,6 +182,7 @@ target_link_libraries(
   lodepng
   mujoco::mujoco
   mujoco::platform_ui_adapter
+  ${_PROTOBUF_LIBPROTOBUF}
   threadpool
   Threads::Threads
 )
@@ -201,8 +202,10 @@ target_link_libraries(
   absl::flags_parse
   absl::random_random
   absl::strings
+  agent_state_proto_lib
   libmjpc
   mujoco::mujoco
+  ${_PROTOBUF_LIBPROTOBUF}
   threadpool
   Threads::Threads
 )
