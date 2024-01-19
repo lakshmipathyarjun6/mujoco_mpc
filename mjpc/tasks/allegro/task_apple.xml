@@ -15,6 +15,7 @@
         <body name="hand_startclamp" pos="-0.559216021990488 1.0061246071752599 1.3645857582385554">
             <include file="right_hand_body.xml"/>
         </body>
+        <include file="right_hand_mocap_vis.xml"/>
         <geom name="table" pos="0.22647 -0.4 0.34" size="0.5 0.5 0.5" type="box" material="grey_grid"/>
         <geom name="floor" pos="0 0 -0.2" size="0 0 0.05" type="plane" material="blue_grid"/>
     </worldbody>
@@ -26,6 +27,6 @@
         <framequat name="object_orientation" objtype="body" objname="apple_sim"/>
     </sensor>
 
-    <include file="./keyframes/apple_pass_1/apple_pass_1.xml" />
+    <include file="./keyframes/apple_pass_1.xml" />
 
 </mujoco>

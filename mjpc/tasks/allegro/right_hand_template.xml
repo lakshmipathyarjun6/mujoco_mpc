@@ -130,8 +130,8 @@
 
   <actuator>
     <position name="ratx" joint="RootTx"/>
-    <!-- <position name="raty" joint="RootTy"/> -->
-    <!-- <position name="ratz" joint="RootTz"/> -->
+    <position name="raty" joint="RootTy"/>
+    <position name="ratz" joint="RootTz"/>
     <position name="tha0" joint="thj0" class="thumb_base"/>
     <position name="tha1" joint="thj1" class="thumb_proximal"/>
     <position name="tha2" joint="thj2" class="thumb_medial"/>
