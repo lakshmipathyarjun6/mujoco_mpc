@@ -25,10 +25,10 @@
         <geom mesh="link_3.0"/>
       </default>
       <default class="fingertip_visual">
-        <geom pos="0 0 0.0267" material="white" mesh="link_3.0_tip"/>
+        <geom material="white" mesh="link_3.0_tip"/>
       </default>
       <default class="thumbtip_visual">
-        <geom pos="0 0 0.0423" material="white" mesh="link_15.0_tip"/>
+        <geom material="white" mesh="link_15.0_tip"/>
       </default>
     </default>
 
