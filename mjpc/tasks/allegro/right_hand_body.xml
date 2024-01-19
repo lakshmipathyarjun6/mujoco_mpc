@@ -26,7 +26,7 @@
                 <joint name="thj3" class="thumb_distal"/>
                 <geom class="visual" mesh="link_15.0"/>
                 <geom class="thumb_distal_collision"/>
-                <body name="th_tip" gravcomp="1">
+                <body name="th_tip" gravcomp="1" pos="0 0 0.0423">
                   <geom class="thumbtip_visual"/>
                   <geom class="thumbtip_collision"/>
                 </body>
@@ -51,7 +51,7 @@
                 <joint name="ffj3" class="distal"/>
                 <geom class="distal_visual"/>
                 <geom class="distal_collision"/>
-                <body name="ff_tip" gravcomp="1">
+                <body name="ff_tip" gravcomp="1" pos="0 0 0.0267">
                   <geom class="fingertip_visual"/>
                   <geom class="fingertip_collision"/>
                 </body>
@@ -76,7 +76,7 @@
                 <joint name="mfj3" class="distal"/>
                 <geom class="distal_visual"/>
                 <geom class="distal_collision"/>
-                <body name="mf_tip" gravcomp="1">
+                <body name="mf_tip" gravcomp="1" pos="0 0 0.0267">
                   <geom class="fingertip_visual"/>
                   <geom class="fingertip_collision"/>
                 </body>
@@ -101,7 +101,7 @@
                 <joint name="rfj3" class="distal"/>
                 <geom class="distal_visual"/>
                 <geom class="distal_collision"/>
-                <body name="rf_tip" gravcomp="1">
+                <body name="rf_tip" gravcomp="1" pos="0 0 0.0267">
                   <geom class="fingertip_visual"/>
                   <geom class="fingertip_collision"/>
                 </body>
