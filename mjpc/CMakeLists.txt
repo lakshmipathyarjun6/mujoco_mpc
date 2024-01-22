@@ -69,6 +69,8 @@ add_library(
   tasks/tasks.h
   tasks/acrobot/acrobot.cc
   tasks/acrobot/acrobot.h
+  tasks/apple/apple.cc
+  tasks/apple/apple.h
   tasks/allegro/allegro.cc
   tasks/allegro/allegro.h
   tasks/cartpole/cartpole.cc

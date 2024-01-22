@@ -1,0 +1,65 @@
+<mujoco model="Apple Task">
+
+    <include file="../common.xml"/>
+
+    <size memory="1M"/>
+
+    <compiler angle="radian" meshdir="assets" autolimits="true"/>
+
+    <asset>
+        <mesh name="apple" file="apple.obj" />
+    </asset>
+
+    <custom>
+        <numeric name="agent_planner" data="0" />
+        <numeric name="agent_horizon" data="0.25" />
+        <numeric name="agent_timestep" data="0.01" />
+        <numeric name="agent_policy_width" data="0.0035" />
+        <numeric name="sampling_spline_points" data="6" />
+        <numeric name="sampling_exploration" data="0.1" />
+        <numeric name="robust_xfrc" data="0.004" />
+        <numeric name="gradient_spline_points" data="6" />
+    </custom>
+
+    <statistic extent="0.4" center="0.3 0.1 0"/>
+
+    <visual>
+        <quality shadowsize="8192"/>
+        <global azimuth="180" elevation="-30"/>
+    </visual>
+
+    <default>
+        <geom friction=".6"/>
+    </default>
+
+    <worldbody>
+        <light pos="0 -0.1 0.5" dir="0 0.2 -1" diffuse="0.7 0.7 0.7" specular="0.3 0.3 0.3"
+            directional="true" castshadow="true"/>
+        <body name="apple_mocap" mocap="true">
+            <geom type="mesh" mesh="apple" size="1 1 1" contype="0" conaffinity="0" rgba="0 1 0 1.0"/>
+        </body>
+        <body name="apple_sim" gravcomp="1">
+            <joint name="tx" axis="1 0 0" type="slide"/>
+            <joint name="ty" axis="0 1 0" type="slide"/>
+            <joint name="tz" axis="0 0 1" type="slide"/>
+            <geom name="apple_sim_geom" type="mesh" mesh="apple" mass="2.485148625" rgba="1.0 0 0 1.0"/>
+        </body>
+        <geom name="table" pos="0.22647 -0.4 0.34" size="0.5 0.5 0.5" type="box" material="grey_grid"/>
+        <geom name="floor" pos="0 0 -0.2" size="0 0 0.05" type="plane" material="blue_grid"/>
+    </worldbody>
+
+    <actuator>
+        <position name="ratx" joint="tx" ctrlrange="-10 10"/>
+        <position name="raty" joint="ty" ctrlrange="-10 10"/>
+        <position name="ratz" joint="tz" ctrlrange="-10 10"/>
+    </actuator>
+
+    <sensor>
+        <user name="Object Position" dim="3" user="0 100.0 0 100"/>
+        <framepos name="object_traj_position" objtype="body" objname="apple_mocap"/>
+        <framepos name="object_position" objtype="body" objname="apple_sim"/>
+    </sensor>
+
+    <include file="./keyframes/apple_pass_1.xml" />
+
+</mujoco>
