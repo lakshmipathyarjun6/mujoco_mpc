@@ -55,7 +55,7 @@
     </actuator>
 
     <sensor>
-        <user name="Object Position" dim="3" user="0 100.0 0 100"/>
+        <user name="Object Position" dim="3" user="0 1000.0 0 1000"/>
         <framepos name="object_traj_position" objtype="body" objname="apple_mocap"/>
         <framepos name="object_position" objtype="body" objname="apple_sim"/>
     </sensor>
