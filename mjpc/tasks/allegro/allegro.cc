@@ -148,6 +148,8 @@ namespace mjpc
             // Zero out entire system velocity, acceleration, and forces
             mju_zero(data->qvel, model->nv);
             mju_zero(data->qacc, model->nv);
+            mju_zero(data->ctrl, model->nu);
+            mju_zero(data->actuator_force, model->nu);
             mju_zero(data->qfrc_applied, model->nv);
             mju_zero(data->xfrc_applied, model->nbody * 6);
         }
