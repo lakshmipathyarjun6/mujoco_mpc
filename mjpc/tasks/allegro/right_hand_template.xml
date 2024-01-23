@@ -69,6 +69,12 @@
       </default>
     </default>
 
+    <default class="root_trans">
+      <position ctrlrange="-10 10"/>
+    </default>
+    <default class="root_rot">
+      <position ctrlrange="-3.14 3.14"/>
+    </default>
     <default class="base">
       <joint axis="0 0 1" range="-0.47 0.47"/>
       <position ctrlrange="-0.47 0.47"/>
@@ -129,9 +135,12 @@
   </contact>
 
   <actuator>
-    <position name="ratx" joint="RootTx"/>
-    <position name="raty" joint="RootTy"/>
-    <position name="ratz" joint="RootTz"/>
+    <position name="ratx" joint="RootTx" class="root_trans"/>
+    <position name="raty" joint="RootTy" class="root_trans"/>
+    <position name="ratz" joint="RootTz" class="root_trans"/>
+    <position name="rarx" joint="RootRx" class="root_rot"/>
+    <position name="rary" joint="RootRy" class="root_rot"/>
+    <position name="rarz" joint="RootRz" class="root_rot"/>
     <position name="tha0" joint="thj0" class="thumb_base"/>
     <position name="tha1" joint="thj1" class="thumb_proximal"/>
     <position name="tha2" joint="thj2" class="thumb_medial"/>

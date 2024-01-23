@@ -20,9 +20,9 @@
 #include "mjpc/task.h"
 #include "mjpc/utilities.h"
 
-#define FPS 120
+#define FPS 12
 
-#define ALLEGRO_DOFS 23
+#define ALLEGRO_DOFS 22
 #define ALLEGRO_ROOT "wrist"
 #define ALLEGRO_MOCAP_ROOT "palm"
 
