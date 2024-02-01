@@ -23,11 +23,13 @@
 #include "mjpc/planners/planner.h"
 #include "mjpc/planners/robust/robust_planner.h"
 #include "mjpc/planners/sampling/planner.h"
+#include "mjpc/planners/posesamplingpd/planner.h"
 
 namespace mjpc {
 const char kPlannerNames[] =
     "Gradient\n"
     "Sampling\n"
+    "PoseSamplingPD\n"
     "iLQG\n"
     "iLQS\n"
     "Robust Sampling";
@@ -39,6 +41,7 @@ std::vector<std::unique_ptr<mjpc::Planner>> LoadPlanners() {
 
   planners.emplace_back(new mjpc::GradientPlanner);
   planners.emplace_back(new mjpc::SamplingPlanner);
+  planners.emplace_back(new mjpc::PoseSamplingPDPlanner);
   planners.emplace_back(new mjpc::iLQGPlanner);
   planners.emplace_back(new mjpc::iLQSPlanner);
   planners.emplace_back(
