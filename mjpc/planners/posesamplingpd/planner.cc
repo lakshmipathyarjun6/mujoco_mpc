@@ -31,6 +31,9 @@ namespace mjpc
         state.resize(num_state);
         mocap.resize(7 * model->nmocap);
         userdata.resize(model->nuserdata);
+
+        // policy
+        policy.Allocate(model, *task, kMaxTrajectoryHorizon);
     }
 
     // reset memory to zeros
@@ -59,28 +62,7 @@ namespace mjpc
                                                  double time, bool use_previous)
     {
         const shared_lock<shared_mutex> lock(mtx_);
-
-        double rounded_index = floor(time * FPS);
-        int current_index = int(rounded_index) % model->nkey;
-
-        int handMocapQOffset = model->nq * current_index;
-
-        double posError[MaxDOFs];
-        double velError[MaxDOFs];
-
-        mju_sub(posError, model->key_qpos + handMocapQOffset, state, model->nu);
-        mju_scl(posError, posError, 20, 3);
-        mju_scl(posError + 3, posError + 3, 10, 3);
-        mju_scl(posError + 6, posError + 6, 5, model->nu - 6);
-
-        mju_copy(velError, state + model->nq, model->nu); // want velocity close to 0
-        mju_scl(velError, velError, 1, 3);
-        mju_scl(velError + 3, velError + 3, 0, model->nu - 3);
-
-        mju_sub(action, posError, velError, model->nu);
-
-        // Clamp controls
-        Clamp(action, model->actuator_ctrlrange, model->nu);
+        policy.Action(action, state, time);
     }
 
     // return trajectory with best total return
