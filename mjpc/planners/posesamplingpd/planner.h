@@ -9,19 +9,14 @@
 
 #include "mjpc/array_safety.h"
 #include "mjpc/planners/planner.h"
+#include "mjpc/planners/posesamplingpd/policy.h"
 #include "mjpc/threadpool.h"
 #include "mjpc/utilities.h"
-
-#define FPS 12
 
 using namespace std;
 
 namespace mjpc
 {
-
-    // pd planner limits
-    inline constexpr int MaxDOFs = 60;
-
     class PoseSamplingPDPlanner : public Planner
     {
     public:
@@ -77,6 +72,9 @@ namespace mjpc
         double time;
         vector<double> mocap;
         vector<double> userdata;
+
+        // policy
+        PoseSamplingPDPolicy policy; // (Guarded by mtx_)
 
         mutable shared_mutex mtx_;
     };
