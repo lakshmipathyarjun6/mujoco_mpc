@@ -88,7 +88,7 @@ namespace mjpc
     {
         // indices
         double rounded_index = floor(data->time * FPS);
-        int current_index = int(rounded_index) % num_mocap_frames_;
+        int current_index = int(rounded_index) % model->nkey;
 
         // current_index = min(current_index, 1);
 
