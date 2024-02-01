@@ -12,10 +12,15 @@
 #include "mjpc/threadpool.h"
 #include "mjpc/utilities.h"
 
+#define FPS 12
+
 using namespace std;
 
 namespace mjpc
 {
+
+    // pd planner limits
+    inline constexpr int MaxDOFs = 60;
 
     class PoseSamplingPDPlanner : public Planner
     {
