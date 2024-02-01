@@ -60,13 +60,13 @@ namespace mjpc
     {
         const shared_lock<shared_mutex> lock(mtx_);
 
-        double rounded_index = floor(time * 12);
+        double rounded_index = floor(time * FPS);
         int current_index = int(rounded_index) % model->nkey;
 
         int handMocapQOffset = model->nq * current_index;
 
-        double posError[22];
-        double velError[22];
+        double posError[MaxDOFs];
+        double velError[MaxDOFs];
 
         mju_sub(posError, model->key_qpos + handMocapQOffset, state, model->nu);
         mju_scl(posError, posError, 20, 3);
