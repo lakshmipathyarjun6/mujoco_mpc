@@ -122,6 +122,8 @@ add_library(
   planners/sampling/planner.h
   planners/sampling/policy.cc
   planners/sampling/policy.h
+  planners/posesamplingpd/planner.cc
+  planners/posesamplingpd/planner.h
   planners/gradient/gradient.cc
   planners/gradient/gradient.h
   planners/gradient/planner.cc
