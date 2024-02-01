@@ -63,9 +63,8 @@ namespace mjpc
             double r_qpos_buffer_[ALLEGRO_DOFS];
         };
 
-        AllegroTask(int numMocapFrames, string objectSimBodyName)
-            : residual_(this), num_mocap_frames_(numMocapFrames),
-              object_sim_body_name_(objectSimBodyName) {}
+        AllegroTask(string objectSimBodyName)
+            : residual_(this), object_sim_body_name_(objectSimBodyName) {}
 
         // --------------------- Transition for allegro task ------------------------
         //   Set `data->mocap_pos` based on `data->time` to move the object site.
@@ -82,7 +81,6 @@ namespace mjpc
     private:
         ResidualFn residual_;
 
-        int num_mocap_frames_;
         string object_sim_body_name_;
 
         double hand_kinematic_buffer_[ALLEGRO_DOFS];
@@ -94,7 +92,7 @@ namespace mjpc
         string Name() const override;
         string XmlPath() const override;
 
-        AllegroAppleTask() : AllegroTask(703, "apple_sim") {}
+        AllegroAppleTask() : AllegroTask("apple_sim") {}
 
     private:
     };
@@ -105,7 +103,7 @@ namespace mjpc
         string Name() const override;
         string XmlPath() const override;
 
-        AllegroDoorknobTask() : AllegroTask(1040, "doorknob_sim") {}
+        AllegroDoorknobTask() : AllegroTask("doorknob_sim") {}
     };
 } // namespace mjpc
 
