@@ -18,17 +18,27 @@
 #include <mujoco/mujoco.h>
 
 #include "mjpc/planners/policy.h"
+#include "mjpc/trajectory.h"
 #include "mjpc/utilities.h"
-
-#define FPS 12
 
 using namespace std;
 
 namespace mjpc
 {
 
-    // pd planner limits
-    inline constexpr int MaxDOFs = 60;
+    // maximum system dofs
+    inline constexpr int kMaxSystemDofs = 60;
+
+    // default framerate
+    inline constexpr int kDefaultFramerate = 120;
+
+    // pd default gains
+    inline constexpr double kDefaultPdKp = 5;
+    inline constexpr double kDefaultPdKd = 0;
+    inline constexpr double kDefaultRootPosPdKp = 20;
+    inline constexpr double kDefaultRootPosPdKd = 1;
+    inline constexpr double kDefaultRootQuatPdKp = 10;
+    inline constexpr double kDefaultRootQuatPdKd = 0;
 
     // policy for sampling planner
     class PoseSamplingPDPolicy : public Policy
@@ -42,18 +52,36 @@ namespace mjpc
 
         // ----- methods ----- //
 
+        // initialize
+        void Initialize();
+
         // allocate memory
         void Allocate(const mjModel *model, const Task &task, int horizon) override;
 
-        // reset memory to zeros
+        // reset memory to zeros and reference configs to original mocap trajectory
         void Reset(int horizon,
                    const double *initial_repeated_action = nullptr) override;
 
         // set action from policy
         void Action(double *action, const double *state, double time) const override;
 
+        // copy parameters
+        void CopyReferenceConfigsFrom(const vector<double> &src_reference_configs);
+
+        vector<double> m_reference_configs;
+
+    private:
         // ----- members ----- //
-        const mjModel *model;
+        const mjModel *m_model;
+
+        int m_mocap_reference_framerate;
+
+        double m_pd_default_kp;
+        double m_pd_default_kd;
+        double m_root_pd_pos_kp;
+        double m_root_pd_pos_kd;
+        double m_root_pd_quat_kp;
+        double m_root_pd_quat_kd;
     };
 
 } // namespace mjpc

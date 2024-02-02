@@ -11,13 +11,14 @@
 #include "mjpc/planners/planner.h"
 #include "mjpc/planners/posesamplingpd/policy.h"
 #include "mjpc/threadpool.h"
+#include "mjpc/trajectory.h"
 #include "mjpc/utilities.h"
 
 using namespace std;
 
 namespace mjpc
 {
-    class PoseSamplingPDPlanner : public Planner
+    class PoseSamplingPDPlanner : public RankedPlanner
     {
     public:
         // constructor
@@ -46,9 +47,12 @@ namespace mjpc
         // compute trajectory using nominal policy
         void NominalTrajectory(int horizon, ThreadPool &pool) override;
 
-        // set action from policy
+        // set action from active policy
         void ActionFromPolicy(double *action, const double *state,
                               double time, bool use_previous = false) override;
+
+        // compute candidate trajectories
+        void Rollouts(int num_trajectory, int horizon, ThreadPool &pool);
 
         // return trajectory with best total return
         const Trajectory *BestTrajectory() override;
@@ -63,20 +67,57 @@ namespace mjpc
         void Plots(mjvFigure *fig_planner, mjvFigure *fig_timer, int planner_shift,
                    int timer_shift, int planning, int *shift) override;
 
+        // optimizes policies, but rather than picking the best, generate up to
+        // ncandidates. returns number of candidates created.
+        int OptimizePolicyCandidates(int ncandidates, int horizon,
+                                     ThreadPool &pool) override;
+
+        // returns the total return for the nth candidate (or another score to
+        // minimize)
+        double CandidateScore(int candidate) const override;
+
+        // set action from candidate policy
+        void ActionFromCandidatePolicy(double *action, int candidate,
+                                       const double *state, double time) override;
+
+        void CopyCandidateToPolicy(int candidate) override;
+
+    private:
         // ----- members ----- //
-        mjModel *model;
-        const Task *task;
+        mjModel *m_model;
+        const Task *m_task;
 
         // state
-        vector<double> state;
-        double time;
-        vector<double> mocap;
-        vector<double> userdata;
+        double m_time;
+        vector<double> m_state;
+        vector<double> m_mocap;
+        vector<double> m_userdata;
 
-        // policy
-        PoseSamplingPDPolicy policy; // (Guarded by mtx_)
+        // policies
+        PoseSamplingPDPolicy m_active_policy; // (Guarded by mtx_)
+        PoseSamplingPDPolicy m_candidate_policies[kMaxTrajectory];
+        PoseSamplingPDPolicy m_previous_policy;
 
-        mutable shared_mutex mtx_;
+        // holding buffers for parallel reads
+        vector<double> m_config_parameters_buffer;
+        vector<double> m_ctrl_parameters_buffer;
+        vector<double> m_times_buffer;
+
+        // trajectories
+        int m_num_candidate_trajectories;                    // actual number of candidate trajectories
+        int m_best_candidate_trajectory_index;               // best trajectory index in unordered trajectory list
+        int m_trajectory_improvement;                        // improvement in total return since last update
+        Trajectory m_candidate_trajectories[kMaxTrajectory]; // allocate maximum trajectory space
+        vector<int> m_candidate_trajectory_order;            // order of indices of rolled out trajectories, ordered by total return
+
+        // rollouts
+        double m_timestep_power;
+
+        // timing
+        double m_rollouts_compute_time;
+        double m_policy_update_compute_time;
+
+        mutable shared_mutex m_mtx;
     };
 }
 
