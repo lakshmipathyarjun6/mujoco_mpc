@@ -17,43 +17,81 @@
 namespace mjpc
 {
 
+    // set reference config to default mocap data
+    void PoseSamplingPDPolicy::Initialize()
+    {
+        mju_copy(m_reference_configs.data(), m_model->key_qpos, m_model->nkey * m_model->nq);
+    }
+
     // allocate memory
     void PoseSamplingPDPolicy::Allocate(const mjModel *model, const Task &task,
                                         int horizon)
     {
         // model
-        this->model = model;
+        m_model = model;
+
+        // framerate
+        m_mocap_reference_framerate = GetNumberOrDefault(kDefaultFramerate, m_model,
+                                                         "mocap_reference_framerate");
+
+        // reference configs
+        m_reference_configs.resize(m_model->nkey * m_model->nq);
+
+        // PD gains
+        m_pd_default_kp = GetNumberOrDefault(kDefaultPdKp, m_model,
+                                             "default_pd_kp");
+        m_pd_default_kd = GetNumberOrDefault(kDefaultPdKd, m_model,
+                                             "default_pd_kd");
+        m_root_pd_pos_kp = GetNumberOrDefault(kDefaultRootPosPdKp, m_model,
+                                              "root_pos_pd_kp");
+        m_root_pd_pos_kd = GetNumberOrDefault(kDefaultRootPosPdKd, m_model,
+                                              "root_pos_pd_kd");
+        m_root_pd_quat_kp = GetNumberOrDefault(kDefaultRootQuatPdKp, m_model,
+                                               "root_quat_pd_kp");
+        m_root_pd_quat_kd = GetNumberOrDefault(kDefaultRootQuatPdKd, m_model,
+                                               "root_quat_pd_kd");
     }
 
-    // reset memory to zeros
+    // same as initialize
     void PoseSamplingPDPolicy::Reset(int horizon, const double *initial_repeated_action)
     {
+        mju_copy(m_reference_configs.data(), m_model->key_qpos, m_model->nkey * m_model->nq);
     }
 
     // set action from policy
+    // TODO: Currently assumes system is fully actuated
     void PoseSamplingPDPolicy::Action(double *action, const double *state, double time) const
     {
-        double rounded_index = floor(time * FPS);
-        int current_index = int(rounded_index) % model->nkey;
+        double rounded_index = floor(time * m_mocap_reference_framerate);
+        int current_index = int(rounded_index) % m_model->nkey;
 
-        int handMocapQOffset = model->nq * current_index;
+        int offset = m_model->nq * current_index;
 
-        double posError[MaxDOFs];
-        double velError[MaxDOFs];
+        double posError[kMaxSystemDofs];
+        double velError[kMaxSystemDofs];
 
-        mju_sub(posError, model->key_qpos + handMocapQOffset, state, model->nu);
-        mju_scl(posError, posError, 20, 3);
-        mju_scl(posError + 3, posError + 3, 10, 3);
-        mju_scl(posError + 6, posError + 6, 5, model->nu - 6);
+        mju_sub(posError, m_reference_configs.data() + offset, state, m_model->nu);
+        mju_scl(posError, posError, m_root_pd_pos_kp, 3);
+        mju_scl(posError + 3, posError + 3, m_root_pd_quat_kp, 3);
+        mju_scl(posError + 6, posError + 6, m_pd_default_kp, m_model->nu - 6);
 
-        mju_copy(velError, state + model->nq, model->nu); // want velocity close to 0
-        mju_scl(velError, velError, 1, 3);
-        mju_scl(velError + 3, velError + 3, 0, model->nu - 3);
+        mju_copy(velError, state + m_model->nq, m_model->nu); // want velocity close to 0
+        mju_scl(velError, velError, m_root_pd_pos_kd, 3);
+        mju_scl(velError + 3, velError + 3, m_root_pd_quat_kd, 3);
+        mju_scl(velError + 6, velError + 6, m_pd_default_kd, m_model->nu - 6);
 
-        mju_sub(action, posError, velError, model->nu);
+        mju_sub(action, posError, velError, m_model->nu);
 
         // Clamp controls
-        Clamp(action, model->actuator_ctrlrange, model->nu);
+        Clamp(action, m_model->actuator_ctrlrange, m_model->nu);
+    }
+
+    // copy parameters
+    void PoseSamplingPDPolicy::CopyReferenceConfigsFrom(
+        const vector<double> &src_reference_configs)
+    {
+        mju_copy(m_reference_configs.data(), src_reference_configs.data(),
+                 m_model->nkey * m_model->nq);
     }
 
 } // namespace mjpc
