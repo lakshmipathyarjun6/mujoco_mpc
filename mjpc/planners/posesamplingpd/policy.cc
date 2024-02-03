@@ -18,8 +18,9 @@ namespace mjpc
 {
 
     // set reference config to default mocap data
-    void PoseSamplingPDPolicy::Initialize()
+    void PoseSamplingPDPolicy::Initialize(int mocapReferenceFrameRate)
     {
+        m_mocap_reference_framerate = mocapReferenceFrameRate;
         mju_copy(m_reference_configs.data(), m_model->key_qpos, m_model->nkey * m_model->nq);
     }
 
@@ -29,10 +30,6 @@ namespace mjpc
     {
         // model
         m_model = model;
-
-        // framerate
-        m_mocap_reference_framerate = GetNumberOrDefault(kDefaultFramerate, m_model,
-                                                         "mocap_reference_framerate");
 
         // reference configs
         m_reference_configs.resize(m_model->nkey * m_model->nq);
@@ -52,7 +49,7 @@ namespace mjpc
                                                "root_quat_pd_kd");
     }
 
-    // same as initialize
+    // same as initialize minux framerate setting
     void PoseSamplingPDPolicy::Reset(int horizon, const double *initial_repeated_action)
     {
         mju_copy(m_reference_configs.data(), m_model->key_qpos, m_model->nkey * m_model->nq);

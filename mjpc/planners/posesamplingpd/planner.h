@@ -1,6 +1,7 @@
 #ifndef MJPC_PLANNERS_POSE_SAMPLING_PD_PLANNER_H_
 #define MJPC_PLANNERS_POSE_SAMPLING_PD_PLANNER_H_
 
+#include <absl/random/random.h>
 #include <mujoco/mujoco.h>
 
 #include <atomic>
@@ -15,9 +16,14 @@
 #include "mjpc/utilities.h"
 
 using namespace std;
+using namespace absl;
 
 namespace mjpc
 {
+
+    // default framerate
+    inline constexpr int kDefaultFramerate = 120;
+
     class PoseSamplingPDPlanner : public RankedPlanner
     {
     public:
@@ -50,6 +56,9 @@ namespace mjpc
         // set action from active policy
         void ActionFromPolicy(double *action, const double *state,
                               double time, bool use_previous = false) override;
+
+        // add noise to nominal policy
+        void AddNoiseToTrajectory(int i);
 
         // compute candidate trajectories
         void Rollouts(int num_trajectory, int horizon, ThreadPool &pool);
@@ -89,19 +98,18 @@ namespace mjpc
 
         // state
         double m_time;
+        int m_mocap_index;
         vector<double> m_state;
         vector<double> m_mocap;
         vector<double> m_userdata;
+
+        // framerate
+        int m_mocap_reference_framerate;
 
         // policies
         PoseSamplingPDPolicy m_active_policy; // (Guarded by mtx_)
         PoseSamplingPDPolicy m_candidate_policies[kMaxTrajectory];
         PoseSamplingPDPolicy m_previous_policy;
-
-        // holding buffers for parallel reads
-        vector<double> m_config_parameters_buffer;
-        vector<double> m_ctrl_parameters_buffer;
-        vector<double> m_times_buffer;
 
         // trajectories
         int m_num_candidate_trajectories;                    // actual number of candidate trajectories
@@ -110,10 +118,14 @@ namespace mjpc
         Trajectory m_candidate_trajectories[kMaxTrajectory]; // allocate maximum trajectory space
         vector<int> m_candidate_trajectory_order;            // order of indices of rolled out trajectories, ordered by total return
 
-        // rollouts
-        double m_timestep_power;
+        // ----- noise ----- //
+        double m_default_noise_exploration;   // default standard deviation for all joints
+        double m_root_pos_noise_exploration;  // default standard deviation for root joint positon
+        double m_root_quat_noise_exploration; // default standard deviation for root joint orientation
+        vector<double> m_noise;
 
         // timing
+        atomic<double> m_noise_compute_time;
         double m_rollouts_compute_time;
         double m_policy_update_compute_time;
 

@@ -29,9 +29,6 @@ namespace mjpc
     // maximum system dofs
     inline constexpr int kMaxSystemDofs = 60;
 
-    // default framerate
-    inline constexpr int kDefaultFramerate = 120;
-
     // pd default gains
     inline constexpr double kDefaultPdKp = 5;
     inline constexpr double kDefaultPdKd = 0;
@@ -53,7 +50,7 @@ namespace mjpc
         // ----- methods ----- //
 
         // initialize
-        void Initialize();
+        void Initialize(int mocapReferenceFrameRate);
 
         // allocate memory
         void Allocate(const mjModel *model, const Task &task, int horizon) override;

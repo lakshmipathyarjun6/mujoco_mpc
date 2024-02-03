@@ -20,8 +20,14 @@ namespace mjpc
         // task
         m_task = &task;
 
-        // rollout parameters
-        m_timestep_power = 1.0;
+        // framerate
+        m_mocap_reference_framerate = GetNumberOrDefault(kDefaultFramerate, m_model,
+                                                         "mocap_reference_framerate");
+
+        // sampling noise
+        m_default_noise_exploration = GetNumberOrDefault(0.1, model, "default_sampling_exploration");
+        m_root_pos_noise_exploration = GetNumberOrDefault(1, model, "root_pos_sampling_exploration");
+        m_root_quat_noise_exploration = GetNumberOrDefault(0.1, model, "root_quat_sampling_exploration");
 
         // set number of trajectories to rollout
         m_num_candidate_trajectories = GetNumberOrDefault(10, m_model, "sampling_trajectories");
@@ -33,6 +39,9 @@ namespace mjpc
         }
 
         m_best_candidate_trajectory_index = 0;
+
+        // noise
+        fill(m_noise.begin(), m_noise.end(), 0.0);
     }
 
     // allocate memory
@@ -50,13 +59,8 @@ namespace mjpc
         m_active_policy.Allocate(m_model, *m_task, kMaxTrajectoryHorizon);
         m_previous_policy.Allocate(m_model, *m_task, kMaxTrajectoryHorizon);
 
-        // parallel read buffers
-        int num_max_config_parameters = m_model->nq * kMaxTrajectoryHorizon;
-        int num_max_ctrl_parameters = m_model->nu * kMaxTrajectoryHorizon;
-
-        m_config_parameters_buffer.resize(num_max_config_parameters);
-        m_ctrl_parameters_buffer.resize(num_max_ctrl_parameters);
-        m_times_buffer.resize(kMaxTrajectoryHorizon);
+        // noise
+        m_noise.resize(kMaxTrajectory * m_model->nq * m_model->nkey);
 
         // trajectory and parameters
         m_best_candidate_trajectory_index = -1;
@@ -67,7 +71,7 @@ namespace mjpc
                                                    m_task->num_trace, kMaxTrajectoryHorizon);
             m_candidate_trajectories[i].Allocate(kMaxTrajectoryHorizon);
             m_candidate_policies[i].Allocate(m_model, *m_task, kMaxTrajectoryHorizon);
-            m_candidate_policies[i].Initialize();
+            m_candidate_policies[i].Initialize(m_mocap_reference_framerate);
         }
     }
 
@@ -85,10 +89,8 @@ namespace mjpc
         m_active_policy.Reset(horizon, initial_repeated_action);
         m_previous_policy.Reset(horizon, initial_repeated_action);
 
-        // parallel read buffers
-        fill(m_config_parameters_buffer.begin(), m_config_parameters_buffer.end(), 0.0);
-        fill(m_ctrl_parameters_buffer.begin(), m_ctrl_parameters_buffer.end(), 0.0);
-        fill(m_times_buffer.begin(), m_times_buffer.end(), 0.0);
+        // noise
+        fill(m_noise.begin(), m_noise.end(), 0.0);
 
         // trajectory samples
         for (int i = 0; i < kMaxTrajectory; i++)
@@ -124,6 +126,14 @@ namespace mjpc
         // ----- update policy ----- //
         // start timer
         auto policy_update_start = chrono::steady_clock::now();
+
+        // store only the current perturbed frame
+        vector<double> best_perturbed_state;
+        best_perturbed_state.resize(m_model->nq);
+
+        mju_copy(best_perturbed_state.data(), DataAt(m_candidate_policies[0].m_reference_configs, m_mocap_index * m_model->nq), m_model->nq);
+        m_candidate_policies[0].Reset(0, nullptr);
+        mju_copy(DataAt(m_candidate_policies[0].m_reference_configs, m_mocap_index * m_model->nq), best_perturbed_state.data(), m_model->nq);
 
         CopyCandidateToPolicy(0);
 
@@ -167,11 +177,52 @@ namespace mjpc
         }
     }
 
+    // add random noise to nominal policy
+    void PoseSamplingPDPlanner::AddNoiseToTrajectory(int i)
+    {
+        // start timer
+        auto noise_start = chrono::steady_clock::now();
+
+        // sampling token
+        ::BitGen gen_;
+
+        // shift index
+        int shift = i * m_model->nkey * m_model->nq;
+
+        // assume no covariance (e.g. assume fully actuated system)
+        for (int key = 0; key < m_model->nkey; key++)
+        {
+            int keyOffset = key * m_model->nq;
+
+            for (int dofIndex = 0; dofIndex < 3; dofIndex++)
+            {
+                m_noise[shift + keyOffset + dofIndex] = ::Gaussian<double>(gen_, 0.0, m_root_pos_noise_exploration);
+            }
+            for (int dofIndex = 3; dofIndex < 6; dofIndex++)
+            {
+                m_noise[shift + keyOffset + dofIndex] = ::Gaussian<double>(gen_, 0.0, m_root_quat_noise_exploration);
+            }
+            for (int dofIndex = 6; dofIndex < m_model->nu; dofIndex++)
+            {
+                m_noise[shift + keyOffset + dofIndex] = ::Gaussian<double>(gen_, 0.0, m_default_noise_exploration);
+            }
+        }
+
+        // add noise
+        mju_addTo(m_candidate_policies[i].m_reference_configs.data(), DataAt(m_noise, shift),
+                  m_model->nkey * m_model->nq);
+
+        // end timer
+        IncrementAtomic(m_noise_compute_time, GetDuration(noise_start));
+    }
+
     // compute candidate trajectories
     void PoseSamplingPDPlanner::Rollouts(int num_trajectory, int horizon,
                                          ThreadPool &pool)
     {
-        // noiseless - blast with exact same trajectory everywhere
+        // reset noise compute time
+        m_noise_compute_time = 0.0;
+
         int count_before = pool.GetCount();
 
         for (int i = 0; i < num_trajectory; i++)
@@ -185,6 +236,12 @@ namespace mjpc
                               {
                                   const shared_lock<shared_mutex> lock(s.m_mtx);
                                   s.m_candidate_policies[i].CopyReferenceConfigsFrom(s.m_active_policy.m_reference_configs);
+                              }
+
+                              // sample perturbed keyframe trajectory
+                              if (i != 0)
+                              {
+                                  s.AddNoiseToTrajectory(i);
                               }
 
                               // ----- rollout sample policy ----- //
@@ -218,6 +275,14 @@ namespace mjpc
     {
         state.CopyTo(m_state.data(), m_mocap.data(), m_userdata.data(),
                      &m_time);
+
+        double rounded_index = floor(m_time * m_mocap_reference_framerate);
+        m_mocap_index = int(rounded_index) % m_model->nkey;
+
+        if (m_mocap_index == 0)
+        {
+            Reset(0, nullptr);
+        }
     }
 
     // visualize planner-specific traces
@@ -305,6 +370,10 @@ namespace mjpc
 
         // ----- timers ----- //
 
+        PlotUpdateData(
+            fig_timer, timer_bounds, fig_timer->linedata[0 + timer_shift][0] + 1,
+            1.0e-3 * m_noise_compute_time * planning, 100, 0 + timer_shift, 0, 1, -100);
+
         PlotUpdateData(fig_timer, timer_bounds,
                        fig_timer->linedata[1 + timer_shift][0] + 1,
                        1.0e-3 * m_rollouts_compute_time * planning, 100,
@@ -316,14 +385,15 @@ namespace mjpc
                        2 + timer_shift, 0, 1, -100);
 
         // legend
-        mju::strcpy_arr(fig_timer->linename[0 + timer_shift], "Rollout");
-        mju::strcpy_arr(fig_timer->linename[1 + timer_shift], "Policy Update");
+        mju::strcpy_arr(fig_timer->linename[0 + timer_shift], "Noise");
+        mju::strcpy_arr(fig_timer->linename[1 + timer_shift], "Rollout");
+        mju::strcpy_arr(fig_timer->linename[2 + timer_shift], "Policy Update");
 
         // planner shift
         shift[0] += 1;
 
         // timer shift
-        shift[1] += 2;
+        shift[1] += 3;
     }
 
     int PoseSamplingPDPlanner::OptimizePolicyCandidates(int ncandidates, int horizon,
@@ -338,6 +408,8 @@ namespace mjpc
         // ----- rollout noisy policies ----- //
         // start timer
         auto rollouts_start = chrono::steady_clock::now();
+
+        fill(m_noise.begin(), m_noise.end(), 0.0);
 
         // simulate and sample over policies / trajectories
         Rollouts(m_num_candidate_trajectories, horizon, pool);
