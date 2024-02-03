@@ -93,13 +93,6 @@ void controller(const mjModel* m, mjData* data) {
     sim->agent->ActivePlanner().ActionFromPolicy(
         data->ctrl, &sim->agent->state.state()[0],
         sim->agent->state.time());
-
-    // *(data->ctrl + 0) = 1.0;
-
-    // for(int i = 0; i < m->nu; i++)
-    // {
-    //   std::cout << i << " " << *(data->ctrl + i) << std::endl;
-    // }
   }
   // if noise
   if (!sim->agent->allocate_enabled && sim->uiloadrequest.load() == 0 &&
