@@ -20,9 +20,7 @@ namespace mjpc
     //   Number of residuals: 4
     //     Residual (0): object_position - object_traj_position
     //     Residual (1): object_orientation - object_traj_orientation
-    //     Residual (2): hand_root_positions - hand_mocap_root_position
-    //     Residual (3): hand_root_orientation - hand_mocap_root_orientation
-    //     Residual (4): hand_state - hand_mocap_state
+    //     Residual (2): hand joint velocity
     // ------------------------------------------------------------
 
     // NOTE: Currently unclear how to adapt to non-free objects (e.g. doorknob)
@@ -57,25 +55,29 @@ namespace mjpc
         offset += 3;
 
         // ---------- Residual (2) ----------
-        int handRootBodyId = mj_name2id(model, mjOBJ_BODY, ALLEGRO_ROOT);
-        int bodyJointAdr = model->body_jntadr[handRootBodyId];
-        int handQPosAdr = model->jnt_qposadr[bodyJointAdr];
+        mju_copy(residual + offset, data->qvel, ALLEGRO_DOFS);
+        offset += ALLEGRO_DOFS;
 
-        mju_sub(residual + offset, data->qpos + handQPosAdr, r_qpos_buffer_, 3);
+        // // ---------- Residual (2) ----------
+        // int handRootBodyId = mj_name2id(model, mjOBJ_BODY, ALLEGRO_ROOT);
+        // int bodyJointAdr = model->body_jntadr[handRootBodyId];
+        // int handQPosAdr = model->jnt_qposadr[bodyJointAdr];
 
-        offset += 3;
+        // mju_sub(residual + offset, data->qpos + handQPosAdr, r_qpos_buffer_, 3);
 
-        // ---------- Residual (3) ----------
-        int rootOffset = 3;
-        mju_sub(residual + offset, data->qpos + handQPosAdr + rootOffset, r_qpos_buffer_ + rootOffset, 3);
+        // offset += 3;
 
-        offset += 3;
+        // // ---------- Residual (3) ----------
+        // int rootOffset = 3;
+        // mju_sub(residual + offset, data->qpos + handQPosAdr + rootOffset, r_qpos_buffer_ + rootOffset, 3);
 
-        // ---------- Residual (4) ----------
-        rootOffset = 6;
-        mju_sub(residual + offset, data->qpos + handQPosAdr + rootOffset, r_qpos_buffer_ + rootOffset, ALLEGRO_DOFS - 6);
+        // offset += 3;
 
-        offset += ALLEGRO_DOFS - 6;
+        // // ---------- Residual (4) ----------
+        // rootOffset = 6;
+        // mju_sub(residual + offset, data->qpos + handQPosAdr + rootOffset, r_qpos_buffer_ + rootOffset, ALLEGRO_DOFS - 6);
+
+        // offset += ALLEGRO_DOFS - 6;
 
         // sensor dim sanity check
         CheckSensorDim(model, offset);
