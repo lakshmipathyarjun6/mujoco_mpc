@@ -31,6 +31,9 @@ namespace mjpc
         // model
         m_model = model;
 
+        // task
+        m_task = &task;
+
         // reference configs
         m_reference_configs.resize(m_model->nkey * m_model->nq);
 
@@ -59,10 +62,7 @@ namespace mjpc
     // TODO: Currently assumes system is fully actuated
     void PoseSamplingPDPolicy::Action(double *action, const double *state, double time) const
     {
-        double rounded_index = floor(time * m_mocap_reference_framerate);
-        int current_index = int(rounded_index) % m_model->nkey;
-
-        int offset = m_model->nq * current_index;
+        int offset = m_model->nq * m_task->mode;
 
         double posError[kMaxSystemDofs];
         double velError[kMaxSystemDofs];
