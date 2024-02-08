@@ -49,9 +49,6 @@ namespace mjpc
 
         // ----- methods ----- //
 
-        // initialize
-        void Initialize(int mocapReferenceFrameRate);
-
         // allocate memory
         void Allocate(const mjModel *model, const Task &task, int horizon) override;
 
@@ -71,8 +68,6 @@ namespace mjpc
         // ----- members ----- //
         const mjModel *m_model;
         const Task *m_task;
-
-        int m_mocap_reference_framerate;
 
         double m_pd_default_kp;
         double m_pd_default_kd;

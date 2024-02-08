@@ -71,7 +71,6 @@ namespace mjpc
                                                    m_task->num_trace, kMaxTrajectoryHorizon);
             m_candidate_trajectories[i].Allocate(kMaxTrajectoryHorizon);
             m_candidate_policies[i].Allocate(m_model, *m_task, kMaxTrajectoryHorizon);
-            m_candidate_policies[i].Initialize(m_mocap_reference_framerate);
         }
     }
 
@@ -131,9 +130,9 @@ namespace mjpc
         vector<double> best_perturbed_state;
         best_perturbed_state.resize(m_model->nq);
 
-        mju_copy(best_perturbed_state.data(), DataAt(m_candidate_policies[0].m_reference_configs, m_mocap_index * m_model->nq), m_model->nq);
+        mju_copy(best_perturbed_state.data(), DataAt(m_candidate_policies[0].m_reference_configs, m_task->mode * m_model->nq), m_model->nq);
         m_candidate_policies[0].Reset(0, nullptr);
-        mju_copy(DataAt(m_candidate_policies[0].m_reference_configs, m_mocap_index * m_model->nq), best_perturbed_state.data(), m_model->nq);
+        mju_copy(DataAt(m_candidate_policies[0].m_reference_configs, m_task->mode * m_model->nq), best_perturbed_state.data(), m_model->nq);
 
         CopyCandidateToPolicy(0);
 
@@ -194,6 +193,11 @@ namespace mjpc
         {
             int keyOffset = key * m_model->nq;
 
+            for (int dofIndex = 0; dofIndex < m_model->nu; dofIndex++)
+            {
+                m_noise[shift + keyOffset + dofIndex] = ::Gaussian<double>(gen_, 0.0, m_default_noise_exploration);
+            }
+
             for (int dofIndex = 0; dofIndex < 3; dofIndex++)
             {
                 m_noise[shift + keyOffset + dofIndex] = ::Gaussian<double>(gen_, 0.0, m_root_pos_noise_exploration);
@@ -201,10 +205,6 @@ namespace mjpc
             for (int dofIndex = 3; dofIndex < 6; dofIndex++)
             {
                 m_noise[shift + keyOffset + dofIndex] = ::Gaussian<double>(gen_, 0.0, m_root_quat_noise_exploration);
-            }
-            for (int dofIndex = 6; dofIndex < m_model->nu; dofIndex++)
-            {
-                m_noise[shift + keyOffset + dofIndex] = ::Gaussian<double>(gen_, 0.0, m_default_noise_exploration);
             }
         }
 
@@ -276,10 +276,7 @@ namespace mjpc
         state.CopyTo(m_state.data(), m_mocap.data(), m_userdata.data(),
                      &m_time);
 
-        double rounded_index = floor(m_time * m_mocap_reference_framerate);
-        m_mocap_index = int(rounded_index) % m_model->nkey;
-
-        if (m_mocap_index == 0)
+        if (m_task->mode == 0)
         {
             Reset(0, nullptr);
         }

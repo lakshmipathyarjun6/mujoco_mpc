@@ -98,7 +98,6 @@ namespace mjpc
 
         // state
         double m_time;
-        int m_mocap_index;
         vector<double> m_state;
         vector<double> m_mocap;
         vector<double> m_userdata;
