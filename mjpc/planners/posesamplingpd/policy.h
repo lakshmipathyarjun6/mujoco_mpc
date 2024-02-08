@@ -70,6 +70,7 @@ namespace mjpc
     private:
         // ----- members ----- //
         const mjModel *m_model;
+        const Task *m_task;
 
         int m_mocap_reference_framerate;
 

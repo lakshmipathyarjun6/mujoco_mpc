@@ -90,16 +90,16 @@ namespace mjpc
     {
         // indices
         double rounded_index = floor(data->time * FPS);
-        int current_index = int(rounded_index) % model->nkey;
+        mode = int(rounded_index) % model->nkey;
 
-        // current_index = min(current_index, 1);
+        // mode = min(mode, 1);
 
-        int handMocapQOffset = model->nq * current_index;
+        int handMocapQOffset = model->nq * mode;
 
         mju_copy(residual_.r_qpos_buffer_, model->key_qpos + handMocapQOffset, ALLEGRO_DOFS);
 
-        int objectMocapPosOffset = 3 * model->nmocap * current_index;
-        int objectMocapQuatOffset = 4 * model->nmocap * current_index;
+        int objectMocapPosOffset = 3 * model->nmocap * mode;
+        int objectMocapQuatOffset = 4 * model->nmocap * mode;
 
         int handPalmBodyId = mj_name2id(model, mjOBJ_BODY, ALLEGRO_MOCAP_ROOT);
         int handPalmXPosOffset = 3 * handPalmBodyId;
@@ -119,7 +119,7 @@ namespace mjpc
         mj_kinematics(model, data);
 
         // Reset
-        if (current_index == 0)
+        if (mode == 0)
         {
             int simObjBodyId = mj_name2id(model, mjOBJ_BODY, object_sim_body_name_.c_str());
             int simObjDofs = model->nq - ALLEGRO_DOFS;
