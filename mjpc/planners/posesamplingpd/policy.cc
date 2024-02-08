@@ -17,13 +17,6 @@
 namespace mjpc
 {
 
-    // set reference config to default mocap data
-    void PoseSamplingPDPolicy::Initialize(int mocapReferenceFrameRate)
-    {
-        m_mocap_reference_framerate = mocapReferenceFrameRate;
-        mju_copy(m_reference_configs.data(), m_model->key_qpos, m_model->nkey * m_model->nq);
-    }
-
     // allocate memory
     void PoseSamplingPDPolicy::Allocate(const mjModel *model, const Task &task,
                                         int horizon)
