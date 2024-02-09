@@ -57,20 +57,23 @@ namespace mjpc
     {
         int offset = m_model->nq * m_task->mode;
 
-        double posError[kMaxSystemDofs];
-        double velError[kMaxSystemDofs];
+        vector<double> posError;
+        vector<double> velError;
 
-        mju_sub(posError, m_reference_configs.data() + offset, state, m_model->nu);
-        mju_scl(posError, posError, m_root_pd_pos_kp, 3);
-        mju_scl(posError + 3, posError + 3, m_root_pd_quat_kp, 3);
-        mju_scl(posError + 6, posError + 6, m_pd_default_kp, m_model->nu - 6);
+        posError.resize(m_model->nu);
+        velError.resize(m_model->nu);
 
-        mju_copy(velError, state + m_model->nq, m_model->nu); // want velocity close to 0
-        mju_scl(velError, velError, m_root_pd_pos_kd, 3);
-        mju_scl(velError + 3, velError + 3, m_root_pd_quat_kd, 3);
-        mju_scl(velError + 6, velError + 6, m_pd_default_kd, m_model->nu - 6);
+        mju_sub(posError.data(), m_reference_configs.data() + offset, state, m_model->nu);
+        mju_scl(posError.data(), posError.data(), m_root_pd_pos_kp, 3);
+        mju_scl(posError.data() + 3, posError.data() + 3, m_root_pd_quat_kp, 3);
+        mju_scl(posError.data() + 6, posError.data() + 6, m_pd_default_kp, m_model->nu - 6);
 
-        mju_sub(action, posError, velError, m_model->nu);
+        mju_copy(velError.data(), state + m_model->nq, m_model->nu); // want velocity close to 0
+        mju_scl(velError.data(), velError.data(), m_root_pd_pos_kd, 3);
+        mju_scl(velError.data() + 3, velError.data() + 3, m_root_pd_quat_kd, 3);
+        mju_scl(velError.data() + 6, velError.data() + 6, m_pd_default_kd, m_model->nu - 6);
+
+        mju_sub(action, posError.data(), velError.data(), m_model->nu);
 
         // Clamp controls
         Clamp(action, m_model->actuator_ctrlrange, m_model->nu);
