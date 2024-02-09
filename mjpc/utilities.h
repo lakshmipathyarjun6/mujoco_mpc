@@ -125,6 +125,9 @@ namespace mjpc
   double *KeyActByName(const mjModel *m, const mjData *d,
                        const std::string &name);
 
+  // fills t with N numbers, starting from t0 and incrementing by t_step
+  void LinearRange(double* t, double t_step, double t0, int N);
+
   // get keyframe `mpos` data using string
   double *KeyMPosByName(const mjModel *m, const mjData *d,
                         const std::string &name);
@@ -150,8 +153,9 @@ namespace mjpc
                            const std::vector<double> &xs, const double *ys,
                            int dim, int length);
 
-// fills t with N numbers, starting from t0 and incrementing by t_step
-void LinearRange(double* t, double t_step, double t0, int N);
+  // coefficients for cubic interpolation
+  void CubicCoefficients(double* coefficients, double x,
+                        const std::vector<double>& xs, int T);
 
   // finite-difference vector
   double FiniteDifferenceSlope(double x, const std::vector<double> &xs,

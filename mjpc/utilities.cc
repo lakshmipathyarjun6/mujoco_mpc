@@ -358,13 +358,12 @@ namespace mjpc
       return m->key_act + m->na * id;
     }
   }
-}
 
-void LinearRange(double* t, double t_step, double t0, int N) {
-  for (int i = 0; i < N; i++) {
-    t[i] = t0 + i * t_step;
+  void LinearRange(double* t, double t_step, double t0, int N) {
+    for (int i = 0; i < N; i++) {
+      t[i] = t0 + i * t_step;
+    }
   }
-}
 
   // get keyframe `mquat` data using string
   double *KeyMQuatByName(const mjModel *m, const mjData *d,
@@ -1056,14 +1055,6 @@ void LinearRange(double* t, double t_step, double t0, int N) {
     return warnings_found;
   }
 
-<<<<<<< HEAD
-// compute vector with log-based scaling between min and max values
-void LogScale(double* values, double max_value, double min_value, int steps) {
-  double step =
-      (std::log(max_value) - std::log(min_value)) / std::max((steps - 1), 1);
-  for (int i = 0; i < steps; i++) {
-    values[i] = std::exp(std::log(min_value) + i * step);
-=======
   // compute vector with log-based scaling between min and max values
   void LogScale(double *values, double max_value, double min_value, int steps)
   {
@@ -1073,7 +1064,6 @@ void LogScale(double* values, double max_value, double min_value, int steps) {
     {
       values[i] = mju_exp(mju_log(min_value) + i * step);
     }
->>>>>>> 0453074 (Rereate object mocap)
   }
 
   // ============== 2d convex hull ==============
