@@ -26,9 +26,6 @@ using namespace std;
 namespace mjpc
 {
 
-    // maximum system dofs
-    inline constexpr int kMaxSystemDofs = 60;
-
     // pd default gains
     inline constexpr double kDefaultPdKp = 5;
     inline constexpr double kDefaultPdKd = 0;
