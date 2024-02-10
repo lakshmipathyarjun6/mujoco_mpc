@@ -26,14 +26,6 @@ using namespace std;
 namespace mjpc
 {
 
-    // pd default gains
-    inline constexpr double kDefaultPdKp = 5;
-    inline constexpr double kDefaultPdKd = 0;
-    inline constexpr double kDefaultRootPosPdKp = 20;
-    inline constexpr double kDefaultRootPosPdKd = 1;
-    inline constexpr double kDefaultRootQuatPdKp = 10;
-    inline constexpr double kDefaultRootQuatPdKd = 0;
-
     // policy for sampling planner
     class PoseSamplingPDPolicy : public Policy
     {
@@ -65,13 +57,6 @@ namespace mjpc
         // ----- members ----- //
         const mjModel *m_model;
         const Task *m_task;
-
-        double m_pd_default_kp;
-        double m_pd_default_kd;
-        double m_root_pd_pos_kp;
-        double m_root_pd_pos_kd;
-        double m_root_pd_quat_kp;
-        double m_root_pd_quat_kd;
     };
 
 } // namespace mjpc
