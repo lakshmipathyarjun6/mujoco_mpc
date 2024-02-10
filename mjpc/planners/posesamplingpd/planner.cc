@@ -126,14 +126,7 @@ namespace mjpc
         // start timer
         auto policy_update_start = chrono::steady_clock::now();
 
-        // store only the current perturbed frame
-        vector<double> best_perturbed_state;
-        best_perturbed_state.resize(m_model->nq);
-
-        mju_copy(best_perturbed_state.data(), DataAt(m_candidate_policies[0].m_reference_configs, m_task->mode * m_model->nq), m_model->nq);
-        m_candidate_policies[0].Reset(0, nullptr);
-        mju_copy(DataAt(m_candidate_policies[0].m_reference_configs, m_task->mode * m_model->nq), best_perturbed_state.data(), m_model->nq);
-
+        // copy best candidate to active policy
         CopyCandidateToPolicy(0);
 
         // improvement: compare nominal to winner
@@ -238,11 +231,11 @@ namespace mjpc
                                   s.m_candidate_policies[i].CopyReferenceConfigsFrom(s.m_active_policy.m_reference_configs);
                               }
 
-                              // sample perturbed keyframe trajectory
-                              if (i != 0)
-                              {
-                                  s.AddNoiseToTrajectory(i);
-                              }
+                              //   // sample perturbed keyframe trajectory
+                              //   if (i != 0)
+                              //   {
+                              //       s.AddNoiseToTrajectory(i);
+                              //   }
 
                               // ----- rollout sample policy ----- //
 
