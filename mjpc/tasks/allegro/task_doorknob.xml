@@ -14,7 +14,7 @@
         <include file="right_hand_mocap_vis.xml"/>
         <body name="doorknob_attachment" pos="-0.0825822262763977 -0.6478415727615356 0.9384804964065552">
             <body name="doorknob_sim" pos="-0.04 0 0" quat="0.47815212453295514 0.5128687163825603 -0.5009253359069297 -0.5073559237924161">
-                <joint axis="0 0 1" limited="true" range="0 1" stiffness="100.0" damping="10.0" type="slide"/>
+                <joint axis="0 0 1" limited="true" range="0 1" stiffness="5.0" damping="5.0" type="slide"/>
                 <geom name="doorknob_sim_geom" type="mesh" mesh="doorknob" mass="2.485148625" rgba="0.8313 0.686 0.216 1.0"/>
             </body>
         </body>
