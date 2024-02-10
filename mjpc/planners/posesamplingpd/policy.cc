@@ -29,20 +29,6 @@ namespace mjpc
 
         // reference configs
         m_reference_configs.resize(m_model->nkey * m_model->nq);
-
-        // PD gains
-        m_pd_default_kp = GetNumberOrDefault(kDefaultPdKp, m_model,
-                                             "default_pd_kp");
-        m_pd_default_kd = GetNumberOrDefault(kDefaultPdKd, m_model,
-                                             "default_pd_kd");
-        m_root_pd_pos_kp = GetNumberOrDefault(kDefaultRootPosPdKp, m_model,
-                                              "root_pos_pd_kp");
-        m_root_pd_pos_kd = GetNumberOrDefault(kDefaultRootPosPdKd, m_model,
-                                              "root_pos_pd_kd");
-        m_root_pd_quat_kp = GetNumberOrDefault(kDefaultRootQuatPdKp, m_model,
-                                               "root_quat_pd_kp");
-        m_root_pd_quat_kd = GetNumberOrDefault(kDefaultRootQuatPdKd, m_model,
-                                               "root_quat_pd_kd");
     }
 
     // same as initialize minux framerate setting
@@ -57,23 +43,14 @@ namespace mjpc
     {
         int offset = m_model->nq * m_task->mode;
 
-        vector<double> posError;
-        vector<double> velError;
+        // Why does this alone do PD control?
+        // We want target velocity 0, which is handled by joint damping of the system
+        // Action automatically gets multiplied by the gain
+        // Corrective gain (kp * q_current) already is copmuted by the dynamics model
 
-        posError.resize(m_model->nu);
-        velError.resize(m_model->nu);
+        // Therefore all we need is kp * q_desired -- since kp is implicitly applied, that leaves only q_desired
 
-        mju_sub(posError.data(), m_reference_configs.data() + offset, state, m_model->nu);
-        mju_scl(posError.data(), posError.data(), m_root_pd_pos_kp, 3);
-        mju_scl(posError.data() + 3, posError.data() + 3, m_root_pd_quat_kp, 3);
-        mju_scl(posError.data() + 6, posError.data() + 6, m_pd_default_kp, m_model->nu - 6);
-
-        mju_copy(velError.data(), state + m_model->nq, m_model->nu); // want velocity close to 0
-        mju_scl(velError.data(), velError.data(), m_root_pd_pos_kd, 3);
-        mju_scl(velError.data() + 3, velError.data() + 3, m_root_pd_quat_kd, 3);
-        mju_scl(velError.data() + 6, velError.data() + 6, m_pd_default_kd, m_model->nu - 6);
-
-        mju_sub(action, posError.data(), velError.data(), m_model->nu);
+        mju_copy(action, m_reference_configs.data() + offset, m_model->nu);
 
         // Clamp controls
         Clamp(action, m_model->actuator_ctrlrange, m_model->nu);

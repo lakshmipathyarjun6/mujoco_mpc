@@ -1,9 +1,9 @@
 <mujoco model="allegro_right">
 
     <body name="wrist" gravcomp="1">
-      <joint name="RootTx" axis="1 0 0" type="slide"/>
-      <joint name="RootTy" axis="0 1 0" type="slide"/>
-      <joint name="RootTz" axis="0 0 1" type="slide"/>
+      <joint name="RootTx" axis="1 0 0" type="slide" damping="1"/>
+      <joint name="RootTy" axis="0 1 0" type="slide" damping="1"/>
+      <joint name="RootTz" axis="0 0 1" type="slide" damping="1"/>
       <joint name="RootRx" axis="1 0 0"/>
       <joint name="RootRy" axis="0 1 0"/>
       <joint name="RootRz" axis="0 0 1"/>

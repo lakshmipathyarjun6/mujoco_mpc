@@ -135,12 +135,12 @@
   </contact>
 
   <actuator>
-    <position name="ratx" joint="RootTx" class="root_trans"/>
-    <position name="raty" joint="RootTy" class="root_trans"/>
-    <position name="ratz" joint="RootTz" class="root_trans"/>
-    <position name="rarx" joint="RootRx" class="root_rot"/>
-    <position name="rary" joint="RootRy" class="root_rot"/>
-    <position name="rarz" joint="RootRz" class="root_rot"/>
+    <position name="ratx" joint="RootTx" class="root_trans" kp="20"/>
+    <position name="raty" joint="RootTy" class="root_trans" kp="20"/>
+    <position name="ratz" joint="RootTz" class="root_trans" kp="20"/>
+    <position name="rarx" joint="RootRx" class="root_rot" kp="10"/>
+    <position name="rary" joint="RootRy" class="root_rot" kp="10"/>
+    <position name="rarz" joint="RootRz" class="root_rot" kp="10"/>
     <position name="tha0" joint="thj0" class="thumb_base"/>
     <position name="tha1" joint="thj1" class="thumb_proximal"/>
     <position name="tha2" joint="thj2" class="thumb_medial"/>
