@@ -119,7 +119,7 @@ namespace mjpc
         // trajectories
         int m_num_candidate_trajectories;                    // actual number of candidate trajectories
         int m_best_candidate_trajectory_index;               // best trajectory index in unordered trajectory list
-        int m_trajectory_improvement;                        // improvement in total return since last update
+        double m_trajectory_improvement;                        // improvement in total return since last update
         Trajectory m_candidate_trajectories[kMaxTrajectory]; // allocate maximum trajectory space
         vector<int> m_candidate_trajectory_order;            // order of indices of rolled out trajectories, ordered by total return
 
