@@ -41,8 +41,6 @@ namespace mjpc
     // TODO: Currently assumes system is fully actuated
     void PoseSamplingPDPolicy::Action(double *action, const double *state, double time) const
     {
-        int offset = m_model->nq * m_task->mode;
-
         // Why does this alone do PD control?
         // We want target velocity 0, which is handled by joint damping of the system
         // Action automatically gets multiplied by the gain
@@ -50,6 +48,7 @@ namespace mjpc
 
         // Therefore all we need is kp * q_desired -- since kp is implicitly applied, that leaves only q_desired
 
+        int offset = m_model->nq * m_task->mode;
         mju_copy(action, m_reference_configs.data() + offset, m_model->nu);
 
         // Clamp controls
