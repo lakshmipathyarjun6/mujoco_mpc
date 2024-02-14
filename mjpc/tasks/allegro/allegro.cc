@@ -58,16 +58,16 @@ namespace mjpc
             }
         }
 
-        // if (agent_object_collision_detected)
-        // {
-        //     cout << "Agent object collision(s) found" << endl;
-        //     for(int c = 0; c < agent_object_collisions.size(); c++)
-        //     {
-        //         cout << "Collision #" << c << ": " << endl;
-        //         cout << "\tGeometry 1: " << model->names + model->name_geomadr[agent_object_collisions[c]->geom[0]] << endl;
-        //         cout << "\tGeometry 2: " << model->names + model->name_geomadr[agent_object_collisions[c]->geom[1]] << endl;
-        //     }
-        // }
+        if (agent_object_collision_detected)
+        {
+            cout << "Agent object collision(s) found" << endl;
+            for(int c = 0; c < agent_object_collisions.size(); c++)
+            {
+                cout << "Collision #" << c << ": " << endl;
+                cout << "\tGeometry 1: " << model->names + model->name_geomadr[agent_object_collisions[c]->geom[0]] << endl;
+                cout << "\tGeometry 2: " << model->names + model->name_geomadr[agent_object_collisions[c]->geom[1]] << endl;
+            }
+        }
 
         // ---------- Residual (0) ----------
         // goal position
