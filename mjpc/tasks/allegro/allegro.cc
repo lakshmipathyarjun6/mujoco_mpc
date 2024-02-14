@@ -29,6 +29,46 @@ namespace mjpc
     {
         int offset = 0;
 
+        bool agent_object_collision_detected = false;
+        vector<mjContact*> agent_object_collisions;
+
+        // Get all collisions
+        for (int c = 0; c < data->ncon; c++)
+        {
+            int *colliding_geoms = data->contact[c].geom; // size 2
+
+            string colliding_geom_1 = model->names + model->name_geomadr[colliding_geoms[0]];
+            string colliding_geom_2 = model->names + model->name_geomadr[colliding_geoms[1]];
+
+            // Check for agent-object collisions only
+            // Breaking into separate clauses for readability
+            if (
+                colliding_geom_1.compare(0, AGENT_GEOM_COLLIDER_PREFIX.size(), AGENT_GEOM_COLLIDER_PREFIX) == 0 &&
+                colliding_geom_2.compare(0, SIM_GEOM_COLLIDER_PREFIX.size(), SIM_GEOM_COLLIDER_PREFIX) == 0)
+            {
+                agent_object_collision_detected = true;
+                agent_object_collisions.push_back(&data->contact[c]);
+            }
+            else if (
+                colliding_geom_2.compare(0, AGENT_GEOM_COLLIDER_PREFIX.size(), AGENT_GEOM_COLLIDER_PREFIX) == 0 &&
+                colliding_geom_1.compare(0, SIM_GEOM_COLLIDER_PREFIX.size(), SIM_GEOM_COLLIDER_PREFIX) == 0)
+            {
+                agent_object_collision_detected = true;
+                agent_object_collisions.push_back(&data->contact[c]);
+            }
+        }
+
+        // if (agent_object_collision_detected)
+        // {
+        //     cout << "Agent object collision(s) found" << endl;
+        //     for(int c = 0; c < agent_object_collisions.size(); c++)
+        //     {
+        //         cout << "Collision #" << c << ": " << endl;
+        //         cout << "\tGeometry 1: " << model->names + model->name_geomadr[agent_object_collisions[c]->geom[0]] << endl;
+        //         cout << "\tGeometry 2: " << model->names + model->name_geomadr[agent_object_collisions[c]->geom[1]] << endl;
+        //     }
+        // }
+
         // ---------- Residual (0) ----------
         // goal position
         double *goal_position = SensorByName(model, data, OBJECT_TARGET_POSITION);

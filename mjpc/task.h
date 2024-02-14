@@ -23,6 +23,9 @@
 #include <mujoco/mujoco.h>
 #include "mjpc/norm.h"
 
+#define AGENT_GEOM_COLLIDER_PREFIX string("agent_collider_")
+#define SIM_GEOM_COLLIDER_PREFIX string("sim_geom_")
+
 namespace mjpc {
 
 // tolerance for risk-neutral cost
