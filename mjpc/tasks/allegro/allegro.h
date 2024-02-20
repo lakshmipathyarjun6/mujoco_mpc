@@ -32,6 +32,11 @@
 #define OBJECT_CURRENT_POSITION "object_position"
 #define OBJECT_CURRENT_ORIENTATION "object_orientation"
 
+#define CONTACT_SITE_DATA_COUNT_FIELD_SIZE 2 // first number gives the offset index, second number gives the number of discrete points
+
+#define OBJECT_CONTACT_START_SITE_NAME "contact_site_object_0"
+#define SITE_DATA_START_NAME "contact_numdata_0"
+
 using namespace std;
 
 namespace mjpc
@@ -45,13 +50,13 @@ namespace mjpc
             explicit ResidualFn(const AllegroTask *task)
                 : mjpc::BaseResidualFn(task)
             {
-                fill(begin(r_qpos_buffer_), end(r_qpos_buffer_), 0);
+                fill(begin(m_r_qpos_buffer), end(m_r_qpos_buffer), 0);
             }
 
             explicit ResidualFn(const AllegroTask *task, const double qpos_buffer[ALLEGRO_DOFS])
                 : mjpc::BaseResidualFn(task)
             {
-                mju_copy(r_qpos_buffer_, qpos_buffer, ALLEGRO_DOFS);
+                mju_copy(m_r_qpos_buffer, qpos_buffer, ALLEGRO_DOFS);
             }
 
             void Residual(const mjModel *model, const mjData *data,
@@ -60,11 +65,13 @@ namespace mjpc
         private:
             friend class AllegroTask;
 
-            double r_qpos_buffer_[ALLEGRO_DOFS];
+            double m_r_qpos_buffer[ALLEGRO_DOFS];
         };
 
-        AllegroTask(string objectSimBodyName)
-            : residual_(this), object_sim_body_name_(objectSimBodyName) {}
+        AllegroTask(string objectSimBodyName, int maxObjectContactSites, string objectContactStartDataName)
+            : residual_(this), m_object_sim_body_name(objectSimBodyName),
+              m_max_object_contact_sites(maxObjectContactSites),
+              m_object_contact_start_data_name(objectContactStartDataName) {}
 
         // --------------------- Transition for allegro task ------------------------
         //   Set `data->mocap_pos` based on `data->time` to move the object site.
@@ -74,16 +81,19 @@ namespace mjpc
     protected:
         unique_ptr<mjpc::ResidualFn> ResidualLocked() const override
         {
-            return make_unique<ResidualFn>(this, residual_.r_qpos_buffer_);
+            return make_unique<ResidualFn>(this, residual_.m_r_qpos_buffer);
         }
         ResidualFn *InternalResidual() override { return &residual_; }
 
     private:
         ResidualFn residual_;
 
-        string object_sim_body_name_;
+        string m_object_sim_body_name;
 
-        double hand_kinematic_buffer_[ALLEGRO_DOFS];
+        int m_max_object_contact_sites;
+        string m_object_contact_start_data_name;
+
+        double m_hand_kinematic_buffer[ALLEGRO_DOFS];
     };
 
     class AllegroAppleTask : public AllegroTask
@@ -92,7 +102,7 @@ namespace mjpc
         string Name() const override;
         string XmlPath() const override;
 
-        AllegroAppleTask() : AllegroTask("apple_sim") {}
+        AllegroAppleTask() : AllegroTask("apple_sim", 1987, "contact_pos_object_data_215_0") {}
 
     private:
     };
@@ -103,7 +113,7 @@ namespace mjpc
         string Name() const override;
         string XmlPath() const override;
 
-        AllegroDoorknobTask() : AllegroTask("doorknob_sim") {}
+        AllegroDoorknobTask() : AllegroTask("doorknob_sim", 6455, "contact_pos_object_data_252_0") {}
     };
 } // namespace mjpc
 
