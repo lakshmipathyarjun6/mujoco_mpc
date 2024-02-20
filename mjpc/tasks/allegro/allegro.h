@@ -34,8 +34,9 @@
 
 #define CONTACT_SITE_DATA_COUNT_FIELD_SIZE 2 // first number gives the offset index, second number gives the number of discrete points
 
-#define OBJECT_CONTACT_START_SITE_NAME "contact_site_object_0"
 #define SITE_DATA_START_NAME "contact_numdata_0"
+#define OBJECT_CONTACT_START_SITE_NAME "contact_site_object_0"
+#define HAND_CONTACT_START_SITE_NAME "contact_site_hand_0"
 
 using namespace std;
 
@@ -68,10 +69,11 @@ namespace mjpc
             double m_r_qpos_buffer[ALLEGRO_DOFS];
         };
 
-        AllegroTask(string objectSimBodyName, int maxObjectContactSites, string objectContactStartDataName)
+        AllegroTask(string objectSimBodyName, int maxContactSites, string objectContactStartDataName, string handContactStartDataName)
             : residual_(this), m_object_sim_body_name(objectSimBodyName),
-              m_max_object_contact_sites(maxObjectContactSites),
-              m_object_contact_start_data_name(objectContactStartDataName) {}
+              m_max_contact_sites(maxContactSites),
+              m_object_contact_start_data_name(objectContactStartDataName),
+              m_hand_contact_start_data_name(handContactStartDataName) {}
 
         // --------------------- Transition for allegro task ------------------------
         //   Set `data->mocap_pos` based on `data->time` to move the object site.
@@ -90,8 +92,10 @@ namespace mjpc
 
         string m_object_sim_body_name;
 
-        int m_max_object_contact_sites;
+        int m_max_contact_sites;
+
         string m_object_contact_start_data_name;
+        string m_hand_contact_start_data_name;
 
         double m_hand_kinematic_buffer[ALLEGRO_DOFS];
     };
@@ -102,7 +106,7 @@ namespace mjpc
         string Name() const override;
         string XmlPath() const override;
 
-        AllegroAppleTask() : AllegroTask("apple_sim", 1987, "contact_pos_object_data_215_0") {}
+        AllegroAppleTask() : AllegroTask("apple_sim", 1987, "contact_pos_object_data_215_0", "contact_pos_hand_data_215_0") {}
 
     private:
     };
@@ -113,7 +117,7 @@ namespace mjpc
         string Name() const override;
         string XmlPath() const override;
 
-        AllegroDoorknobTask() : AllegroTask("doorknob_sim", 6455, "contact_pos_object_data_252_0") {}
+        AllegroDoorknobTask() : AllegroTask("doorknob_sim", 6455, "contact_pos_object_data_252_0", "contact_pos_hand_data_252_0") {}
     };
 } // namespace mjpc
 

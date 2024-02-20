@@ -12,7 +12,7 @@
             <include file="./contacts/doorknob_use_1/doorknob_use_1_object_sites.xml"/>
         </body>
         <body name="hand_startclamp" pos="-1.05350866 0.30617798 1.28931948">
-            <include file="./task_bodies/doorknob_use_1_right_hand_body.xml"/>
+            <include file="right_hand_body.xml"/>
         </body>
         <include file="right_hand_mocap_vis.xml"/>
         <body name="doorknob_attachment" pos="-0.0825822262763977 -0.6478415727615356 0.9384804964065552">
@@ -21,6 +21,7 @@
                 <geom name="sim_geom_doorknob" type="mesh" mesh="doorknob" mass="2.485148625" rgba="0.8313 0.686 0.216 1.0"/>
             </body>
         </body>
+        <include file="./contacts/doorknob_use_1/doorknob_use_1_hand_sites.xml"/>
         <geom name="floor" pos="0 0 -0.2" size="0 0 0.05" type="plane" material="blue_grid"/>
     </worldbody>
 

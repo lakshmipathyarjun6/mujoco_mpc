@@ -159,23 +159,44 @@ namespace mjpc
         mj_kinematics(model, data);
 
         int siteMetadataStartId = mj_name2id(model, mjOBJ_NUMERIC, SITE_DATA_START_NAME);
-        int objectContactStartSiteId = mj_name2id(model, mjOBJ_SITE, OBJECT_CONTACT_START_SITE_NAME);
-        int contactDataStartId = mj_name2id(model, mjOBJ_NUMERIC, m_object_contact_start_data_name.c_str());
-
-        // Load object contact site data
-        mju_zero(model->site_pos + objectContactStartSiteId, m_max_object_contact_sites * 3);
-
         int siteMetadataOffset = siteMetadataStartId + mode;
 
-        string siteMetadataName = model->names + model->name_numericadr[siteMetadataOffset];
         mjtNum *metadataData = model->numeric_data + model->numeric_adr[siteMetadataOffset];
-
         int contactDataOffset = int(metadataData[0]);
         int contactDataSize = int(metadataData[1]);
 
-        int contactDataStart = contactDataStartId + contactDataOffset;
+        mju_zero(model->site_pos, m_max_contact_sites * 3 * 2);
 
-        mju_copy(model->site_pos + objectContactStartSiteId, model->numeric_data + model->numeric_adr[contactDataStart], contactDataSize * 3);
+        // Load object contact site data
+        int objectContactStartSiteId = mj_name2id(model, mjOBJ_SITE, OBJECT_CONTACT_START_SITE_NAME);
+        int objectContactDataStartId = mj_name2id(model, mjOBJ_NUMERIC, m_object_contact_start_data_name.c_str());
+
+        int objectContactDataStart = objectContactDataStartId + contactDataOffset;
+
+        mju_copy(model->site_pos + objectContactStartSiteId * 3, model->numeric_data + model->numeric_adr[objectContactDataStart], contactDataSize * 3);
+
+        // Load hand contact site data
+        // Doing this manually rather than running FK since reassembly and extra geoms is pointlessly expensive and convoluted
+        int handContactStartSiteId = mj_name2id(model, mjOBJ_SITE, HAND_CONTACT_START_SITE_NAME);
+        int handContactDataStartId = mj_name2id(model, mjOBJ_NUMERIC, m_hand_contact_start_data_name.c_str());
+
+        int handContactDataStart = handContactDataStartId + contactDataOffset;
+
+        for (int handContactDataIndex = handContactDataStart; handContactDataIndex < handContactDataStart + contactDataSize; handContactDataIndex++)
+        {
+            string handContactName = model->names + model->name_numericadr[handContactDataIndex];
+            mjtNum *handContactBlock = model->numeric_data + model->numeric_adr[handContactDataIndex];
+
+            int handBodyIndex = handContactBlock[0];
+            double localCoords[3] = {handContactBlock[1], handContactBlock[2], handContactBlock[3]};
+
+            int siteRelativeOffset = handContactDataIndex - handContactDataStart;
+            int fullSiteOffset = (handContactStartSiteId + siteRelativeOffset) * 3;
+
+            mj_local2Global(data, model->site_pos + fullSiteOffset,
+                            nullptr, localCoords,
+                            nullptr, handBodyIndex, 0);
+        }
         mj_kinematics(model, data);
 
         // Reset
@@ -216,10 +237,11 @@ namespace mjpc
             mju_zero(data->xfrc_applied, model->nbody * 6);
 
             // Zero out all object contact sites
-            mju_zero(model->site_pos + objectContactStartSiteId, m_max_object_contact_sites * 3);
-            for (int objectSiteId = objectContactStartSiteId; objectSiteId < objectContactStartSiteId + m_max_object_contact_sites; objectSiteId++)
+            mju_zero(model->site_pos, m_max_contact_sites * 3 * 2);
+
+            for(int i = 0; i < model->nsite; i++)
             {
-                model->site_sameframe[objectSiteId] = 0;
+                model->site_sameframe[i] = 0;
             }
         }
 
