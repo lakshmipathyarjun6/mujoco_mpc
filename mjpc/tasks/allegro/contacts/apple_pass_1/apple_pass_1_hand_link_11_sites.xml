@@ -1,0 +1,34 @@
+<mujoco>
+  <site name="contact_site_hand_link_11_0" group="4" />
+  <site name="contact_site_hand_link_11_1" group="4" />
+  <site name="contact_site_hand_link_11_2" group="4" />
+  <site name="contact_site_hand_link_11_3" group="4" />
+  <site name="contact_site_hand_link_11_4" group="4" />
+  <site name="contact_site_hand_link_11_5" group="4" />
+  <site name="contact_site_hand_link_11_6" group="4" />
+  <site name="contact_site_hand_link_11_7" group="4" />
+  <site name="contact_site_hand_link_11_8" group="4" />
+  <site name="contact_site_hand_link_11_9" group="4" />
+  <site name="contact_site_hand_link_11_10" group="4" />
+  <site name="contact_site_hand_link_11_11" group="4" />
+  <site name="contact_site_hand_link_11_12" group="4" />
+  <site name="contact_site_hand_link_11_13" group="4" />
+  <site name="contact_site_hand_link_11_14" group="4" />
+  <site name="contact_site_hand_link_11_15" group="4" />
+  <site name="contact_site_hand_link_11_16" group="4" />
+  <site name="contact_site_hand_link_11_17" group="4" />
+  <site name="contact_site_hand_link_11_18" group="4" />
+  <site name="contact_site_hand_link_11_19" group="4" />
+  <site name="contact_site_hand_link_11_20" group="4" />
+  <site name="contact_site_hand_link_11_21" group="4" />
+  <site name="contact_site_hand_link_11_22" group="4" />
+  <site name="contact_site_hand_link_11_23" group="4" />
+  <site name="contact_site_hand_link_11_24" group="4" />
+  <site name="contact_site_hand_link_11_25" group="4" />
+  <site name="contact_site_hand_link_11_26" group="4" />
+  <site name="contact_site_hand_link_11_27" group="4" />
+  <site name="contact_site_hand_link_11_28" group="4" />
+  <site name="contact_site_hand_link_11_29" group="4" />
+  <site name="contact_site_hand_link_11_30" group="4" />
+  <site name="contact_site_hand_link_11_31" group="4" />
+</mujoco>

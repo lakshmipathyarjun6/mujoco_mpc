@@ -9,7 +9,7 @@
             <geom type="mesh" mesh="doorknob" size="1 1 1" contype="0" conaffinity="0" rgba="0 1 0 1.0"/>
         </body>
         <body name="hand_startclamp" pos="-1.05350866 0.30617798 1.28931948">
-            <include file="right_hand_body.xml"/>
+            <include file="./task_bodies/doorknob_use_1_right_hand_body.xml"/>
         </body>
         <include file="right_hand_mocap_vis.xml"/>
         <body name="doorknob_attachment" pos="-0.0825822262763977 -0.6478415727615356 0.9384804964065552">
