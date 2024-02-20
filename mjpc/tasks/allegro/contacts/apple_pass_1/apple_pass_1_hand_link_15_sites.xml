@@ -1,5 +1,0 @@
-<mujoco>
-  <site name="contact_site_hand_link_15_0" group="4" />
-  <site name="contact_site_hand_link_15_1" group="4" />
-  <site name="contact_site_hand_link_15_2" group="4" />
-</mujoco>
