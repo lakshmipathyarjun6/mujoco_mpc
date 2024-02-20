@@ -29,7 +29,7 @@ namespace mjpc
     {
         int offset = 0;
 
-        bool agent_object_collision_detected = false;
+        // bool agent_object_collision_detected = false;
         vector<mjContact *> agent_object_collisions;
 
         // Get all collisions
@@ -46,28 +46,28 @@ namespace mjpc
                 colliding_geom_1.compare(0, AGENT_GEOM_COLLIDER_PREFIX.size(), AGENT_GEOM_COLLIDER_PREFIX) == 0 &&
                 colliding_geom_2.compare(0, SIM_GEOM_COLLIDER_PREFIX.size(), SIM_GEOM_COLLIDER_PREFIX) == 0)
             {
-                agent_object_collision_detected = true;
+                // agent_object_collision_detected = true;
                 agent_object_collisions.push_back(&data->contact[c]);
             }
             else if (
                 colliding_geom_2.compare(0, AGENT_GEOM_COLLIDER_PREFIX.size(), AGENT_GEOM_COLLIDER_PREFIX) == 0 &&
                 colliding_geom_1.compare(0, SIM_GEOM_COLLIDER_PREFIX.size(), SIM_GEOM_COLLIDER_PREFIX) == 0)
             {
-                agent_object_collision_detected = true;
+                // agent_object_collision_detected = true;
                 agent_object_collisions.push_back(&data->contact[c]);
             }
         }
 
-        if (agent_object_collision_detected)
-        {
-            cout << "Agent object collision(s) found" << endl;
-            for (int c = 0; c < agent_object_collisions.size(); c++)
-            {
-                cout << "Collision #" << c << ": " << endl;
-                cout << "\tGeometry 1: " << model->names + model->name_geomadr[agent_object_collisions[c]->geom[0]] << endl;
-                cout << "\tGeometry 2: " << model->names + model->name_geomadr[agent_object_collisions[c]->geom[1]] << endl;
-            }
-        }
+        // if (agent_object_collision_detected)
+        // {
+        //     cout << "Agent object collision(s) found" << endl;
+        //     for (int c = 0; c < agent_object_collisions.size(); c++)
+        //     {
+        //         cout << "Collision #" << c << ": " << endl;
+        //         cout << "\tGeometry 1: " << model->names + model->name_geomadr[agent_object_collisions[c]->geom[0]] << endl;
+        //         cout << "\tGeometry 2: " << model->names + model->name_geomadr[agent_object_collisions[c]->geom[1]] << endl;
+        //     }
+        // }
 
         // ---------- Residual (0) ----------
         // goal position
@@ -103,19 +103,19 @@ namespace mjpc
         // int bodyJointAdr = model->body_jntadr[handRootBodyId];
         // int handQPosAdr = model->jnt_qposadr[bodyJointAdr];
 
-        // mju_sub(residual + offset, data->qpos + handQPosAdr, r_qpos_buffer_, 3);
+        // mju_sub(residual + offset, data->qpos + handQPosAdr, m_r_qpos_buffer, 3);
 
         // offset += 3;
 
         // // ---------- Residual (3) ----------
         // int rootOffset = 3;
-        // mju_sub(residual + offset, data->qpos + handQPosAdr + rootOffset, r_qpos_buffer_ + rootOffset, 3);
+        // mju_sub(residual + offset, data->qpos + handQPosAdr + rootOffset, m_r_qpos_buffer + rootOffset, 3);
 
         // offset += 3;
 
         // // ---------- Residual (4) ----------
         // rootOffset = 6;
-        // mju_sub(residual + offset, data->qpos + handQPosAdr + rootOffset, r_qpos_buffer_ + rootOffset, ALLEGRO_DOFS - 6);
+        // mju_sub(residual + offset, data->qpos + handQPosAdr + rootOffset, m_r_qpos_buffer + rootOffset, ALLEGRO_DOFS - 6);
 
         // offset += ALLEGRO_DOFS - 6;
 
@@ -136,7 +136,7 @@ namespace mjpc
 
         int handMocapQOffset = model->nq * mode;
 
-        mju_copy(residual_.r_qpos_buffer_, model->key_qpos + handMocapQOffset, ALLEGRO_DOFS);
+        mju_copy(residual_.m_r_qpos_buffer, model->key_qpos + handMocapQOffset, ALLEGRO_DOFS);
 
         int objectMocapPosOffset = 3 * model->nmocap * mode;
         int objectMocapQuatOffset = 4 * model->nmocap * mode;
@@ -150,26 +150,38 @@ namespace mjpc
         int handQPosAdr = model->jnt_qposadr[bodyJointAdr];
 
         // DEBUG ONLY
-        mju_copy(hand_kinematic_buffer_, data->qpos + handQPosAdr, ALLEGRO_DOFS);
+        mju_copy(m_hand_kinematic_buffer, data->qpos + handQPosAdr, ALLEGRO_DOFS);
         mju_copy(data->qpos + handQPosAdr, model->key_qpos + handMocapQOffset, ALLEGRO_DOFS);
         mj_kinematics(model, data);
         mju_copy(data->mocap_pos + 3, data->xpos + handPalmXPosOffset, 3 * (model->nmocap - 1));
         mju_copy(data->mocap_quat + 4, data->xquat + handPalmXQuatOffset, 4 * (model->nmocap - 1));
-        mju_copy(data->qpos + handQPosAdr, hand_kinematic_buffer_, ALLEGRO_DOFS);
+        mju_copy(data->qpos + handQPosAdr, m_hand_kinematic_buffer, ALLEGRO_DOFS);
         mj_kinematics(model, data);
 
-        // mju_trnVecPose
+        int siteMetadataStartId = mj_name2id(model, mjOBJ_NUMERIC, SITE_DATA_START_NAME);
+        int objectContactStartSiteId = mj_name2id(model, mjOBJ_SITE, OBJECT_CONTACT_START_SITE_NAME);
+        int contactDataStartId = mj_name2id(model, mjOBJ_NUMERIC, m_object_contact_start_data_name.c_str());
 
-        // for (int jointId = 0; jointId < model->nv; jointId++)
-        // {
-        //     string body_name = model->names + model->name_jntadr[jointId];
-        //     cout << "Joint " << jointId << ": " << body_name << endl;
-        // }
+        // Load object contact site data
+        mju_zero(model->site_pos + objectContactStartSiteId, m_max_object_contact_sites * 3);
+
+        int siteMetadataOffset = siteMetadataStartId + mode;
+
+        string siteMetadataName = model->names + model->name_numericadr[siteMetadataOffset];
+        mjtNum *metadataData = model->numeric_data + model->numeric_adr[siteMetadataOffset];
+
+        int contactDataOffset = int(metadataData[0]);
+        int contactDataSize = int(metadataData[1]);
+
+        int contactDataStart = contactDataStartId + contactDataOffset;
+
+        mju_copy(model->site_pos + objectContactStartSiteId, model->numeric_data + model->numeric_adr[contactDataStart], contactDataSize * 3);
+        mj_kinematics(model, data);
 
         // Reset
         if (mode == 0)
         {
-            int simObjBodyId = mj_name2id(model, mjOBJ_BODY, object_sim_body_name_.c_str());
+            int simObjBodyId = mj_name2id(model, mjOBJ_BODY, m_object_sim_body_name.c_str());
             int simObjDofs = model->nq - ALLEGRO_DOFS;
 
             bool objectSimBodyExists = simObjBodyId != -1;
@@ -202,6 +214,13 @@ namespace mjpc
             mju_zero(data->actuator_force, model->nu);
             mju_zero(data->qfrc_applied, model->nv);
             mju_zero(data->xfrc_applied, model->nbody * 6);
+
+            // Zero out all object contact sites
+            mju_zero(model->site_pos + objectContactStartSiteId, m_max_object_contact_sites * 3);
+            for (int objectSiteId = objectContactStartSiteId; objectSiteId < objectContactStartSiteId + m_max_object_contact_sites; objectSiteId++)
+            {
+                model->site_sameframe[objectSiteId] = 0;
+            }
         }
 
         // Object mocap is first in config
