@@ -30,7 +30,7 @@ namespace mjpc
         int offset = 0;
 
         bool agent_object_collision_detected = false;
-        vector<mjContact*> agent_object_collisions;
+        vector<mjContact *> agent_object_collisions;
 
         // Get all collisions
         for (int c = 0; c < data->ncon; c++)
@@ -61,7 +61,7 @@ namespace mjpc
         if (agent_object_collision_detected)
         {
             cout << "Agent object collision(s) found" << endl;
-            for(int c = 0; c < agent_object_collisions.size(); c++)
+            for (int c = 0; c < agent_object_collisions.size(); c++)
             {
                 cout << "Collision #" << c << ": " << endl;
                 cout << "\tGeometry 1: " << model->names + model->name_geomadr[agent_object_collisions[c]->geom[0]] << endl;
@@ -157,6 +157,14 @@ namespace mjpc
         mju_copy(data->mocap_quat + 4, data->xquat + handPalmXQuatOffset, 4 * (model->nmocap - 1));
         mju_copy(data->qpos + handQPosAdr, hand_kinematic_buffer_, ALLEGRO_DOFS);
         mj_kinematics(model, data);
+
+        // mju_trnVecPose
+
+        // for (int jointId = 0; jointId < model->nv; jointId++)
+        // {
+        //     string body_name = model->names + model->name_jntadr[jointId];
+        //     cout << "Joint " << jointId << ": " << body_name << endl;
+        // }
 
         // Reset
         if (mode == 0)

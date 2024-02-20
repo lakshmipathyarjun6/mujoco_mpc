@@ -62,9 +62,9 @@
         </default>
       </default>
       <default class="fingertip_collision">
-        <geom type="capsule" size="0.012 0.001" pos="0 0 0.001"/>
+        <geom type="mesh" mesh="link_3.0_tip"/>
         <default class="thumbtip_collision">
-          <geom type="capsule" size="0.012 0.001" pos="0 0 0.001"/>
+          <geom type="mesh" mesh="link_15.0_tip"/>
         </default>
       </default>
     </default>

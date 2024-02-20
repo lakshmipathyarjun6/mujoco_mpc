@@ -1,0 +1,20 @@
+<mujoco>
+  <site name="contact_site_hand_link_7_0" group="4" />
+  <site name="contact_site_hand_link_7_1" group="4" />
+  <site name="contact_site_hand_link_7_2" group="4" />
+  <site name="contact_site_hand_link_7_3" group="4" />
+  <site name="contact_site_hand_link_7_4" group="4" />
+  <site name="contact_site_hand_link_7_5" group="4" />
+  <site name="contact_site_hand_link_7_6" group="4" />
+  <site name="contact_site_hand_link_7_7" group="4" />
+  <site name="contact_site_hand_link_7_8" group="4" />
+  <site name="contact_site_hand_link_7_9" group="4" />
+  <site name="contact_site_hand_link_7_10" group="4" />
+  <site name="contact_site_hand_link_7_11" group="4" />
+  <site name="contact_site_hand_link_7_12" group="4" />
+  <site name="contact_site_hand_link_7_13" group="4" />
+  <site name="contact_site_hand_link_7_14" group="4" />
+  <site name="contact_site_hand_link_7_15" group="4" />
+  <site name="contact_site_hand_link_7_16" group="4" />
+  <site name="contact_site_hand_link_7_17" group="4" />
+</mujoco>
