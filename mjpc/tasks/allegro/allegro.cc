@@ -21,6 +21,7 @@ namespace mjpc
     //     Residual (0): object_position - object_traj_position
     //     Residual (1): object_orientation - object_traj_orientation
     //     Residual (2): hand joint velocity
+    //     Residual (3): contact alignment
     // ------------------------------------------------------------
 
     // NOTE: Currently unclear how to adapt to non-free objects (e.g. doorknob)
@@ -98,6 +99,22 @@ namespace mjpc
         mju_copy(residual + offset, data->qvel, ALLEGRO_DOFS);
         offset += ALLEGRO_DOFS;
 
+        // ---------- Residual (3) ----------
+        double result[ABSOLUTE_MAX_CONTACT_RESULT_BUFF_SIZE];
+        mju_sub(result, m_r_contact_position_buffer, m_r_contact_position_buffer + ABSOLUTE_MAX_CONTACT_RESULT_BUFF_SIZE, ABSOLUTE_MAX_CONTACT_RESULT_BUFF_SIZE);
+
+        for(int i = 0; i < ABSOLUTE_MAX_CONTACT_RESULT_BUFF_SIZE; i++)
+        {
+            result[i] *= m_r_contact_indicator_buffer[i];
+        }
+
+        mju_copy(residual + offset, result, ABSOLUTE_MAX_CONTACT_RESULT_BUFF_SIZE);
+        offset += ABSOLUTE_MAX_CONTACT_RESULT_BUFF_SIZE;
+
+        // sensor dim sanity check
+        CheckSensorDim(model, offset);
+
+        // BELOW HERE IS LEGACY
         // // ---------- Residual (2) ----------
         // int handRootBodyId = mj_name2id(model, mjOBJ_BODY, ALLEGRO_ROOT);
         // int bodyJointAdr = model->body_jntadr[handRootBodyId];
@@ -119,8 +136,8 @@ namespace mjpc
 
         // offset += ALLEGRO_DOFS - 6;
 
-        // sensor dim sanity check
-        CheckSensorDim(model, offset);
+        // // sensor dim sanity check
+        // CheckSensorDim(model, offset);
     }
 
     // --------------------- Transition for allegro task ------------------------
@@ -136,7 +153,7 @@ namespace mjpc
 
         int handMocapQOffset = model->nq * mode;
 
-        mju_copy(residual_.m_r_qpos_buffer, model->key_qpos + handMocapQOffset, ALLEGRO_DOFS);
+        mju_copy(m_residual.m_r_qpos_buffer, model->key_qpos + handMocapQOffset, ALLEGRO_DOFS);
 
         int objectMocapPosOffset = 3 * model->nmocap * mode;
         int objectMocapQuatOffset = 4 * model->nmocap * mode;
@@ -150,6 +167,7 @@ namespace mjpc
         int handQPosAdr = model->jnt_qposadr[bodyJointAdr];
 
         // DEBUG ONLY
+        // Reference hand loading
         mju_copy(m_hand_kinematic_buffer, data->qpos + handQPosAdr, ALLEGRO_DOFS);
         mju_copy(data->qpos + handQPosAdr, model->key_qpos + handMocapQOffset, ALLEGRO_DOFS);
         mj_kinematics(model, data);
@@ -158,14 +176,17 @@ namespace mjpc
         mju_copy(data->qpos + handQPosAdr, m_hand_kinematic_buffer, ALLEGRO_DOFS);
         mj_kinematics(model, data);
 
+        // Contact loading
+        mju_zero(model->site_pos, m_max_contact_sites * 3 * 2);
+        mju_zero(m_residual.m_r_contact_indicator_buffer, ABSOLUTE_MAX_CONTACT_RESULT_BUFF_SIZE);
+        mju_zero(m_residual.m_r_contact_position_buffer, ABSOLUTE_MAX_CONTACT_POS_BUFF_SIZE);
+
         int siteMetadataStartId = mj_name2id(model, mjOBJ_NUMERIC, SITE_DATA_START_NAME);
         int siteMetadataOffset = siteMetadataStartId + mode;
 
         mjtNum *metadataData = model->numeric_data + model->numeric_adr[siteMetadataOffset];
         int contactDataOffset = int(metadataData[0]);
         int contactDataSize = int(metadataData[1]);
-
-        mju_zero(model->site_pos, m_max_contact_sites * 3 * 2);
 
         // Load object contact site data
         int objectContactStartSiteId = mj_name2id(model, mjOBJ_SITE, OBJECT_CONTACT_START_SITE_NAME);
@@ -198,6 +219,15 @@ namespace mjpc
                             nullptr, handBodyIndex, 0);
         }
         mj_kinematics(model, data);
+
+        for (int i = 0; i < contactDataSize * 3; i++)
+        {
+            m_residual.m_r_contact_indicator_buffer[i] = 1.0;
+        }
+
+        // Copy into each half of residual buffer for quick subtraction
+        mju_copy(m_residual.m_r_contact_position_buffer, data->site_xpos, m_max_contact_sites * 3);
+        mju_copy(m_residual.m_r_contact_position_buffer + ABSOLUTE_MAX_CONTACT_RESULT_BUFF_SIZE, data->site_xpos + m_max_contact_sites * 3, m_max_contact_sites * 3);
 
         // Reset
         if (mode == 0)
@@ -239,7 +269,7 @@ namespace mjpc
             // Zero out all object contact sites
             mju_zero(model->site_pos, m_max_contact_sites * 3 * 2);
 
-            for(int i = 0; i < model->nsite; i++)
+            for (int i = 0; i < model->nsite; i++)
             {
                 model->site_sameframe[i] = 0;
             }

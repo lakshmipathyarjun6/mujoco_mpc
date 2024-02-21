@@ -22,6 +22,10 @@
 
 #define FPS 12
 
+#define ABSOLUTE_MAX_CONTACT_SITES 6500
+#define ABSOLUTE_MAX_CONTACT_RESULT_BUFF_SIZE ABSOLUTE_MAX_CONTACT_SITES * 3
+#define ABSOLUTE_MAX_CONTACT_POS_BUFF_SIZE ABSOLUTE_MAX_CONTACT_SITES * 3 * 2
+
 #define ALLEGRO_DOFS 22
 #define ALLEGRO_ROOT "wrist"
 #define ALLEGRO_MOCAP_ROOT "palm"
@@ -52,12 +56,20 @@ namespace mjpc
                 : mjpc::BaseResidualFn(task)
             {
                 fill(begin(m_r_qpos_buffer), end(m_r_qpos_buffer), 0);
+                fill(begin(m_r_contact_indicator_buffer), end(m_r_contact_indicator_buffer), 0);
+                fill(begin(m_r_contact_position_buffer), end(m_r_contact_position_buffer), 0);
             }
 
-            explicit ResidualFn(const AllegroTask *task, const double qpos_buffer[ALLEGRO_DOFS])
+            explicit ResidualFn(
+                const AllegroTask *task,
+                const double qpos_buffer[ALLEGRO_DOFS],
+                const double contact_indicator_buffer[ABSOLUTE_MAX_CONTACT_RESULT_BUFF_SIZE],
+                const double contact_position_buffer[ABSOLUTE_MAX_CONTACT_POS_BUFF_SIZE])
                 : mjpc::BaseResidualFn(task)
             {
                 mju_copy(m_r_qpos_buffer, qpos_buffer, ALLEGRO_DOFS);
+                mju_copy(m_r_contact_indicator_buffer, contact_indicator_buffer, ABSOLUTE_MAX_CONTACT_RESULT_BUFF_SIZE);
+                mju_copy(m_r_contact_position_buffer, contact_position_buffer, ABSOLUTE_MAX_CONTACT_POS_BUFF_SIZE);
             }
 
             void Residual(const mjModel *model, const mjData *data,
@@ -67,10 +79,13 @@ namespace mjpc
             friend class AllegroTask;
 
             double m_r_qpos_buffer[ALLEGRO_DOFS];
+
+            double m_r_contact_indicator_buffer[ABSOLUTE_MAX_CONTACT_RESULT_BUFF_SIZE];
+            double m_r_contact_position_buffer[ABSOLUTE_MAX_CONTACT_POS_BUFF_SIZE];
         };
 
         AllegroTask(string objectSimBodyName, int maxContactSites, string objectContactStartDataName, string handContactStartDataName)
-            : residual_(this), m_object_sim_body_name(objectSimBodyName),
+            : m_residual(this), m_object_sim_body_name(objectSimBodyName),
               m_max_contact_sites(maxContactSites),
               m_object_contact_start_data_name(objectContactStartDataName),
               m_hand_contact_start_data_name(handContactStartDataName) {}
@@ -83,12 +98,12 @@ namespace mjpc
     protected:
         unique_ptr<mjpc::ResidualFn> ResidualLocked() const override
         {
-            return make_unique<ResidualFn>(this, residual_.m_r_qpos_buffer);
+            return make_unique<ResidualFn>(this, m_residual.m_r_qpos_buffer, m_residual.m_r_contact_indicator_buffer, m_residual.m_r_contact_position_buffer);
         }
-        ResidualFn *InternalResidual() override { return &residual_; }
+        ResidualFn *InternalResidual() override { return &m_residual; }
 
     private:
-        ResidualFn residual_;
+        ResidualFn m_residual;
 
         string m_object_sim_body_name;
 
