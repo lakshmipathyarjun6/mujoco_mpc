@@ -20,7 +20,7 @@
 #include <vector>
 
 #include <mujoco/mujoco.h>
-#include "mjpc/planners/cost_derivatives.h"
+#include "mjpc/planners/cost_derivatives_lite.h"
 #include "mjpc/planners/gradient/gradient.h"
 #include "mjpc/planners/gradient/policy.h"
 #include "mjpc/planners/gradient/settings.h"
@@ -127,7 +127,7 @@ class GradientPlanner : public Planner {
   ModelDerivatives model_derivative;
 
   // cost derivatives
-  CostDerivatives cost_derivative;
+  CostDerivativesLite cost_derivative;
 
   // gradient descent
   Gradient gradient;

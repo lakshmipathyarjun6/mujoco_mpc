@@ -17,7 +17,7 @@
 #include <mujoco/mujoco.h>
 
 #include "gtest/gtest.h"
-#include "mjpc/planners/cost_derivatives.h"
+#include "mjpc/planners/cost_derivatives_lite.h"
 #include "mjpc/planners/model_derivatives.h"
 #include "mjpc/test/lqr.h"
 #include "mjpc/utilities.h"
@@ -65,7 +65,7 @@ TEST(GradientTest, Gradient) {
   md.Allocate(n, m, 0, T);
 
   // cost derivatives
-  CostDerivatives cd;
+  CostDerivativesLite cd;
   cd.Allocate(n, m, 0, T, n + m);
 
   // set derivatives

@@ -17,7 +17,7 @@
 
 #include <vector>
 
-#include "mjpc/planners/cost_derivatives.h"
+#include "mjpc/planners/cost_derivatives_lite.h"
 #include "mjpc/planners/gradient/policy.h"
 #include "mjpc/planners/model_derivatives.h"
 
@@ -47,7 +47,7 @@ class Gradient {
 
   // compute gradient for entire trajectory
   int Compute(GradientPolicy *p, const ModelDerivatives *md,
-              const CostDerivatives *cd, int dim_state_derivative,
+              const CostDerivativesLite *cd, int dim_state_derivative,
               int dim_action, int T);
 
   // ----- members ----- //

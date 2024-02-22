@@ -66,7 +66,7 @@ int Gradient::GradientStep(int n, int m, const double *Wx, const double *At,
 
 // compute gradient for entire trajectory
 int Gradient::Compute(GradientPolicy *p, const ModelDerivatives *md,
-                      const CostDerivatives *cd, int dim_state_derivative,
+                      const CostDerivativesLite *cd, int dim_state_derivative,
                       int dim_action, int T) {
   // reset
   mju_zero(dV, 2);

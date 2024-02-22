@@ -159,7 +159,10 @@ void Agent::Allocate() {
   // planner
   for (const auto& planner : planners_) {
     planner->Allocate();
+    std::cout << "Allocating planner" << std::endl;
   }
+
+  std::cout << "And state" << std::endl;
 
   // state
   state.Allocate(model_);
