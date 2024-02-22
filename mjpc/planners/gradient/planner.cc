@@ -312,6 +312,8 @@ void GradientPlanner::OptimizePolicy(int horizon, ThreadPool& pool) {
   // stop timer
   policy_update_time += GetDuration(policy_update_start);
 
+  cout << "Model: " << model_derivative_time << ", Cost: " << cost_derivative_time << endl;
+
   // set timers
   nominal_compute_time = nominal_time;
   model_derivative_compute_time = model_derivative_time;

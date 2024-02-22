@@ -111,33 +111,30 @@ namespace mjpc
         mju_copy(residual + offset, result, ABSOLUTE_MAX_CONTACT_RESULT_BUFF_SIZE);
         offset += ABSOLUTE_MAX_CONTACT_RESULT_BUFF_SIZE;
 
+        // BELOW HERE IS LEGACY
+        // ---------- Residual (2) ----------
+        int handRootBodyId = mj_name2id(model, mjOBJ_BODY, ALLEGRO_ROOT);
+        int bodyJointAdr = model->body_jntadr[handRootBodyId];
+        int handQPosAdr = model->jnt_qposadr[bodyJointAdr];
+
+        mju_sub(residual + offset, data->qpos + handQPosAdr, m_r_qpos_buffer, 3);
+
+        offset += 3;
+
+        // ---------- Residual (3) ----------
+        int rootOffset = 3;
+        mju_sub(residual + offset, data->qpos + handQPosAdr + rootOffset, m_r_qpos_buffer + rootOffset, 3);
+
+        offset += 3;
+
+        // ---------- Residual (4) ----------
+        rootOffset = 6;
+        mju_sub(residual + offset, data->qpos + handQPosAdr + rootOffset, m_r_qpos_buffer + rootOffset, ALLEGRO_DOFS - 6);
+
+        offset += ALLEGRO_DOFS - 6;
+
         // sensor dim sanity check
         CheckSensorDim(model, offset);
-
-        // BELOW HERE IS LEGACY
-        // // ---------- Residual (2) ----------
-        // int handRootBodyId = mj_name2id(model, mjOBJ_BODY, ALLEGRO_ROOT);
-        // int bodyJointAdr = model->body_jntadr[handRootBodyId];
-        // int handQPosAdr = model->jnt_qposadr[bodyJointAdr];
-
-        // mju_sub(residual + offset, data->qpos + handQPosAdr, m_r_qpos_buffer, 3);
-
-        // offset += 3;
-
-        // // ---------- Residual (3) ----------
-        // int rootOffset = 3;
-        // mju_sub(residual + offset, data->qpos + handQPosAdr + rootOffset, m_r_qpos_buffer + rootOffset, 3);
-
-        // offset += 3;
-
-        // // ---------- Residual (4) ----------
-        // rootOffset = 6;
-        // mju_sub(residual + offset, data->qpos + handQPosAdr + rootOffset, m_r_qpos_buffer + rootOffset, ALLEGRO_DOFS - 6);
-
-        // offset += ALLEGRO_DOFS - 6;
-
-        // // sensor dim sanity check
-        // CheckSensorDim(model, offset);
     }
 
     // --------------------- Transition for allegro task ------------------------

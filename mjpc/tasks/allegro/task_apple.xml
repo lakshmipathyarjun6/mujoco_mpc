@@ -9,7 +9,6 @@
             directional="true" castshadow="true"/>
         <body name="apple_mocap" mocap="true">
             <geom type="mesh" mesh="apple" size="1 1 1" contype="0" conaffinity="0" rgba="0 1 0 1.0"/>
-            <include file="./contacts/apple_pass_1/apple_pass_1_object_sites.xml"/>
         </body>
         <body name="hand_startclamp" pos="-0.559216021990488 1.0061246071752599 1.3645857582385554">
             <include file="right_hand_body.xml"/>
@@ -18,6 +17,7 @@
         <body name="apple_sim">
             <freejoint/>
             <geom name="sim_geom_apple" type="mesh" mesh="apple" mass="2.485148625" rgba="1.0 0 0 1.0"/>
+            <include file="./contacts/apple_pass_1/apple_pass_1_object_sites.xml"/>
         </body>
         <include file="./contacts/apple_pass_1/apple_pass_1_hand_sites.xml"/>
         <geom name="table" pos="0.22647 -0.4 0.34" size="0.5 0.5 0.5" type="box" material="grey_grid"/>

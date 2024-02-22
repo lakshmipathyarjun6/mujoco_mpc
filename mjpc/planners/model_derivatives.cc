@@ -66,12 +66,12 @@ void ModelDerivatives::Compute(const mjModel* m,
         // Jacobians
         if (t == T - 1) {
           // Jacobians
-          mjd_transitionFD(m, d, tol, mode, nullptr, nullptr,
+          mjd_transitionFDInPlace(m, d, tol, mode, nullptr, nullptr,
                            DataAt(C, t * (dim_sensor * dim_state_derivative)),
                            nullptr);
         } else {
           // derivatives
-          mjd_transitionFD(
+          mjd_transitionFDInPlace(
               m, d, tol, mode,
               DataAt(A, t * (dim_state_derivative * dim_state_derivative)),
               DataAt(B, t * (dim_state_derivative * dim_action)),

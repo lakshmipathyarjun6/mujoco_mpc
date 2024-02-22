@@ -427,6 +427,8 @@ MjpcApp::MjpcApp(std::vector<std::shared_ptr<mjpc::Task>> tasks, int task_id) {
     }
   }
 
+  std::cout << "Going..." << std::endl;
+
   sim->filename = sim->agent->GetTaskXmlPath(sim->agent->gui_task_id);
   m = LoadModel(sim->agent.get(), *sim);
   if (m) d = mj_makeData(m);
@@ -443,14 +445,24 @@ MjpcApp::MjpcApp(std::vector<std::shared_ptr<mjpc::Task>> tasks, int task_id) {
   ctrlnoise = (mjtNum*)malloc(sizeof(mjtNum) * m->nu);
   mju_zero(ctrlnoise, m->nu);
 
+  std::cout << "Initializing sim..." << std::endl;
+
   // agent
   sim->agent->estimator_enabled = absl::GetFlag(FLAGS_estimator_enabled);
+  std::cout << "Mem..." << std::endl;
   sim->agent->Initialize(m);
+  std::cout << "was..." << std::endl;
   sim->agent->Allocate();
+  std::cout << "cat..." << std::endl;
   sim->agent->Reset();
+  std::cout << "poop..." << std::endl;
   sim->agent->PlotInitialize();
 
+  std::cout << "qwef..." << std::endl;
+
   sim->agent->plan_enabled = absl::GetFlag(FLAGS_planner_enabled);
+
+  std::cout << "More sim..." << std::endl;
 
   // Get the index of the closest sim percentage to the input.
   float desired_percent = absl::GetFlag(FLAGS_sim_percent_realtime);

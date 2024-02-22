@@ -114,6 +114,8 @@ add_library(
   planners/include.h
   planners/cost_derivatives.cc
   planners/cost_derivatives.h
+  planners/cost_derivatives_lite.cc
+  planners/cost_derivatives_lite.h
   planners/model_derivatives.cc
   planners/model_derivatives.h
   planners/cross_entropy/planner.cc
