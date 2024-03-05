@@ -2,14 +2,14 @@
 
     <include file="./task_template.xml"/>
 
-    <include file="./contacts/doorknob_use_1/doorknob_use_1_site_data.xml"/>
+    <!-- <include file="./contacts/doorknob_use_1/doorknob_use_1_site_data.xml"/> -->
 
     <worldbody>
         <light pos="0 -0.1 0.5" dir="0 0.2 -1" diffuse="0.7 0.7 0.7" specular="0.3 0.3 0.3"
             directional="true" castshadow="true"/>
         <body name="doorknob_mocap" mocap="true">
             <geom type="mesh" mesh="doorknob" size="1 1 1" contype="0" conaffinity="0" rgba="0 1 0 1.0"/>
-            <include file="./contacts/doorknob_use_1/doorknob_use_1_object_sites.xml"/>
+            <!-- <include file="./contacts/doorknob_use_1/doorknob_use_1_object_sites.xml"/> -->
         </body>
         <body name="hand_startclamp" pos="-1.05350866 0.30617798 1.28931948">
             <include file="right_hand_body.xml"/>
@@ -21,13 +21,11 @@
                 <geom name="sim_geom_doorknob" type="mesh" mesh="doorknob" mass="2.485148625" rgba="0.8313 0.686 0.216 1.0"/>
             </body>
         </body>
-        <include file="./contacts/doorknob_use_1/doorknob_use_1_hand_sites.xml"/>
+        <!-- <include file="./contacts/doorknob_use_1/doorknob_use_1_hand_sites.xml"/> -->
         <geom name="floor" pos="0 0 -0.2" size="0 0 0.05" type="plane" material="blue_grid"/>
     </worldbody>
 
     <sensor>
-        <framepos name="object_traj_position" objtype="body" objname="doorknob_mocap"/>
-        <framequat name="object_traj_orientation" objtype="body" objname="doorknob_mocap"/>
         <framepos name="object_position" objtype="body" objname="doorknob_sim"/>
         <framequat name="object_orientation" objtype="body" objname="doorknob_sim"/>
     </sensor>

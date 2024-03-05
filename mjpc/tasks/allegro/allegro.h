@@ -30,9 +30,6 @@
 #define ALLEGRO_ROOT "wrist"
 #define ALLEGRO_MOCAP_ROOT "palm"
 
-#define OBJECT_TARGET_POSITION "object_traj_position"
-#define OBJECT_TARGET_ORIENTATION "object_traj_orientation"
-
 #define OBJECT_CURRENT_POSITION "object_position"
 #define OBJECT_CURRENT_ORIENTATION "object_orientation"
 
@@ -56,6 +53,8 @@ namespace mjpc
                 : mjpc::BaseResidualFn(task)
             {
                 fill(begin(m_r_qpos_buffer), end(m_r_qpos_buffer), 0);
+                fill(begin(m_r_object_mocap_pos_buffer), end(m_r_object_mocap_pos_buffer), 0);
+                fill(begin(m_r_object_mocap_quat_buffer), end(m_r_object_mocap_quat_buffer), 0);
                 fill(begin(m_r_contact_indicator_buffer), end(m_r_contact_indicator_buffer), 0);
                 fill(begin(m_r_contact_position_buffer), end(m_r_contact_position_buffer), 0);
             }
@@ -63,11 +62,15 @@ namespace mjpc
             explicit ResidualFn(
                 const AllegroTask *task,
                 const double qpos_buffer[ALLEGRO_DOFS],
+                const double mocap_object_pos_buffer[3],
+                const double mocap_object_quat_buffer[4],
                 const double contact_indicator_buffer[ABSOLUTE_MAX_CONTACT_RESULT_BUFF_SIZE],
                 const double contact_position_buffer[ABSOLUTE_MAX_CONTACT_POS_BUFF_SIZE])
                 : mjpc::BaseResidualFn(task)
             {
                 mju_copy(m_r_qpos_buffer, qpos_buffer, ALLEGRO_DOFS);
+                mju_copy3(m_r_object_mocap_pos_buffer, mocap_object_pos_buffer);
+                mju_copy4(m_r_object_mocap_quat_buffer, mocap_object_quat_buffer);
                 mju_copy(m_r_contact_indicator_buffer, contact_indicator_buffer, ABSOLUTE_MAX_CONTACT_RESULT_BUFF_SIZE);
                 mju_copy(m_r_contact_position_buffer, contact_position_buffer, ABSOLUTE_MAX_CONTACT_POS_BUFF_SIZE);
             }
@@ -79,6 +82,9 @@ namespace mjpc
             friend class AllegroTask;
 
             double m_r_qpos_buffer[ALLEGRO_DOFS];
+
+            double m_r_object_mocap_pos_buffer[3];
+            double m_r_object_mocap_quat_buffer[4];
 
             double m_r_contact_indicator_buffer[ABSOLUTE_MAX_CONTACT_RESULT_BUFF_SIZE];
             double m_r_contact_position_buffer[ABSOLUTE_MAX_CONTACT_POS_BUFF_SIZE];
@@ -98,7 +104,13 @@ namespace mjpc
     protected:
         unique_ptr<mjpc::ResidualFn> ResidualLocked() const override
         {
-            return make_unique<ResidualFn>(this, m_residual.m_r_qpos_buffer, m_residual.m_r_contact_indicator_buffer, m_residual.m_r_contact_position_buffer);
+            return make_unique<ResidualFn>(
+                this,
+                m_residual.m_r_qpos_buffer,
+                m_residual.m_r_object_mocap_pos_buffer,
+                m_residual.m_r_object_mocap_quat_buffer,
+                m_residual.m_r_contact_indicator_buffer,
+                m_residual.m_r_contact_position_buffer);
         }
         ResidualFn *InternalResidual() override { return &m_residual; }
 
