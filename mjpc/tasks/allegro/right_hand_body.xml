@@ -4,9 +4,7 @@
       <joint name="RootTx" axis="1 0 0" type="slide" damping="1"/>
       <joint name="RootTy" axis="0 1 0" type="slide" damping="1"/>
       <joint name="RootTz" axis="0 0 1" type="slide" damping="1"/>
-      <joint name="RootRx" axis="1 0 0"/>
-      <joint name="RootRy" axis="0 1 0"/>
-      <joint name="RootRz" axis="0 0 1"/>
+      <joint name="RootR" type="ball"/>
       <body name="palm" gravcomp="1" childclass="allegro_right" pos="0 0 0.09420">
         <inertial mass="0.4154" pos="0 0 0.0475" diaginertia="1e-4 1e-4 1e-4"/>
         <geom class="palm_visual" mesh="base_link"/>

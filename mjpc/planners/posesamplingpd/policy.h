@@ -57,6 +57,9 @@ namespace mjpc
         // ----- members ----- //
         const mjModel *m_model;
         const Task *m_task;
+
+        double m_ball_motor_kp;
+        double m_ball_motor_kd;
     };
 
 } // namespace mjpc
