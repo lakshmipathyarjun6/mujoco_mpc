@@ -98,8 +98,8 @@ namespace mjpc
         offset += 3;
 
         // ---------- Residual (2) ----------
-        mju_copy(residual + offset, data->qvel, ALLEGRO_DOFS);
-        offset += ALLEGRO_DOFS;
+        mju_copy(residual + offset, data->qvel, ALLEGRO_VEL_DOFS);
+        offset += ALLEGRO_VEL_DOFS;
 
         // // ---------- Residual (3) ----------
         // double result[ABSOLUTE_MAX_CONTACT_RESULT_BUFF_SIZE];

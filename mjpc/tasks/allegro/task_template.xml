@@ -21,6 +21,8 @@
         <numeric name="root_quat_sampling_exploration" data="0.01" />
         <numeric name="gradient_spline_points" data="6" />
         <numeric name="mocap_reference_framerate" data="12" />
+        <numeric name="ball_motor_kp" data="10" />
+        <numeric name="ball_motor_kd" data="0.1" />
     </custom>
 
     <statistic extent="0.4" center="0.3 0.1 0"/>
