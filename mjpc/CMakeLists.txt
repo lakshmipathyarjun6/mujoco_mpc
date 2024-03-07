@@ -57,6 +57,8 @@ target_link_libraries(
 
 add_library(
   libmjpc STATIC
+  ${CMAKE_CURRENT_SOURCE_DIR}/../${JSON_LIB}/JSONUtils.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../${JSON_LIB}/JSONUtils.cpp
   states/state.cc
   states/state.h
   agent.cc

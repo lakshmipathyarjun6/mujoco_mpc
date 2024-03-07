@@ -189,10 +189,11 @@ namespace mjpc
         int handQPosAdr = model->jnt_qposadr[bodyJointAdr];
 
         // Reference hand loading
+        vector<double> splineQPos = GetDesiredState(data->time);
+
         mju_copy(m_hand_kinematic_buffer, data->qpos + handQPosAdr,
                  ALLEGRO_DOFS);
-        mju_copy(data->qpos + handQPosAdr, model->key_qpos + handMocapQOffset,
-                 ALLEGRO_DOFS);
+        mju_copy(data->qpos + handQPosAdr, splineQPos.data(), ALLEGRO_DOFS);
         mj_kinematics(model, data);
         mju_copy(data->mocap_pos + 3, data->xpos + handPalmXPosOffset,
                  3 * (model->nmocap - 1));
@@ -337,7 +338,10 @@ namespace mjpc
         mju_copy4(data->mocap_quat, model->key_mquat + objectMocapQuatOffset);
     }
 
-    AllegroTask::AllegroTask(string objectSimBodyName, int maxContactSites,
+    AllegroTask::AllegroTask(string objectSimBodyName,
+                             string handTrajSplineFile,
+                             double startClampOffsetX, double startClampOffsetY,
+                             double startClampOffsetZ, int maxContactSites,
                              string objectContactStartDataName,
                              string handContactStartDataName)
         : m_residual(this), m_object_sim_body_name(objectSimBodyName),
@@ -345,6 +349,240 @@ namespace mjpc
           m_object_contact_start_data_name(objectContactStartDataName),
           m_hand_contact_start_data_name(handContactStartDataName)
     {
+        m_doftype_property_mappings["rotation"] = DofType::DOF_TYPE_ROTATION;
+        m_doftype_property_mappings["rotationBallX"] =
+            DofType::DOF_TYPE_ROTATION_BALL_X;
+        m_doftype_property_mappings["rotationBallY"] =
+            DofType::DOF_TYPE_ROTATION_BALL_Y;
+        m_doftype_property_mappings["rotationBallZ"] =
+            DofType::DOF_TYPE_ROTATION_BALL_Z;
+        m_doftype_property_mappings["translation"] =
+            DofType::DOF_TYPE_TRANSLATION;
+
+        m_measurement_units_property_mappings["radians"] =
+            MeasurementUnits::ROT_UNIT_RADIANS;
+        m_measurement_units_property_mappings["degrees"] =
+            MeasurementUnits::ROT_UNIT_DEGREES;
+        m_measurement_units_property_mappings["meters"] =
+            MeasurementUnits::TRANS_UNIT_METERS;
+        m_measurement_units_property_mappings["centimeters"] =
+            MeasurementUnits::TRANS_UNIT_CENTIMETERS;
+        m_measurement_units_property_mappings["millimeters"] =
+            MeasurementUnits::TRANS_UNIT_MILLIMETERS;
+
+        m_start_clamp_offset[0] = startClampOffsetX;
+        m_start_clamp_offset[1] = startClampOffsetY;
+        m_start_clamp_offset[2] = startClampOffsetZ;
+
+        Document d = loadJSON(handTrajSplineFile);
+
+        int splineDimension = d["dimension"].GetInt();
+        int splineDegree = d["degree"].GetInt();
+        m_spline_loopback_time = d["time"].GetDouble();
+
+        m_spline_loopback_time *= SLOWDOWN_FACTOR;
+
+        for (const auto &splineData : d["data"].GetArray())
+        {
+            int numControlPoints = splineData["numControlPoints"].GetInt();
+            string dofType = splineData["type"].GetString();
+            string units = splineData["units"].GetString();
+
+            TrajectorySplineProperties properties;
+            properties.numControlPoints = numControlPoints;
+            properties.dofType = m_doftype_property_mappings[dofType];
+            properties.units = m_measurement_units_property_mappings[units];
+
+            vector<double> controlPoints;
+
+            for (const auto &controlPointData :
+                 splineData["controlPointData"].GetArray())
+            {
+                double entry = controlPointData.GetDouble();
+                controlPoints.push_back(entry);
+            }
+
+            for (int i = 0; i < numControlPoints; i++)
+            {
+                controlPoints[i * 2] *= SLOWDOWN_FACTOR;
+            }
+
+            BSplineCurve<double> *bspc = new BSplineCurve<double>(
+                splineDimension, splineDegree, numControlPoints);
+            bspc->SetControlData(controlPoints);
+
+            m_hand_traj_bspline_properties.push_back(properties);
+            m_hand_traj_bspline_curves.push_back(bspc);
+        }
+
+        if (m_hand_traj_bspline_curves.size() != ALLEGRO_VEL_DOFS)
+        {
+            cout << "ERROR: Expected " << ALLEGRO_VEL_DOFS << " dofs but read "
+                 << m_hand_traj_bspline_curves.size() << " dofs." << endl;
+        }
+        else
+        {
+            cout << "Done" << endl;
+        }
+    }
+
+    vector<double> AllegroTask::GetDesiredState(double time) const
+    {
+        vector<double> desiredState;
+
+        double queryTime = fmod(time, m_spline_loopback_time);
+        double parametricTime = queryTime / m_spline_loopback_time;
+
+        double rootEulerAngles[3] = {0.0, 0.0, 0.0};
+
+        for (int i = 0; i < 6; i++)
+        {
+            TrajectorySplineProperties properties =
+                m_hand_traj_bspline_properties[i];
+
+            double curveValue[2];
+
+            m_hand_traj_bspline_curves[i]->GetPosition(parametricTime,
+                                                       curveValue);
+
+            double dofValue = curveValue[1];
+
+            switch (properties.dofType)
+            {
+            case DofType::DOF_TYPE_ROTATION:
+            case DofType::DOF_TYPE_ROTATION_BALL_X:
+            case DofType::DOF_TYPE_ROTATION_BALL_Y:
+            case DofType::DOF_TYPE_ROTATION_BALL_Z:
+                switch (properties.units)
+                {
+                case MeasurementUnits::ROT_UNIT_RADIANS: // default mujoco units
+                    while (dofValue > 2 * numbers::pi)
+                    {
+                        dofValue -= 2 * numbers::pi;
+                    }
+                    break;
+                case MeasurementUnits::ROT_UNIT_DEGREES:
+                    while (dofValue > 360.0)
+                    {
+                        dofValue -= 360.0;
+                    }
+                    dofValue *= numbers::pi / 180.0;
+                    break;
+                default:
+                    break;
+                }
+                break;
+            case DofType::DOF_TYPE_TRANSLATION:
+                switch (properties.units)
+                {
+                case MeasurementUnits::TRANS_UNIT_METERS: // default mujoco
+                                                          // units
+                    break;
+                case MeasurementUnits::TRANS_UNIT_CENTIMETERS:
+                    dofValue *= 0.01;
+                    break;
+                case MeasurementUnits::TRANS_UNIT_MILLIMETERS:
+                    dofValue *= 0.001;
+                    break;
+                default:
+                    break;
+                }
+                break;
+            default:
+                cout << "ERROR: Unsupported root dof type "
+                     << properties.dofType << endl;
+                break;
+            }
+
+            switch (properties.dofType)
+            {
+            case DofType::DOF_TYPE_ROTATION_BALL_X:
+                rootEulerAngles[0] = dofValue;
+                break;
+            case DofType::DOF_TYPE_ROTATION_BALL_Y:
+                rootEulerAngles[1] = dofValue;
+                break;
+            case DofType::DOF_TYPE_ROTATION_BALL_Z:
+                rootEulerAngles[2] = dofValue;
+                break;
+            default:
+                desiredState.push_back(dofValue);
+                break;
+            }
+        }
+
+        // Correct for start clamp offset
+        mju_sub3(desiredState.data(), desiredState.data(),
+                 m_start_clamp_offset);
+
+        // Convert root rotation to quaternion
+        double quat[4];
+
+        double roll = rootEulerAngles[0];
+        double pitch = rootEulerAngles[1];
+        double yaw = rootEulerAngles[2];
+
+        double cr = cos(roll * 0.5);
+        double sr = sin(roll * 0.5);
+        double cp = cos(pitch * 0.5);
+        double sp = sin(pitch * 0.5);
+        double cy = cos(yaw * 0.5);
+        double sy = sin(yaw * 0.5);
+
+        quat[0] = cr * cp * cy + sr * sp * sy;
+        quat[1] = sr * cp * cy - cr * sp * sy;
+        quat[2] = cr * sp * cy + sr * cp * sy;
+        quat[3] = cr * cp * sy - sr * sp * cy;
+
+        for (int i = 0; i < 4; i++)
+        {
+            desiredState.push_back(quat[i]);
+        }
+
+        for (int i = 6; i < ALLEGRO_VEL_DOFS; i++)
+        {
+            TrajectorySplineProperties properties =
+                m_hand_traj_bspline_properties[i];
+
+            double curveValue[2];
+
+            m_hand_traj_bspline_curves[i]->GetPosition(parametricTime,
+                                                       curveValue);
+
+            double dofValue = curveValue[1];
+
+            switch (properties.dofType)
+            {
+            case DofType::DOF_TYPE_ROTATION:
+                switch (properties.units)
+                {
+                case MeasurementUnits::ROT_UNIT_RADIANS: // default mujoco units
+                    while (dofValue > 2 * numbers::pi)
+                    {
+                        dofValue -= 2 * numbers::pi;
+                    }
+                    break;
+                case MeasurementUnits::ROT_UNIT_DEGREES:
+                    while (dofValue > 360.0)
+                    {
+                        dofValue -= 360.0;
+                    }
+                    dofValue *= numbers::pi / 180.0;
+                    break;
+                default:
+                    break;
+                }
+                break;
+            default:
+                cout << "ERROR: Unsupported non-root dof type "
+                     << properties.dofType << endl;
+                break;
+            }
+
+            desiredState.push_back(dofValue);
+        }
+
+        return desiredState;
     }
 
     string AllegroAppleTask::XmlPath() const

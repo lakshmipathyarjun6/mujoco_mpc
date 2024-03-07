@@ -5,14 +5,12 @@
 #include "prettywriter.h"
 #include "stringbuffer.h"
 
-#include <maya/MGlobal.h>
-
 Document loadJSON(string inputFile)
 {
     Document d;
     FILE *fp = fopen(inputFile.c_str(), "r"); // non-Windows use "r"
 
-    MGlobal::displayInfo(MString("Loading JSON file ") + inputFile.c_str());
+    cout << "Loading JSON file " << inputFile << endl;
 
     char readBuffer[65536];
     FileReadStream is(fp, readBuffer, sizeof(readBuffer));
@@ -30,8 +28,7 @@ void writeJSON(Document &d, string outputFile)
 
     if (fp != NULL)
     {
-        MGlobal::displayInfo(MString("Writing JSON file ") +
-                             outputFile.c_str());
+        cout << "Writing JSON file " << outputFile << endl;
 
         char writeBuffer[65536];
         FileWriteStream os(fp, writeBuffer, sizeof(writeBuffer));
@@ -43,6 +40,6 @@ void writeJSON(Document &d, string outputFile)
     }
     else
     {
-        MGlobal::displayError("Failed to get file pointer");
+        cout << "Failed to get file pointer" << endl;
     }
 }

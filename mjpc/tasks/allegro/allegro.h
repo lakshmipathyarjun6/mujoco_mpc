@@ -17,6 +17,8 @@
 
 #include <mujoco/mujoco.h>
 
+#include <numbers>
+
 #include "mjpc/task.h"
 #include "mjpc/utilities.h"
 
@@ -25,6 +27,7 @@
 #include "JSONUtils.hpp"
 
 #define FPS 12
+#define SLOWDOWN_FACTOR 10
 
 #define ABSOLUTE_MAX_CONTACT_SITES 6500
 #define ABSOLUTE_MAX_CONTACT_RESULT_BUFF_SIZE ABSOLUTE_MAX_CONTACT_SITES * 3
@@ -52,6 +55,30 @@ using namespace std;
 
 namespace mjpc
 {
+    enum DofType
+    {
+        DOF_TYPE_ROTATION,
+        DOF_TYPE_ROTATION_BALL_X,
+        DOF_TYPE_ROTATION_BALL_Y,
+        DOF_TYPE_ROTATION_BALL_Z,
+        DOF_TYPE_TRANSLATION
+    };
+    enum MeasurementUnits
+    {
+        ROT_UNIT_RADIANS,
+        ROT_UNIT_DEGREES,
+        TRANS_UNIT_METERS,
+        TRANS_UNIT_CENTIMETERS,
+        TRANS_UNIT_MILLIMETERS
+    };
+
+    struct TrajectorySplineProperties
+    {
+        int numControlPoints;
+        DofType dofType;
+        MeasurementUnits units;
+    };
+
     class AllegroTask : public Task
     {
     public:
@@ -109,9 +136,13 @@ namespace mjpc
                 m_r_contact_position_buffer[ABSOLUTE_MAX_CONTACT_POS_BUFF_SIZE];
         };
 
-        AllegroTask(string objectSimBodyName, int maxContactSites,
+        AllegroTask(string objectSimBodyName, string handTrajSplineFile,
+                    double startClampOffsetX, double startClampOffsetY,
+                    double startClampOffsetZ, int maxContactSites,
                     string objectContactStartDataName,
                     string handContactStartDataName);
+
+        vector<double> GetDesiredState(double time) const override;
 
         // --------------------- Transition for allegro task
         // ------------------------
@@ -143,6 +174,15 @@ namespace mjpc
         string m_hand_contact_start_data_name;
 
         double m_hand_kinematic_buffer[ALLEGRO_DOFS];
+
+        vector<BSplineCurve<double> *> m_hand_traj_bspline_curves;
+        vector<TrajectorySplineProperties> m_hand_traj_bspline_properties;
+
+        double m_spline_loopback_time;
+        double m_start_clamp_offset[3];
+
+        map<string, DofType> m_doftype_property_mappings;
+        map<string, MeasurementUnits> m_measurement_units_property_mappings;
     };
 
     class AllegroAppleTask : public AllegroTask
@@ -152,7 +192,12 @@ namespace mjpc
         string XmlPath() const override;
 
         AllegroAppleTask()
-            : AllegroTask("apple_sim", 1987, "contact_pos_object_data_215_0",
+            : AllegroTask("apple_sim",
+                          "/Users/arjunl/mujoco_mpc/mjpc/tasks/allegro/"
+                          "splinetrajectories/apple_pass_1_hand.smexp",
+                          -0.559216021990488, 1.0061246071752599,
+                          1.3645857582385554, 1987,
+                          "contact_pos_object_data_215_0",
                           "contact_pos_hand_data_215_0")
         {
         }
@@ -167,7 +212,11 @@ namespace mjpc
         string XmlPath() const override;
 
         AllegroDoorknobTask()
-            : AllegroTask("doorknob_sim", 6455, "contact_pos_object_data_252_0",
+            : AllegroTask("doorknob_sim",
+                          "/Users/arjunl/mujoco_mpc/mjpc/tasks/allegro/"
+                          "splinetrajectories/doorknob_use_1_hand.smexp",
+                          -1.05350866, 0.30617798, 1.28931948, 6455,
+                          "contact_pos_object_data_252_0",
                           "contact_pos_hand_data_252_0")
         {
         }

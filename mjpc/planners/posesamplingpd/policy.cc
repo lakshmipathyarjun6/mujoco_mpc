@@ -53,9 +53,10 @@ namespace mjpc
         // Corrective gain (kp * q_current) already is copmuted by the dynamics model
 
         // Therefore all we need is kp * q_desired -- since kp is implicitly applied, that leaves only q_desired
-        int offset = m_model->nq * m_task->mode;
-        mju_copy3(action, m_reference_configs.data() + offset);
-        mju_copy(action + 6, m_reference_configs.data() + offset + 7, m_model->nu - 6);
+        vector<double> splineQPos = m_task->GetDesiredState(time);
+
+        mju_copy3(action, splineQPos.data());
+        mju_copy(action + 6, splineQPos.data() + 7, m_model->nu - 6);
 
         // EXCEPT FOR THE ROOT MOTOR ACTUATORS
         // Which we need to deal with as a special case using attitude control
@@ -63,7 +64,7 @@ namespace mjpc
         double q_current[4];
         double q_error[3];
 
-        mju_copy4(q_desired, m_model->key_qpos + offset + 3);
+        mju_copy4(q_desired, splineQPos.data() + 3);
         mju_copy4(q_current, state + 3);
 
         mju_subQuat(q_error, q_desired, q_current);

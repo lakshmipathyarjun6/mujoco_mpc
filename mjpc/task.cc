@@ -260,4 +260,11 @@ double Task::CostValue(const double* residual) const {
   return InternalResidual()->CostValue(residual);
 }
 
+// Does nothing by default, can be overridden in derived classes
+vector<double> Task::GetDesiredState(double time) const
+{
+  vector<double> desired_state;
+  return desired_state;
+}
+
 }  // namespace mjpc

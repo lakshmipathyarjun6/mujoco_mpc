@@ -26,6 +26,8 @@
 #define AGENT_GEOM_COLLIDER_PREFIX string("agent_collider_")
 #define SIM_GEOM_COLLIDER_PREFIX string("sim_geom_")
 
+using namespace std;
+
 namespace mjpc {
 
 // tolerance for risk-neutral cost
@@ -120,6 +122,9 @@ class Task {
   // calls CostValue on the pointer returned from InternalResidual(), while
   // holding a lock
   double CostValue(const double* residual) const;
+
+  // returns the desired state for the agent at the given time
+  virtual vector<double> GetDesiredState(double time) const;
 
   virtual void ModifyScene(const mjModel* model, const mjData* data,
                            mjvScene* scene) const {}
