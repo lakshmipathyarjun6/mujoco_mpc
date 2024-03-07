@@ -165,6 +165,10 @@ add_library(
   direct/model_parameters.h
   spline/spline.cc
   spline/spline.h
+  spline/bspline.h
+  spline/basisfunction.h
+  spline/logger.h
+  spline/array2.h
   app.cc
   app.h
   norm.cc
@@ -198,6 +202,7 @@ target_include_directories(libmjpc
   PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/..
   ${CMAKE_CURRENT_BINARY_DIR}/..
+  ${CMAKE_CURRENT_SOURCE_DIR}/../${JSON_LIB}
 )
 
 add_executable(

@@ -191,4 +191,7 @@ endif()
 set(MJPC_COMPILE_OPTIONS "${AVX_COMPILE_OPTIONS}" "${EXTRA_COMPILE_OPTIONS}")
 set(MJPC_LINK_OPTIONS "${EXTRA_LINK_OPTIONS}")
 
+set(JSON_LIB "deps/rapidjson")
+set(JSON "${JSON_LIB}/JSONUtils.hpp" "${JSON_LIB}/JSONUtils.cpp")
+
 add_subdirectory(mjpc)
