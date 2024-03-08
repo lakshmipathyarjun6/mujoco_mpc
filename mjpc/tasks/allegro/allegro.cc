@@ -569,11 +569,19 @@ namespace mjpc
                     {
                         dofValue -= 2 * numbers::pi;
                     }
+                    while (dofValue < -2 * numbers::pi)
+                    {
+                        dofValue += 2 * numbers::pi;
+                    }
                     break;
                 case MeasurementUnits::ROT_UNIT_DEGREES:
                     while (dofValue > 360.0)
                     {
                         dofValue -= 360.0;
+                    }
+                    while (dofValue < -360.0)
+                    {
+                        dofValue += 360.0;
                     }
                     dofValue *= numbers::pi / 180.0;
                     break;
