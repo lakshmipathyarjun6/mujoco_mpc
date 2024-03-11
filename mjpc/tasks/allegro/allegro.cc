@@ -408,7 +408,10 @@ namespace mjpc
             }
 
             BSplineCurve<double> *bspc = new BSplineCurve<double>(
-                splineDimension, splineDegree, numControlPoints);
+                splineDimension, splineDegree, numControlPoints,
+                m_doftype_property_mappings[dofType],
+                m_measurement_units_property_mappings[units]);
+
             bspc->SetControlData(controlPoints);
 
             m_hand_traj_bspline_properties.push_back(properties);
@@ -434,73 +437,17 @@ namespace mjpc
         double parametricTime = queryTime / m_spline_loopback_time;
 
         double rootEulerAngles[3] = {0.0, 0.0, 0.0};
+        double curveValue[2];
 
         for (int i = 0; i < 6; i++)
         {
             TrajectorySplineProperties properties =
                 m_hand_traj_bspline_properties[i];
 
-            double curveValue[2];
-
-            m_hand_traj_bspline_curves[i]->GetPosition(parametricTime,
-                                                       curveValue);
+            m_hand_traj_bspline_curves[i]->GetPositionInMeasurementUnits(
+                parametricTime, curveValue);
 
             double dofValue = curveValue[1];
-
-            switch (properties.dofType)
-            {
-            case DofType::DOF_TYPE_ROTATION:
-            case DofType::DOF_TYPE_ROTATION_BALL_X:
-            case DofType::DOF_TYPE_ROTATION_BALL_Y:
-            case DofType::DOF_TYPE_ROTATION_BALL_Z:
-                switch (properties.units)
-                {
-                case MeasurementUnits::ROT_UNIT_RADIANS: // default mujoco units
-                    while (dofValue > 2 * numbers::pi)
-                    {
-                        dofValue -= 2 * numbers::pi;
-                    }
-                    while (dofValue < -2 * numbers::pi)
-                    {
-                        dofValue += 2 * numbers::pi;
-                    }
-                    break;
-                case MeasurementUnits::ROT_UNIT_DEGREES:
-                    while (dofValue > 360.0)
-                    {
-                        dofValue -= 360.0;
-                    }
-                    while (dofValue < -360.0)
-                    {
-                        dofValue += 360.0;
-                    }
-                    dofValue *= numbers::pi / 180.0;
-                    break;
-                default:
-                    break;
-                }
-                break;
-            case DofType::DOF_TYPE_TRANSLATION:
-                switch (properties.units)
-                {
-                case MeasurementUnits::TRANS_UNIT_METERS: // default mujoco
-                                                          // units
-                    break;
-                case MeasurementUnits::TRANS_UNIT_CENTIMETERS:
-                    dofValue *= 0.01;
-                    break;
-                case MeasurementUnits::TRANS_UNIT_MILLIMETERS:
-                    dofValue *= 0.001;
-                    break;
-                default:
-                    break;
-                }
-                break;
-            default:
-                cout << "ERROR: Unsupported root dof type "
-                     << properties.dofType << endl;
-                break;
-            }
 
             switch (properties.dofType)
             {
@@ -525,22 +472,7 @@ namespace mjpc
 
         // Convert root rotation to quaternion
         double quat[4];
-
-        double roll = rootEulerAngles[0];
-        double pitch = rootEulerAngles[1];
-        double yaw = rootEulerAngles[2];
-
-        double cr = cos(roll * 0.5);
-        double sr = sin(roll * 0.5);
-        double cp = cos(pitch * 0.5);
-        double sp = sin(pitch * 0.5);
-        double cy = cos(yaw * 0.5);
-        double sy = sin(yaw * 0.5);
-
-        quat[0] = cr * cp * cy + sr * sp * sy;
-        quat[1] = sr * cp * cy - cr * sp * sy;
-        quat[2] = cr * sp * cy + sr * cp * sy;
-        quat[3] = cr * cp * sy - sr * sp * cy;
+        ConvertEulerAnglesToQuat(rootEulerAngles, quat);
 
         for (int i = 0; i < 4; i++)
         {
@@ -549,51 +481,10 @@ namespace mjpc
 
         for (int i = 6; i < ALLEGRO_VEL_DOFS; i++)
         {
-            TrajectorySplineProperties properties =
-                m_hand_traj_bspline_properties[i];
-
-            double curveValue[2];
-
-            m_hand_traj_bspline_curves[i]->GetPosition(parametricTime,
-                                                       curveValue);
+            m_hand_traj_bspline_curves[i]->GetPositionInMeasurementUnits(
+                parametricTime, curveValue);
 
             double dofValue = curveValue[1];
-
-            switch (properties.dofType)
-            {
-            case DofType::DOF_TYPE_ROTATION:
-                switch (properties.units)
-                {
-                case MeasurementUnits::ROT_UNIT_RADIANS: // default mujoco units
-                    while (dofValue > 2 * numbers::pi)
-                    {
-                        dofValue -= 2 * numbers::pi;
-                    }
-                    while (dofValue < -2 * numbers::pi)
-                    {
-                        dofValue += 2 * numbers::pi;
-                    }
-                    break;
-                case MeasurementUnits::ROT_UNIT_DEGREES:
-                    while (dofValue > 360.0)
-                    {
-                        dofValue -= 360.0;
-                    }
-                    while (dofValue < -360.0)
-                    {
-                        dofValue += 360.0;
-                    }
-                    dofValue *= numbers::pi / 180.0;
-                    break;
-                default:
-                    break;
-                }
-                break;
-            default:
-                cout << "ERROR: Unsupported non-root dof type "
-                     << properties.dofType << endl;
-                break;
-            }
 
             desiredState.push_back(dofValue);
         }

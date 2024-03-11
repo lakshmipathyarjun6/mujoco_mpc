@@ -55,23 +55,6 @@ using namespace std;
 
 namespace mjpc
 {
-    enum DofType
-    {
-        DOF_TYPE_ROTATION,
-        DOF_TYPE_ROTATION_BALL_X,
-        DOF_TYPE_ROTATION_BALL_Y,
-        DOF_TYPE_ROTATION_BALL_Z,
-        DOF_TYPE_TRANSLATION
-    };
-    enum MeasurementUnits
-    {
-        ROT_UNIT_RADIANS,
-        ROT_UNIT_DEGREES,
-        TRANS_UNIT_METERS,
-        TRANS_UNIT_CENTIMETERS,
-        TRANS_UNIT_MILLIMETERS
-    };
-
     struct TrajectorySplineProperties
     {
         int numControlPoints;
