@@ -17,12 +17,8 @@
 
 #include <mujoco/mujoco.h>
 
-#include <numbers>
-
 #include "mjpc/task.h"
 #include "mjpc/utilities.h"
-
-#include "mjpc/spline/bspline.h"
 
 #include "JSONUtils.hpp"
 
@@ -127,6 +123,11 @@ namespace mjpc
 
         vector<double> GetDesiredState(double time) const override;
 
+        vector<vector<double>> GetBSplineControlData(
+            int &dimension, int &degree, double &loopbackTime, double translationOffset[3],
+            vector<DofType> &dofTypes,
+            vector<MeasurementUnits> &measurementUnits) const override;
+
         // --------------------- Transition for allegro task
         // ------------------------
         //   Set `data->mocap_pos` based on `data->time` to move the object
@@ -157,6 +158,9 @@ namespace mjpc
         string m_hand_contact_start_data_name;
 
         double m_hand_kinematic_buffer[ALLEGRO_DOFS];
+
+        int m_spline_dimension;
+        int m_spline_degree;
 
         vector<BSplineCurve<double> *> m_hand_traj_bspline_curves;
         vector<TrajectorySplineProperties> m_hand_traj_bspline_properties;

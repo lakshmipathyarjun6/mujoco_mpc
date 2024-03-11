@@ -376,8 +376,8 @@ namespace mjpc
 
         Document d = loadJSON(handTrajSplineFile);
 
-        int splineDimension = d["dimension"].GetInt();
-        int splineDegree = d["degree"].GetInt();
+        m_spline_dimension = d["dimension"].GetInt();
+        m_spline_degree = d["degree"].GetInt();
         m_spline_loopback_time = d["time"].GetDouble();
 
         m_spline_loopback_time *= SLOWDOWN_FACTOR;
@@ -408,7 +408,7 @@ namespace mjpc
             }
 
             BSplineCurve<double> *bspc = new BSplineCurve<double>(
-                splineDimension, splineDegree, numControlPoints,
+                m_spline_dimension, m_spline_degree, numControlPoints,
                 m_doftype_property_mappings[dofType],
                 m_measurement_units_property_mappings[units]);
 
@@ -490,6 +490,50 @@ namespace mjpc
         }
 
         return desiredState;
+    }
+
+    vector<vector<double>> AllegroTask::GetBSplineControlData(
+        int &dimension, int &degree, double &loopbackTime,
+        double translationOffset[3], vector<DofType> &dofTypes,
+        vector<MeasurementUnits> &measurementUnits) const
+    {
+        vector<vector<double>> bsplineControlData;
+
+        dimension = m_spline_dimension;
+        degree = m_spline_degree;
+        loopbackTime = m_spline_loopback_time;
+
+        mju_copy3(translationOffset, m_start_clamp_offset);
+
+        dofTypes.clear();
+        measurementUnits.clear();
+
+        int numSplines = m_hand_traj_bspline_curves.size();
+
+        for (int i = 0; i < numSplines; i++)
+        {
+            vector<double> dataCopy; // Deep copy to avoid modifying original
+
+            vector<double> dataOriginal =
+                m_hand_traj_bspline_curves[i]->GetControlData();
+
+            TrajectorySplineProperties properties =
+                m_hand_traj_bspline_properties[i];
+
+            int numElements = dataOriginal.size();
+
+            // Intentionally avoid memcpy
+            for (int j = 0; j < numElements; j++)
+            {
+                dataCopy.push_back(dataOriginal[j]);
+            }
+
+            bsplineControlData.push_back(dataCopy);
+            dofTypes.push_back(properties.dofType);
+            measurementUnits.push_back(properties.units);
+        }
+
+        return bsplineControlData;
     }
 
     string AllegroAppleTask::XmlPath() const

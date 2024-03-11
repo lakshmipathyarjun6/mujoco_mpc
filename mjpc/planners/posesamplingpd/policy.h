@@ -18,8 +18,11 @@
 #include <mujoco/mujoco.h>
 
 #include "mjpc/planners/policy.h"
+#include "mjpc/spline/bspline.h"
 #include "mjpc/trajectory.h"
 #include "mjpc/utilities.h"
+
+#include <set>
 
 using namespace std;
 
@@ -39,17 +42,24 @@ namespace mjpc
         // ----- methods ----- //
 
         // allocate memory
-        void Allocate(const mjModel *model, const Task &task, int horizon) override;
+        void Allocate(const mjModel *model, const Task &task,
+                      int horizon) override;
 
-        // reset memory to zeros and reference configs to original mocap trajectory
+        // reset memory to zeros and reference configs to original mocap
+        // trajectory
         void Reset(int horizon,
                    const double *initial_repeated_action = nullptr) override;
 
         // set action from policy
-        void Action(double *action, const double *state, double time) const override;
+        void Action(double *action, const double *state,
+                    double time) const override;
 
         // copy parameters
-        void CopyReferenceConfigsFrom(const vector<double> &src_reference_configs);
+        void
+        CopyReferenceConfigsFrom(const vector<double> &src_reference_configs);
+
+        // generate splien curves from control data
+        void GenerateBSplineControlData();
 
         vector<double> m_reference_configs;
 
@@ -60,6 +70,18 @@ namespace mjpc
 
         double m_ball_motor_kp;
         double m_ball_motor_kd;
+
+        int m_num_bspline_control_points;
+        int m_bspline_dimension;
+        int m_bspline_degree;
+        double m_bspline_loopback_time;
+        double m_bspline_translation_offset[3];
+
+        vector<vector<double>> m_bspline_control_data;
+        vector<DofType> m_bspline_doftype_data;
+        vector<MeasurementUnits> m_bspline_measurementunit_data;
+
+        vector<BSplineCurve<double> *> m_control_bspline_curves;
     };
 
 } // namespace mjpc
