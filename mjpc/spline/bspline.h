@@ -13,6 +13,9 @@
 
 #include "basisfunction.h"
 
+#include <iostream>
+#include <numbers>
+
 using namespace std;
 
 namespace mjpc
