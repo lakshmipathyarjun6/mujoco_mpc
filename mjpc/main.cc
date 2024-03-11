@@ -12,41 +12,43 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <absl/flags/parse.h>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
 #include <ostream>
 #include <vector>
-#include <absl/flags/parse.h>
 
 #include "mjpc/app.h"
 #include "mjpc/task.h"
-#include "mjpc/utilities.h"
 #include "mjpc/tasks/tasks.h"
-
+#include "mjpc/utilities.h"
 
 // machinery for replacing command line error by a macOS dialog box
 // when running under Rosetta
 #if defined(__APPLE__) && defined(__AVX__)
-extern void DisplayErrorDialogBox(const char* title, const char* msg);
-static const char* rosetta_error_msg = nullptr;
-__attribute__((used, visibility("default")))
-extern "C" void _mj_rosettaError(const char* msg) {
-  rosetta_error_msg = msg;
+extern void DisplayErrorDialogBox(const char *title, const char *msg);
+static const char *rosetta_error_msg = nullptr;
+__attribute__((used, visibility("default"))) extern "C" void
+_mj_rosettaError(const char *msg)
+{
+    rosetta_error_msg = msg;
 }
 #endif
 
 // run event loop
-int main(int argc, char** argv) {
-  // display an error if running on macOS under Rosetta 2
+int main(int argc, char **argv)
+{
+    // display an error if running on macOS under Rosetta 2
 #if defined(__APPLE__) && defined(__AVX__)
-  if (rosetta_error_msg) {
-    DisplayErrorDialogBox("Rosetta 2 is not supported", rosetta_error_msg);
-    std::exit(1);
-  }
+    if (rosetta_error_msg)
+    {
+        DisplayErrorDialogBox("Rosetta 2 is not supported", rosetta_error_msg);
+        std::exit(1);
+    }
 #endif
-  absl::ParseCommandLine(argc, argv);
+    absl::ParseCommandLine(argc, argv);
 
-  mjpc::StartApp(mjpc::GetTasks(), 2);  // start with quadruped flat
-  return 0;
+    mjpc::StartApp(mjpc::GetTasks(), 1); // start with allegro apple task
+    return 0;
 }

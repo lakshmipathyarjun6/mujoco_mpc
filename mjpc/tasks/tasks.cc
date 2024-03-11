@@ -19,7 +19,6 @@
 
 #include "mjpc/task.h"
 #include "mjpc/tasks/acrobot/acrobot.h"
-#include "mjpc/tasks/apple/apple.h"
 #include "mjpc/tasks/allegro/allegro.h"
 #include "mjpc/tasks/bimanual/bimanual.h"
 #include "mjpc/tasks/cube/solve.h"
@@ -46,7 +45,6 @@ namespace mjpc
   {
     return {
         std::make_shared<Acrobot>(),
-        std::make_shared<AppleTask>(),
         std::make_shared<AllegroAppleTask>(),
         std::make_shared<AllegroDoorknobTask>(),
         std::make_shared<Hand>(),

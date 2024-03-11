@@ -213,15 +213,7 @@ namespace mjpc
     {
         int numControlSplinesToGenerate = m_model->nu;
 
-        if (m_control_bspline_curves.size() > 0)
-        {
-            for (int i = 0; i < m_control_bspline_curves.size(); i++)
-            {
-                delete m_control_bspline_curves[i];
-            }
-
-            m_control_bspline_curves.clear();
-        }
+        m_control_bspline_curves.clear();
 
         for (int i = 0; i < numControlSplinesToGenerate; i++)
         {
