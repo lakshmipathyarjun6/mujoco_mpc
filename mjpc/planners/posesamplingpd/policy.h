@@ -22,6 +22,7 @@
 #include "mjpc/trajectory.h"
 #include "mjpc/utilities.h"
 
+#include <iterator>
 #include <set>
 
 using namespace std;
@@ -54,16 +55,13 @@ namespace mjpc
         void Action(double *action, const double *state,
                     double time) const override;
 
-        // copy parameters
-        void
-        CopyReferenceConfigsFrom(const vector<double> &src_reference_configs);
+        // copy bspline control points
+        void CopyControlPointsFrom(const PoseSamplingPDPolicy &policy);
 
+    private:
         // generate splien curves from control data
         void GenerateBSplineControlData();
 
-        vector<double> m_reference_configs;
-
-    private:
         // ----- members ----- //
         const mjModel *m_model;
         const Task *m_task;
