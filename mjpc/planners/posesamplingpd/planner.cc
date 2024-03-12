@@ -21,16 +21,20 @@ namespace mjpc
         m_task = &task;
 
         // framerate
-        m_mocap_reference_framerate = GetNumberOrDefault(kDefaultFramerate, m_model,
-                                                         "mocap_reference_framerate");
+        m_mocap_reference_framerate = GetNumberOrDefault(
+            kDefaultFramerate, m_model, "mocap_reference_framerate");
 
         // sampling noise
-        m_default_noise_exploration = GetNumberOrDefault(0.1, model, "default_sampling_exploration");
-        m_root_pos_noise_exploration = GetNumberOrDefault(1, model, "root_pos_sampling_exploration");
-        m_root_quat_noise_exploration = GetNumberOrDefault(0.1, model, "root_quat_sampling_exploration");
+        m_default_noise_exploration =
+            GetNumberOrDefault(0.1, model, "default_sampling_exploration");
+        m_root_pos_noise_exploration =
+            GetNumberOrDefault(1, model, "root_pos_sampling_exploration");
+        m_root_quat_noise_exploration =
+            GetNumberOrDefault(0.1, model, "root_quat_sampling_exploration");
 
         // set number of trajectories to rollout
-        m_num_candidate_trajectories = GetNumberOrDefault(10, m_model, "sampling_trajectories");
+        m_num_candidate_trajectories =
+            GetNumberOrDefault(10, m_model, "sampling_trajectories");
 
         if (m_num_candidate_trajectories > kMaxTrajectory)
         {
@@ -67,10 +71,12 @@ namespace mjpc
 
         for (int i = 0; i < kMaxTrajectory; i++)
         {
-            m_candidate_trajectories[i].Initialize(num_state, m_model->nu, m_task->num_residual,
-                                                   m_task->num_trace, kMaxTrajectoryHorizon);
+            m_candidate_trajectories[i].Initialize(
+                num_state, m_model->nu, m_task->num_residual, m_task->num_trace,
+                kMaxTrajectoryHorizon);
             m_candidate_trajectories[i].Allocate(kMaxTrajectoryHorizon);
-            m_candidate_policies[i].Allocate(m_model, *m_task, kMaxTrajectoryHorizon);
+            m_candidate_policies[i].Allocate(m_model, *m_task,
+                                             kMaxTrajectoryHorizon);
         }
     }
 
@@ -131,7 +137,11 @@ namespace mjpc
 
         // improvement: compare nominal to winner
         double best_return = m_candidate_trajectories[0].total_return;
-        m_trajectory_improvement = mju_max(best_return - m_candidate_trajectories[m_best_candidate_trajectory_index].total_return, 0.0);
+        m_trajectory_improvement = mju_max(
+            best_return -
+                m_candidate_trajectories[m_best_candidate_trajectory_index]
+                    .total_return,
+            0.0);
 
         // stop timer
         m_policy_update_compute_time = GetDuration(policy_update_start);
@@ -141,20 +151,20 @@ namespace mjpc
     void PoseSamplingPDPlanner::NominalTrajectory(int horizon, ThreadPool &pool)
     {
         // set policy
-        auto nominal_policy = [&cp = m_candidate_policies[0]](
-                                  double *action, const double *state, double time)
-        {
-            cp.Action(action, state, time);
-        };
+        auto nominal_policy =
+            [&cp = m_candidate_policies[0]](double *action, const double *state,
+                                            double time)
+        { cp.Action(action, state, time); };
 
         // rollout nominal policy
-        m_candidate_trajectories[0].Rollout(nominal_policy, m_task, m_model, data_[0].get(),
-                                            m_state.data(), m_time, m_mocap.data(), m_userdata.data(),
-                                            horizon);
+        m_candidate_trajectories[0].Rollout(
+            nominal_policy, m_task, m_model, data_[0].get(), m_state.data(),
+            m_time, m_mocap.data(), m_userdata.data(), horizon);
     }
 
     // set action from policy
-    void PoseSamplingPDPlanner::ActionFromPolicy(double *action, const double *state,
+    void PoseSamplingPDPlanner::ActionFromPolicy(double *action,
+                                                 const double *state,
                                                  double time, bool use_previous)
     {
         const shared_lock<shared_mutex> lock(m_mtx);
@@ -178,32 +188,36 @@ namespace mjpc
         // sampling token
         ::BitGen gen_;
 
-        // shift index
-        int shift = i * m_model->nkey * m_model->nq;
+        // // shift index
+        // int shift = i * m_model->nkey * m_model->nq;
 
-        // assume no covariance (e.g. assume fully actuated system)
-        for (int key = 0; key < m_model->nkey; key++)
-        {
-            int keyOffset = key * m_model->nq;
+        // // assume no covariance (e.g. assume fully actuated system)
+        // for (int key = 0; key < m_model->nkey; key++)
+        // {
+        //     int keyOffset = key * m_model->nq;
 
-            for (int dofIndex = 0; dofIndex < m_model->nu; dofIndex++)
-            {
-                m_noise[shift + keyOffset + dofIndex] = ::Gaussian<double>(gen_, 0.0, m_default_noise_exploration);
-            }
+        //     for (int dofIndex = 0; dofIndex < m_model->nu; dofIndex++)
+        //     {
+        //         m_noise[shift + keyOffset + dofIndex] =
+        //         ::Gaussian<double>(gen_, 0.0, m_default_noise_exploration);
+        //     }
 
-            for (int dofIndex = 0; dofIndex < 3; dofIndex++)
-            {
-                m_noise[shift + keyOffset + dofIndex] = ::Gaussian<double>(gen_, 0.0, m_root_pos_noise_exploration);
-            }
-            for (int dofIndex = 3; dofIndex < 6; dofIndex++)
-            {
-                m_noise[shift + keyOffset + dofIndex] = ::Gaussian<double>(gen_, 0.0, m_root_quat_noise_exploration);
-            }
-        }
+        //     for (int dofIndex = 0; dofIndex < 3; dofIndex++)
+        //     {
+        //         m_noise[shift + keyOffset + dofIndex] =
+        //         ::Gaussian<double>(gen_, 0.0, m_root_pos_noise_exploration);
+        //     }
+        //     for (int dofIndex = 3; dofIndex < 6; dofIndex++)
+        //     {
+        //         m_noise[shift + keyOffset + dofIndex] =
+        //         ::Gaussian<double>(gen_, 0.0, m_root_quat_noise_exploration);
+        //     }
+        // }
 
-        // add noise
-        mju_addTo(m_candidate_policies[i].m_reference_configs.data(), DataAt(m_noise, shift),
-                  m_model->nkey * m_model->nq);
+        // // add noise
+        // mju_addTo(m_candidate_policies[i].m_reference_configs.data(),
+        // DataAt(m_noise, shift),
+        //           m_model->nkey * m_model->nq);
 
         // end timer
         IncrementAtomic(m_noise_compute_time, GetDuration(noise_start));
@@ -220,38 +234,38 @@ namespace mjpc
 
         for (int i = 0; i < num_trajectory; i++)
         {
-            pool.Schedule([&s = *this, &model = m_model, &task = m_task,
-                           &state = m_state, &time = m_time,
-                           &mocap = m_mocap, &userdata = m_userdata, horizon,
-                           i]()
-                          {
-                              // copy nominal policy
-                              {
-                                  const shared_lock<shared_mutex> lock(s.m_mtx);
-                                  s.m_candidate_policies[i].CopyReferenceConfigsFrom(s.m_active_policy.m_reference_configs);
-                              }
+            pool.Schedule(
+                [&s = *this, &model = m_model, &task = m_task, &state = m_state,
+                 &time = m_time, &mocap = m_mocap, &userdata = m_userdata,
+                 horizon, i]()
+                {
+                    // copy nominal policy
+                    {
+                        const shared_lock<shared_mutex> lock(s.m_mtx);
+                        s.m_candidate_policies[i].CopyControlPointsFrom(
+                            s.m_active_policy);
+                    }
 
-                              //   // sample perturbed keyframe trajectory
-                              //   if (i != 0)
-                              //   {
-                              //       s.AddNoiseToTrajectory(i);
-                              //   }
+                    //   // sample perturbed keyframe trajectory
+                    //   if (i != 0)
+                    //   {
+                    //       s.AddNoiseToTrajectory(i);
+                    //   }
 
-                              // ----- rollout sample policy ----- //
+                    // ----- rollout sample policy ----- //
 
-                              // policy
-                              auto sample_policy_i = [&candidate_policies = s.m_candidate_policies, &i](
-                                                         double *action, const double *state,
-                                                         double time)
-                              {
-                                  candidate_policies[i].Action(action, state, time);
-                              };
+                    // policy
+                    auto sample_policy_i =
+                        [&candidate_policies = s.m_candidate_policies,
+                         &i](double *action, const double *state, double time)
+                    { candidate_policies[i].Action(action, state, time); };
 
-                              // policy rollout
-                              s.m_candidate_trajectories[i].Rollout(
-                                  sample_policy_i, task, model, s.data_[ThreadPool::WorkerId()].get(),
-                                  state.data(), time, mocap.data(), userdata.data(), horizon);
-                          });
+                    // policy rollout
+                    s.m_candidate_trajectories[i].Rollout(
+                        sample_policy_i, task, model,
+                        s.data_[ThreadPool::WorkerId()].get(), state.data(),
+                        time, mocap.data(), userdata.data(), horizon);
+                });
         }
         pool.WaitCount(count_before + num_trajectory);
         pool.ResetCount();
@@ -260,7 +274,10 @@ namespace mjpc
     // return trajectory with best total return
     const Trajectory *PoseSamplingPDPlanner::BestTrajectory()
     {
-        return m_best_candidate_trajectory_index >= 0 ? &m_candidate_trajectories[m_best_candidate_trajectory_index] : nullptr;
+        return m_best_candidate_trajectory_index >= 0
+                   ? &m_candidate_trajectories
+                         [m_best_candidate_trajectory_index]
+                   : nullptr;
     }
 
     // set state
@@ -301,18 +318,25 @@ namespace mjpc
                 for (int j = 0; j < m_task->num_trace; j++)
                 {
                     // initialize geometry
-                    mjv_initGeom(&scn->geoms[scn->ngeom], mjGEOM_LINE, zero3, zero3, zero9,
-                                 color);
+                    mjv_initGeom(&scn->geoms[scn->ngeom], mjGEOM_LINE, zero3,
+                                 zero3, zero9, color);
 
                     // make geometry
                     mjv_makeConnector(
                         &scn->geoms[scn->ngeom], mjGEOM_LINE, width,
-                        m_candidate_trajectories[k].trace[3 * m_task->num_trace * i + 3 * j],
-                        m_candidate_trajectories[k].trace[3 * m_task->num_trace * i + 1 + 3 * j],
-                        m_candidate_trajectories[k].trace[3 * m_task->num_trace * i + 2 + 3 * j],
-                        m_candidate_trajectories[k].trace[3 * m_task->num_trace * (i + 1) + 3 * j],
-                        m_candidate_trajectories[k].trace[3 * m_task->num_trace * (i + 1) + 1 + 3 * j],
-                        m_candidate_trajectories[k].trace[3 * m_task->num_trace * (i + 1) + 2 + 3 * j]);
+                        m_candidate_trajectories[k]
+                            .trace[3 * m_task->num_trace * i + 3 * j],
+                        m_candidate_trajectories[k]
+                            .trace[3 * m_task->num_trace * i + 1 + 3 * j],
+                        m_candidate_trajectories[k]
+                            .trace[3 * m_task->num_trace * i + 2 + 3 * j],
+                        m_candidate_trajectories[k]
+                            .trace[3 * m_task->num_trace * (i + 1) + 3 * j],
+                        m_candidate_trajectories[k]
+                            .trace[3 * m_task->num_trace * (i + 1) + 1 + 3 * j],
+                        m_candidate_trajectories[k]
+                            .trace[3 * m_task->num_trace * (i + 1) + 2 +
+                                   3 * j]);
 
                     // increment number of geometries
                     scn->ngeom += 1;
@@ -324,9 +348,9 @@ namespace mjpc
     // planner-specific GUI elements
     void PoseSamplingPDPlanner::GUI(mjUI &ui)
     {
-        mjuiDef defSampling[] = {
-            {mjITEM_SLIDERINT, "Samples", 2, &m_num_candidate_trajectories, "0 1"},
-            {mjITEM_END}};
+        mjuiDef defSampling[] = {{mjITEM_SLIDERINT, "Samples", 2,
+                                  &m_num_candidate_trajectories, "0 1"},
+                                 {mjITEM_END}};
 
         // set number of trajectory slider limits
         mju::sprintf_arr(defSampling[0].other, "%i %i", 1, kMaxTrajectory);
@@ -336,21 +360,23 @@ namespace mjpc
     }
 
     // planner-specific plots
-    void PoseSamplingPDPlanner::Plots(mjvFigure *fig_planner, mjvFigure *fig_timer,
-                                      int planner_shift, int timer_shift, int planning,
-                                      int *shift)
+    void PoseSamplingPDPlanner::Plots(mjvFigure *fig_planner,
+                                      mjvFigure *fig_timer, int planner_shift,
+                                      int timer_shift, int planning, int *shift)
     {
         // ----- planner ----- //
         double planner_bounds[2] = {-6.0, 6.0};
 
         // improvement
-        mjpc::PlotUpdateData(fig_planner, planner_bounds,
-                             fig_planner->linedata[0 + planner_shift][0] + 1,
-                             mju_log10(mju_max(m_trajectory_improvement, 1.0e-6)), 100,
-                             0 + planner_shift, 0, 1, -100);
+        mjpc::PlotUpdateData(
+            fig_planner, planner_bounds,
+            fig_planner->linedata[0 + planner_shift][0] + 1,
+            mju_log10(mju_max(m_trajectory_improvement, 1.0e-6)), 100,
+            0 + planner_shift, 0, 1, -100);
 
         // legend
-        mju::strcpy_arr(fig_planner->linename[0 + planner_shift], "Improvement");
+        mju::strcpy_arr(fig_planner->linename[0 + planner_shift],
+                        "Improvement");
 
         fig_planner->range[1][0] = planner_bounds[0];
         fig_planner->range[1][1] = planner_bounds[1];
@@ -360,9 +386,10 @@ namespace mjpc
 
         // ----- timers ----- //
 
-        PlotUpdateData(
-            fig_timer, timer_bounds, fig_timer->linedata[0 + timer_shift][0] + 1,
-            1.0e-3 * m_noise_compute_time * planning, 100, 0 + timer_shift, 0, 1, -100);
+        PlotUpdateData(fig_timer, timer_bounds,
+                       fig_timer->linedata[0 + timer_shift][0] + 1,
+                       1.0e-3 * m_noise_compute_time * planning, 100,
+                       0 + timer_shift, 0, 1, -100);
 
         PlotUpdateData(fig_timer, timer_bounds,
                        fig_timer->linedata[1 + timer_shift][0] + 1,
@@ -386,12 +413,13 @@ namespace mjpc
         shift[1] += 3;
     }
 
-    int PoseSamplingPDPlanner::OptimizePolicyCandidates(int ncandidates, int horizon,
+    int PoseSamplingPDPlanner::OptimizePolicyCandidates(int ncandidates,
+                                                        int horizon,
                                                         ThreadPool &pool)
     {
         // if num_trajectory_ has changed, use it in this new iteration.
-        // num_trajectory_ might change while this function runs. Keep it constant
-        // for the duration of this function.
+        // num_trajectory_ might change while this function runs. Keep it
+        // constant for the duration of this function.
         ncandidates = min(ncandidates, m_num_candidate_trajectories);
         ResizeMjData(m_model, pool.NumThreads());
 
@@ -413,12 +441,15 @@ namespace mjpc
             m_candidate_trajectory_order.push_back(i);
         }
 
-        // sort so that the first ncandidates elements are the best candidates, and
-        // the rest are in an unspecified order
-        partial_sort(
-            m_candidate_trajectory_order.begin(), m_candidate_trajectory_order.begin() + ncandidates,
-            m_candidate_trajectory_order.end(), [trajectory = m_candidate_trajectories](int a, int b)
-            { return trajectory[a].total_return < trajectory[b].total_return; });
+        // sort so that the first ncandidates elements are the best candidates,
+        // and the rest are in an unspecified order
+        partial_sort(m_candidate_trajectory_order.begin(),
+                     m_candidate_trajectory_order.begin() + ncandidates,
+                     m_candidate_trajectory_order.end(),
+                     [trajectory = m_candidate_trajectories](int a, int b) {
+                         return trajectory[a].total_return <
+                                trajectory[b].total_return;
+                     });
 
         // stop timer
         m_rollouts_compute_time = GetDuration(rollouts_start);
@@ -428,27 +459,32 @@ namespace mjpc
 
     double PoseSamplingPDPlanner::CandidateScore(int candidate) const
     {
-        return m_candidate_trajectories[m_candidate_trajectory_order[candidate]].total_return;
+        return m_candidate_trajectories[m_candidate_trajectory_order[candidate]]
+            .total_return;
     }
 
     // set action from candidate policy
-    void PoseSamplingPDPlanner::ActionFromCandidatePolicy(double *action, int candidate,
+    void PoseSamplingPDPlanner::ActionFromCandidatePolicy(double *action,
+                                                          int candidate,
                                                           const double *state,
                                                           double time)
     {
-        m_candidate_policies[m_candidate_trajectory_order[candidate]].Action(action, state, time);
+        m_candidate_policies[m_candidate_trajectory_order[candidate]].Action(
+            action, state, time);
     }
 
     void PoseSamplingPDPlanner::CopyCandidateToPolicy(int candidate)
     {
         // set winner
-        m_best_candidate_trajectory_index = m_candidate_trajectory_order[candidate];
+        m_best_candidate_trajectory_index =
+            m_candidate_trajectory_order[candidate];
 
         {
             const shared_lock<shared_mutex> lock(m_mtx);
             m_previous_policy = m_active_policy;
-            m_active_policy = m_candidate_policies[m_best_candidate_trajectory_index];
+            m_active_policy =
+                m_candidate_policies[m_best_candidate_trajectory_index];
         }
     }
 
-}
+} // namespace mjpc

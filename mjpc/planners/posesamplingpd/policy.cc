@@ -75,9 +75,6 @@ namespace mjpc
         // generate bsplines
         GenerateBSplineControlData();
 
-        // reference configs
-        m_reference_configs.resize(m_model->nkey * m_model->nq);
-
         // special gains for ball motors
         m_ball_motor_kp = GetNumberOrDefault(1, m_model, "ball_motor_kp");
         m_ball_motor_kd = GetNumberOrDefault(1, m_model, "ball_motor_kd");
@@ -87,8 +84,17 @@ namespace mjpc
     void PoseSamplingPDPolicy::Reset(int horizon,
                                      const double *initial_repeated_action)
     {
-        mju_copy(m_reference_configs.data(), m_model->key_qpos,
-                 m_model->nkey * m_model->nq);
+        m_bspline_control_data.clear();
+        m_bspline_doftype_data.clear();
+        m_bspline_measurementunit_data.clear();
+
+        // original bspline data
+        m_bspline_control_data = m_task->GetBSplineControlData(
+            m_bspline_dimension, m_bspline_degree, m_bspline_loopback_time,
+            m_bspline_translation_offset, m_bspline_doftype_data,
+            m_bspline_measurementunit_data);
+
+        GenerateBSplineControlData();
     }
 
     // set action from policy
@@ -201,13 +207,20 @@ namespace mjpc
         Clamp(action, m_model->actuator_ctrlrange, m_model->nu);
     }
 
-    // copy parameters
-    void PoseSamplingPDPolicy::CopyReferenceConfigsFrom(
-        const vector<double> &src_reference_configs)
+    // copy bspline control points
+    void PoseSamplingPDPolicy::CopyControlPointsFrom(
+        const PoseSamplingPDPolicy &policy)
     {
-        mju_copy(m_reference_configs.data(), src_reference_configs.data(),
-                 m_model->nkey * m_model->nq);
+        m_bspline_control_data.clear();
+
+        copy(policy.m_bspline_control_data.begin(),
+             policy.m_bspline_control_data.end(),
+             back_inserter(m_bspline_control_data));
+
+        GenerateBSplineControlData();
     }
+
+    // Begin private methods
 
     void PoseSamplingPDPolicy::GenerateBSplineControlData()
     {
