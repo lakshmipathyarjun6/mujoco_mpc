@@ -58,6 +58,9 @@ namespace mjpc
         // copy bspline control points
         void CopyControlPointsFrom(const PoseSamplingPDPolicy &policy);
 
+        // mainly for adding noise
+        void AdjustBSplineControlPoints(double* deltas);
+
     private:
         // generate splien curves from control data
         void GenerateBSplineControlData();

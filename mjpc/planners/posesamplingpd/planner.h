@@ -60,7 +60,8 @@ namespace mjpc
                               bool use_previous = false) override;
 
         // add noise to nominal policy
-        void AddNoiseToTrajectory(int i);
+        void AddNoiseToControlPoints(int i, int controlPointStartIndex,
+                                     int controlPointEndIndex);
 
         // compute candidate trajectories
         void Rollouts(int num_trajectory, int horizon, ThreadPool &pool);
@@ -142,6 +143,8 @@ namespace mjpc
         double m_policy_update_compute_time;
 
         // bspline parameters that we actually care about
+        int m_num_bspline_control_points;
+        int m_bspline_dimension;
         double m_bspline_loopback_time;
         BSplineCurve<double> *m_reference_control_bspline_curve;
 

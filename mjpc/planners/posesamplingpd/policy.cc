@@ -222,6 +222,21 @@ namespace mjpc
         GenerateBSplineControlData();
     }
 
+    // deltas should be of size m_model->nu * m_num_bspline_control_points *
+    // m_bspline_dimension
+    void PoseSamplingPDPolicy::AdjustBSplineControlPoints(double *deltas)
+    {
+        for (int dofIndex = 0; dofIndex < m_model->nu; dofIndex++)
+        {
+            mju_addTo(m_bspline_control_data[dofIndex].data(),
+                      deltas + dofIndex * m_num_bspline_control_points *
+                                   m_bspline_dimension,
+                      m_num_bspline_control_points * m_bspline_dimension);
+            m_control_bspline_curves[dofIndex]->SetControlData(
+                m_bspline_control_data[dofIndex]);
+        }
+    }
+
     // Begin private methods
 
     void PoseSamplingPDPolicy::GenerateBSplineControlData()
