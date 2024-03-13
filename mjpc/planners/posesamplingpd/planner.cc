@@ -20,9 +20,64 @@ namespace mjpc
         // task
         m_task = &task;
 
-        // framerate
-        m_mocap_reference_framerate = GetNumberOrDefault(
-            kDefaultFramerate, m_model, "mocap_reference_framerate");
+        // original bspline data
+        // only care about some of the parameters - use dummies for the rest
+        int num_control_points = 0;
+        int bspline_dimension = 0;
+        int bspline_degree = 0;
+        double bspline_translation_offset[3];
+
+        vector<DofType> bspline_doftype_data;
+        vector<MeasurementUnits> bspline_measurementunit_data;
+
+        vector<vector<double>> bspline_control_data =
+            m_task->GetBSplineControlData(
+                bspline_dimension, bspline_degree, m_bspline_loopback_time,
+                bspline_translation_offset, bspline_doftype_data,
+                bspline_measurementunit_data);
+
+        // sanity checks
+        if (bspline_control_data.size() > 0 &&
+            m_model->nu != bspline_control_data.size())
+        {
+            cout << "ERROR: Number of BSpline curves does not match number of "
+                    "DOFs!"
+                 << endl;
+            return;
+        }
+        if (bspline_control_data.size() > 0)
+        {
+            num_control_points =
+                bspline_control_data[0].size() / bspline_dimension;
+
+            for (int i = 0; i < m_model->nu; i++)
+            {
+                if (bspline_control_data[i].size() / bspline_dimension !=
+                    num_control_points)
+                {
+                    cout << "ERROR: BSplines must have same number of control "
+                            "points."
+                         << endl;
+                    return;
+                }
+            }
+
+            if (bspline_doftype_data.size() != m_model->nu)
+            {
+                cout << "ERROR: Each bspline must have a dof type." << endl;
+                return;
+            }
+            if (bspline_measurementunit_data.size() != m_model->nu)
+            {
+                cout << "ERROR: Each bspline must have a measurement unit."
+                     << endl;
+                return;
+            }
+        }
+
+        m_reference_control_bspline_curve = new BSplineCurve<double>(
+            bspline_dimension, bspline_degree, num_control_points,
+            bspline_doftype_data[0], bspline_measurementunit_data[0]);
 
         // sampling noise
         m_default_noise_exploration =
@@ -231,6 +286,35 @@ namespace mjpc
         m_noise_compute_time = 0.0;
 
         int count_before = pool.GetCount();
+
+        double current_time = fmod(m_time, m_bspline_loopback_time);
+        double current_parametric_time = current_time / m_bspline_loopback_time;
+
+        double horizon_time =
+            current_time +
+            horizon *
+                m_model->opt.timestep; // convert discrete time to continuous
+        double horizon_parametric_time = horizon_time / m_bspline_loopback_time;
+
+        int current_time_starting_control_index;
+        int current_time_ending_control_index;
+
+        int horizon_time_starting_control_index;
+        int horizon_time_ending_control_index;
+
+        m_reference_control_bspline_curve
+            ->GetContributingControlPointRangeForTime(
+                current_parametric_time, current_time_starting_control_index,
+                current_time_ending_control_index);
+
+        m_reference_control_bspline_curve
+            ->GetContributingControlPointRangeForTime(
+                horizon_parametric_time, horizon_time_starting_control_index,
+                horizon_time_ending_control_index);
+
+        cout << current_time << " " << current_time_starting_control_index
+             << " " << horizon_time << " " << horizon_time_ending_control_index
+             << endl;
 
         for (int i = 0; i < num_trajectory; i++)
         {
