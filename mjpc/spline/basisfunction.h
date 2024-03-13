@@ -436,28 +436,6 @@ namespace mjpc
             LogError("Unexpected condition.");
         }
 
-        Real GetKnotParametricTime(int32_t knotIndex) const
-        {
-            int actualKnotIndex = knotIndex;
-            int numKnots = mKnots.size();
-
-            if (mPeriodic)
-            {
-                actualKnotIndex = knotIndex % numKnots;
-            }
-            else if (knotIndex <= 0) // lower clamping (which should
-                                     // never realistically be queried)
-            {
-                actualKnotIndex = 0;
-            }
-            else if (knotIndex >= numKnots) // upper clamping
-            {
-                actualKnotIndex = numKnots - 1;
-            }
-
-            return mKnots[actualKnotIndex];
-        }
-
     private:
         // Constructor inputs and values derived from them.
         int32_t mNumControls;

@@ -11,6 +11,7 @@
 #include "mjpc/array_safety.h"
 #include "mjpc/planners/planner.h"
 #include "mjpc/planners/posesamplingpd/policy.h"
+#include "mjpc/spline/bspline.h"
 #include "mjpc/threadpool.h"
 #include "mjpc/trajectory.h"
 #include "mjpc/utilities.h"
@@ -42,7 +43,8 @@ namespace mjpc
         void Allocate() override;
 
         // reset memory to zeros
-        void Reset(int horizon, const double *initial_repeated_action = nullptr) override;
+        void Reset(int horizon,
+                   const double *initial_repeated_action = nullptr) override;
 
         // set state
         void SetState(const State &state) override;
@@ -54,8 +56,8 @@ namespace mjpc
         void NominalTrajectory(int horizon, ThreadPool &pool) override;
 
         // set action from active policy
-        void ActionFromPolicy(double *action, const double *state,
-                              double time, bool use_previous = false) override;
+        void ActionFromPolicy(double *action, const double *state, double time,
+                              bool use_previous = false) override;
 
         // add noise to nominal policy
         void AddNoiseToTrajectory(int i);
@@ -73,14 +75,12 @@ namespace mjpc
         void GUI(mjUI &ui) override;
 
         // planner-specific plots
-        void Plots(mjvFigure *fig_planner, mjvFigure *fig_timer, int planner_shift,
-                   int timer_shift, int planning, int *shift) override;
+        void Plots(mjvFigure *fig_planner, mjvFigure *fig_timer,
+                   int planner_shift, int timer_shift, int planning,
+                   int *shift) override;
 
         // return number of parameters optimized by planner
-        int NumParameters() override
-        {
-            return m_model->nkey * m_model->nq;
-        };
+        int NumParameters() override { return m_model->nkey * m_model->nq; };
 
         // optimizes policies, but rather than picking the best, generate up to
         // ncandidates. returns number of candidates created.
@@ -93,7 +93,8 @@ namespace mjpc
 
         // set action from candidate policy
         void ActionFromCandidatePolicy(double *action, int candidate,
-                                       const double *state, double time) override;
+                                       const double *state,
+                                       double time) override;
 
         void CopyCandidateToPolicy(int candidate) override;
 
@@ -108,25 +109,31 @@ namespace mjpc
         vector<double> m_mocap;
         vector<double> m_userdata;
 
-        // framerate
-        int m_mocap_reference_framerate;
-
         // policies
         PoseSamplingPDPolicy m_active_policy; // (Guarded by mtx_)
         PoseSamplingPDPolicy m_candidate_policies[kMaxTrajectory];
         PoseSamplingPDPolicy m_previous_policy;
 
         // trajectories
-        int m_num_candidate_trajectories;                    // actual number of candidate trajectories
-        int m_best_candidate_trajectory_index;               // best trajectory index in unordered trajectory list
-        double m_trajectory_improvement;                     // improvement in total return since last update
-        Trajectory m_candidate_trajectories[kMaxTrajectory]; // allocate maximum trajectory space
-        vector<int> m_candidate_trajectory_order;            // order of indices of rolled out trajectories, ordered by total return
+        int m_num_candidate_trajectories;      // actual number of candidate
+                                               // trajectories
+        int m_best_candidate_trajectory_index; // best trajectory index in
+                                               // unordered trajectory list
+        double m_trajectory_improvement; // improvement in total return since
+                                         // last update
+        Trajectory m_candidate_trajectories[kMaxTrajectory]; // allocate maximum
+                                                             // trajectory space
+        vector<int> m_candidate_trajectory_order; // order of indices of rolled
+                                                  // out trajectories, ordered
+                                                  // by total return
 
         // ----- noise ----- //
-        double m_default_noise_exploration;   // default standard deviation for all joints
-        double m_root_pos_noise_exploration;  // default standard deviation for root joint positon
-        double m_root_quat_noise_exploration; // default standard deviation for root joint orientation
+        double m_default_noise_exploration;   // default standard deviation for
+                                              // all joints
+        double m_root_pos_noise_exploration;  // default standard deviation for
+                                              // root joint positon
+        double m_root_quat_noise_exploration; // default standard deviation for
+                                              // root joint orientation
         vector<double> m_noise;
 
         // timing
@@ -134,8 +141,12 @@ namespace mjpc
         double m_rollouts_compute_time;
         double m_policy_update_compute_time;
 
+        // bspline parameters that we actually care about
+        double m_bspline_loopback_time;
+        BSplineCurve<double> *m_reference_control_bspline_curve;
+
         mutable shared_mutex m_mtx;
     };
-}
+} // namespace mjpc
 
 #endif // MJPC_PLANNERS_POSE_SAMPLING_PD_PLANNER_H_

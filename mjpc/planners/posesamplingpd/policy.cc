@@ -28,6 +28,8 @@ namespace mjpc
         m_task = &task;
 
         // original bspline data
+        // direct copy-pasta from planner solely to preserve inheritance
+        // structure
         m_bspline_control_data = m_task->GetBSplineControlData(
             m_bspline_dimension, m_bspline_degree, m_bspline_loopback_time,
             m_bspline_translation_offset, m_bspline_doftype_data,

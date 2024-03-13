@@ -132,23 +132,34 @@ namespace mjpc
             }
         }
 
-        // Compute the (normalized) parametric endpoint of the curve that is
-        // impacted by the specified number of control point lookahead. Note
-        // that this assumes a uniform knot sequence.
-        Real computeParametricEndpoint(double currentParametricTime,
-                                       int numKnotPointLookahead)
-        {
-            int32_t startingKnotIndex = mBasis.GetIndex(currentParametricTime);
-            int32_t endingKnotIndex =
-                startingKnotIndex + numKnotPointLookahead +
-                mBasis.GetDegree(); // correct for knot degree in lookahead
-
-            return mBasis.GetKnotParametricTime(endingKnotIndex);
-        }
-
         void GetPosition(Real t, Real *position) const
         {
             Evaluate(t, 0, position);
+        }
+
+        void GetContributingControlPointRangeForTime(
+            Real t, int32_t &startControlIndex, int32_t &endControlIndex) const
+        {
+            int32_t imin, imax;
+            mBasis.Evaluate(t, 0, imin, imax);
+
+            int sourceIndex = static_cast<size_t>(mDimension) * imin;
+            startControlIndex = sourceIndex / mDimension;
+
+            for (int32_t j = 0; j < mDimension; ++j)
+            {
+                sourceIndex++;
+            }
+
+            for (int32_t i = imin + 1; i <= imax; ++i)
+            {
+                for (int32_t j = 0; j < mDimension; ++j)
+                {
+                    sourceIndex++;
+                }
+            }
+
+            endControlIndex = sourceIndex / mDimension - 1;
         }
 
         // Get position, but evaluate using the dof type and measurement units
