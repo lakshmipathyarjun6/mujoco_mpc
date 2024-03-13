@@ -22,8 +22,6 @@ namespace mjpc
 
         // original bspline data
         // only care about some of the parameters - use dummies for the rest
-        int num_control_points = 0;
-        int bspline_dimension = 0;
         int bspline_degree = 0;
         double bspline_translation_offset[3];
 
@@ -32,7 +30,7 @@ namespace mjpc
 
         vector<vector<double>> bspline_control_data =
             m_task->GetBSplineControlData(
-                bspline_dimension, bspline_degree, m_bspline_loopback_time,
+                m_bspline_dimension, bspline_degree, m_bspline_loopback_time,
                 bspline_translation_offset, bspline_doftype_data,
                 bspline_measurementunit_data);
 
@@ -47,13 +45,13 @@ namespace mjpc
         }
         if (bspline_control_data.size() > 0)
         {
-            num_control_points =
-                bspline_control_data[0].size() / bspline_dimension;
+            m_num_bspline_control_points =
+                bspline_control_data[0].size() / m_bspline_dimension;
 
             for (int i = 0; i < m_model->nu; i++)
             {
-                if (bspline_control_data[i].size() / bspline_dimension !=
-                    num_control_points)
+                if (bspline_control_data[i].size() / m_bspline_dimension !=
+                    m_num_bspline_control_points)
                 {
                     cout << "ERROR: BSplines must have same number of control "
                             "points."
@@ -76,7 +74,7 @@ namespace mjpc
         }
 
         m_reference_control_bspline_curve = new BSplineCurve<double>(
-            bspline_dimension, bspline_degree, num_control_points,
+            m_bspline_dimension, bspline_degree, m_num_bspline_control_points,
             bspline_doftype_data[0], bspline_measurementunit_data[0]);
 
         // sampling noise
@@ -98,9 +96,6 @@ namespace mjpc
         }
 
         m_best_candidate_trajectory_index = 0;
-
-        // noise
-        fill(m_noise.begin(), m_noise.end(), 0.0);
     }
 
     // allocate memory
@@ -119,7 +114,8 @@ namespace mjpc
         m_previous_policy.Allocate(m_model, *m_task, kMaxTrajectoryHorizon);
 
         // noise
-        m_noise.resize(kMaxTrajectory * m_model->nq * m_model->nkey);
+        m_noise.resize(kMaxTrajectory * m_model->nu *
+                       m_num_bspline_control_points * m_bspline_dimension);
 
         // trajectory and parameters
         m_best_candidate_trajectory_index = -1;
@@ -235,7 +231,8 @@ namespace mjpc
     }
 
     // add random noise to nominal policy
-    void PoseSamplingPDPlanner::AddNoiseToTrajectory(int i)
+    void PoseSamplingPDPlanner::AddNoiseToControlPoints(
+        int i, int controlPointStartIndex, int controlPointEndIndex)
     {
         // start timer
         auto noise_start = chrono::steady_clock::now();
@@ -243,36 +240,39 @@ namespace mjpc
         // sampling token
         ::BitGen gen_;
 
-        // // shift index
-        // int shift = i * m_model->nkey * m_model->nq;
+        // Reset noise
+        fill(m_noise.begin(), m_noise.end(), 0.0);
 
-        // // assume no covariance (e.g. assume fully actuated system)
-        // for (int key = 0; key < m_model->nkey; key++)
-        // {
-        //     int keyOffset = key * m_model->nq;
+        // shift index
+        int shift = i * m_model->nu * m_num_bspline_control_points *
+                    m_bspline_dimension;
 
-        //     for (int dofIndex = 0; dofIndex < m_model->nu; dofIndex++)
-        //     {
-        //         m_noise[shift + keyOffset + dofIndex] =
-        //         ::Gaussian<double>(gen_, 0.0, m_default_noise_exploration);
-        //     }
+        for (int dofIndex = 0; dofIndex < m_model->nu; dofIndex++)
+        {
+            int dofOffset =
+                dofIndex * m_num_bspline_control_points * m_bspline_dimension;
 
-        //     for (int dofIndex = 0; dofIndex < 3; dofIndex++)
-        //     {
-        //         m_noise[shift + keyOffset + dofIndex] =
-        //         ::Gaussian<double>(gen_, 0.0, m_root_pos_noise_exploration);
-        //     }
-        //     for (int dofIndex = 3; dofIndex < 6; dofIndex++)
-        //     {
-        //         m_noise[shift + keyOffset + dofIndex] =
-        //         ::Gaussian<double>(gen_, 0.0, m_root_quat_noise_exploration);
-        //     }
-        // }
+            for (int controlPointIndex = controlPointStartIndex;
+                 controlPointIndex <= controlPointEndIndex; controlPointIndex++)
+            {
+                int controlPointOffset =
+                    controlPointIndex * m_bspline_dimension;
 
-        // // add noise
-        // mju_addTo(m_candidate_policies[i].m_reference_configs.data(),
-        // DataAt(m_noise, shift),
-        //           m_model->nkey * m_model->nq);
+                for (int dimIndex = 0; dimIndex < m_bspline_dimension;
+                     dimIndex++)
+                {
+                    double sigma = (dofIndex < 2) ? 0.01 : 1.0;
+                    double added_noise =
+                        (dimIndex == 0) ? 0.0
+                                        : ::Gaussian<double>(gen_, 0.0, sigma);
+                    m_noise[shift + dofOffset + controlPointOffset + dimIndex] =
+                        added_noise;
+                }
+            }
+        }
+
+        m_candidate_policies[i].AdjustBSplineControlPoints(
+            DataAt(m_noise, shift));
 
         // end timer
         IncrementAtomic(m_noise_compute_time, GetDuration(noise_start));
@@ -321,6 +321,8 @@ namespace mjpc
             pool.Schedule(
                 [&s = *this, &model = m_model, &task = m_task, &state = m_state,
                  &time = m_time, &mocap = m_mocap, &userdata = m_userdata,
+                 //  &start_cpi = current_time_starting_control_index,
+                 //  &end_cpi = horizon_time_ending_control_index,
                  horizon, i]()
                 {
                     // copy nominal policy
@@ -330,11 +332,11 @@ namespace mjpc
                             s.m_active_policy);
                     }
 
-                    //   // sample perturbed keyframe trajectory
-                    //   if (i != 0)
-                    //   {
-                    //       s.AddNoiseToTrajectory(i);
-                    //   }
+                    // // sample perturbed control points
+                    // if (i != 0)
+                    // {
+                    //     s.AddNoiseToControlPoints(i, start_cpi, end_cpi);
+                    // }
 
                     // ----- rollout sample policy ----- //
 
