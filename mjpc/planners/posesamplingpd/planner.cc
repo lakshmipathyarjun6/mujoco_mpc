@@ -261,10 +261,12 @@ namespace mjpc
                 for (int dimIndex = 0; dimIndex < m_bspline_dimension;
                      dimIndex++)
                 {
-                    double sigma = (dofIndex < 2) ? 0.01 : 1.0;
+                    double sigma = 0.0;
+
                     double added_noise =
                         (dimIndex == 0) ? 0.0
                                         : ::Gaussian<double>(gen_, 0.0, sigma);
+
                     m_noise[shift + dofOffset + controlPointOffset + dimIndex] =
                         added_noise;
                 }
@@ -312,18 +314,13 @@ namespace mjpc
                 horizon_parametric_time, horizon_time_starting_control_index,
                 horizon_time_ending_control_index);
 
-        cout << current_time << " " << current_time_starting_control_index
-             << " " << horizon_time << " " << horizon_time_ending_control_index
-             << endl;
-
         for (int i = 0; i < num_trajectory; i++)
         {
             pool.Schedule(
                 [&s = *this, &model = m_model, &task = m_task, &state = m_state,
                  &time = m_time, &mocap = m_mocap, &userdata = m_userdata,
-                 //  &start_cpi = current_time_starting_control_index,
-                 //  &end_cpi = horizon_time_ending_control_index,
-                 horizon, i]()
+                 &start_cpi = current_time_starting_control_index,
+                 &end_cpi = horizon_time_ending_control_index, horizon, i]()
                 {
                     // copy nominal policy
                     {
@@ -332,11 +329,11 @@ namespace mjpc
                             s.m_active_policy);
                     }
 
-                    // // sample perturbed control points
-                    // if (i != 0)
-                    // {
-                    //     s.AddNoiseToControlPoints(i, start_cpi, end_cpi);
-                    // }
+                    // sample perturbed control points
+                    if (i != 0)
+                    {
+                        s.AddNoiseToControlPoints(i, start_cpi, end_cpi);
+                    }
 
                     // ----- rollout sample policy ----- //
 
