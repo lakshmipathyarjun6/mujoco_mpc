@@ -18,7 +18,8 @@
         <body name="doorknob_attachment" pos="-0.0825822262763977 -0.6478415727615356 0.9384804964065552">
             <body name="doorknob_sim" pos="-0.04 0 0" quat="0.47815212453295514 0.5128687163825603 -0.5009253359069297 -0.5073559237924161">
                 <joint axis="0 0 1" limited="true" range="0 1" stiffness="100.0" damping="10.0" type="slide"/>
-                <geom name="sim_geom_doorknob" type="mesh" mesh="doorknob" mass="2.485148625" rgba="0.8313 0.686 0.216 1.0"/>
+                <geom name="sim_geom_doorknob_visual" type="mesh" mesh="doorknob" contype="0" conaffinity="0" group="2" mass="0" rgba="0.8313 0.686 0.216 1.0"/>
+                <geom name="sim_geom_doorknob_collision" type="ellipsoid" size="0.0325 0.0325 0.015" pos="0 0 0.021" group="3" mass="2.485148625" />
             </body>
         </body>
         <!-- <include file="./contacts/doorknob_use_1/doorknob_use_1_hand_sites.xml"/> -->
