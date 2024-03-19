@@ -31,6 +31,9 @@
     <sensor>
         <framepos name="object_position" objtype="body" objname="doorknob_sim"/>
         <framequat name="object_orientation" objtype="body" objname="doorknob_sim"/>
+
+        <!-- trace -->
+        <framepos name="trace0" objtype="body" objname="doorknob_sim"/>
     </sensor>
 
     <include file="./keyframes/doorknob_use_1.xml" />

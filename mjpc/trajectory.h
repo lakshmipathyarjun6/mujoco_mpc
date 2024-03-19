@@ -18,78 +18,83 @@
 #include <functional>
 #include <vector>
 
-#include <mujoco/mujoco.h>
 #include "mjpc/task.h"
+#include <mujoco/mujoco.h>
 
-namespace mjpc {
+namespace mjpc
+{
 
-// maximum trajectory length
-inline constexpr int kMaxTrajectoryHorizon = 512;
+    // maximum trajectory length
+    inline constexpr int kMaxTrajectoryHorizon = 512;
 
-// time series of states, actions, costs, residual, times, parameters, noise,
-// traces
-class Trajectory {
- public:
-  // constructor
-  Trajectory() = default;
-  Trajectory(const Trajectory& other) = default;
-  Trajectory& operator=(const Trajectory& other) = default;
-  Trajectory(Trajectory&& other) = default;
-  Trajectory& operator=(Trajectory&& other) = default;
+    // time series of states, actions, costs, residual, times, parameters,
+    // noise, traces
+    class Trajectory
+    {
+    public:
+        // constructor
+        Trajectory() = default;
+        Trajectory(const Trajectory &other) = default;
+        Trajectory &operator=(const Trajectory &other) = default;
+        Trajectory(Trajectory &&other) = default;
+        Trajectory &operator=(Trajectory &&other) = default;
 
-  // ----- methods -----//
+        // ----- methods -----//
 
-  // initialize trajectory dimensions
-  void Initialize(int dim_state, int dim_action, int dim_residual,
-                  int num_trace, int horizon);
+        // initialize trajectory dimensions
+        void Initialize(int dim_state, int dim_action, int dim_residual,
+                        int num_trace, int horizon);
 
-  // allocate memory
-  void Allocate(int T);
+        // allocate memory
+        void Allocate(int T);
 
-  // reset memory to zeros (and perhaps a non-zero action)
-  void Reset(int T, const double* initial_repeated_action = nullptr);
+        // reset memory to zeros (and perhaps a non-zero action)
+        void Reset(int T, const double *initial_repeated_action = nullptr);
 
-  // simulate model forward in time with continuous-time indexed policy
-  void Rollout(
-      std::function<void(double* action, const double* state, double time)>
-          policy,
-      const Task* task, const mjModel* model, mjData* data, const double* state,
-      double time, const double* mocap, const double* userdata, int steps);
+        // simulate model forward in time with continuous-time indexed policy
+        void Rollout(std::function<void(double *action, const double *state,
+                                        double time)>
+                         policy,
+                     const Task *task, const mjModel *model, mjData *data,
+                     const double *state, double time, const double *mocap,
+                     const double *userdata, int steps);
 
-  void NoisyRollout(
-      std::function<void(double* action, const double* state, double time)>
-          policy,
-      const Task* task, const mjModel* model, mjData* data, const double* state,
-      double time, const double* mocap, const double* userdata, double xfrc_std,
-      double xfrc_rate, int steps);
+        void NoisyRollout(std::function<void(double *action,
+                                             const double *state, double time)>
+                              policy,
+                          const Task *task, const mjModel *model, mjData *data,
+                          const double *state, double time, const double *mocap,
+                          const double *userdata, double xfrc_std,
+                          double xfrc_rate, int steps);
 
-  // simulate model forward in time with discrete-time indexed policy
-  void RolloutDiscrete(
-      std::function<void(double* action, const double* state, int index)>
-          policy,
-      const Task* task, const mjModel* model, mjData* data, const double* state,
-      double time, const double* mocap, const double* userdata, int steps);
+        // simulate model forward in time with discrete-time indexed policy
+        void RolloutDiscrete(
+            std::function<void(double *action, const double *state, int index)>
+                policy,
+            const Task *task, const mjModel *model, mjData *data,
+            const double *state, double time, const double *mocap,
+            const double *userdata, int steps);
 
-  // ----- members ----- //
-  int horizon;                   // trajectory length
-  int dim_state;                 // states dimension
-  int dim_action;                // actions dimension
-  int dim_residual;              // residual dimension
-  int dim_trace;                 // traces dimension
-  std::vector<double> states;    // (horizon   x nq + nv + na)
-  std::vector<double> actions;   // (horizon-1 x num_action)
-  std::vector<double> times;     // horizon
-  std::vector<double> residual;  // (horizon   x num_residual)
-  std::vector<double> costs;     // horizon
-  std::vector<double> trace;     // (horizon   x 3)
-  double total_return;           // (1)
-  bool failure;                  // true if last rollout had a warning
+        // ----- members ----- //
+        int horizon;                  // trajectory length
+        int dim_state;                // states dimension
+        int dim_action;               // actions dimension
+        int dim_residual;             // residual dimension
+        int dim_trace;                // traces dimension
+        std::vector<double> states;   // (horizon   x nq + nv + na)
+        std::vector<double> actions;  // (horizon-1 x num_action)
+        std::vector<double> times;    // horizon
+        std::vector<double> residual; // (horizon   x num_residual)
+        std::vector<double> costs;    // horizon
+        std::vector<double> trace;    // (horizon   x 3)
+        double total_return;          // (1)
+        bool failure;                 // true if last rollout had a warning
 
- private:
-  // calculates total_return and costs
-  void UpdateReturn(const Task* task);
-};
+    private:
+        // calculates total_return and costs
+        void UpdateReturn(const Task *task);
+    };
 
-}  // namespace mjpc
+} // namespace mjpc
 
-#endif  // MJPC_TRAJECTORY_H_
+#endif // MJPC_TRAJECTORY_H_

@@ -389,6 +389,7 @@ namespace mjpc
         double zero9[9] = {0};
 
         auto bestTrajectory = BestTrajectory();
+        int num_trace = m_task->num_trace;
 
         // sample traces
         for (int k = 0; k < m_num_candidate_trajectories; k++)
@@ -396,30 +397,29 @@ namespace mjpc
             // plot sample
             for (int i = 0; i < bestTrajectory->horizon - 1; i++)
             {
-                if (scn->ngeom + m_task->num_trace > scn->maxgeom)
+                if (scn->ngeom + num_trace > scn->maxgeom)
+                {
+                    cout << "Too many traces to render - breaking" << endl;
                     break;
-                for (int j = 0; j < m_task->num_trace; j++)
+                }
+
+                for (int j = 0; j < num_trace; j++)
                 {
                     // initialize geometry
                     mjv_initGeom(&scn->geoms[scn->ngeom], mjGEOM_LINE, zero3,
                                  zero3, zero9, color);
 
+                    Trajectory trajectory = m_candidate_trajectories[k];
+
                     // make geometry
                     mjv_makeConnector(
                         &scn->geoms[scn->ngeom], mjGEOM_LINE, width,
-                        m_candidate_trajectories[k]
-                            .trace[3 * m_task->num_trace * i + 3 * j],
-                        m_candidate_trajectories[k]
-                            .trace[3 * m_task->num_trace * i + 1 + 3 * j],
-                        m_candidate_trajectories[k]
-                            .trace[3 * m_task->num_trace * i + 2 + 3 * j],
-                        m_candidate_trajectories[k]
-                            .trace[3 * m_task->num_trace * (i + 1) + 3 * j],
-                        m_candidate_trajectories[k]
-                            .trace[3 * m_task->num_trace * (i + 1) + 1 + 3 * j],
-                        m_candidate_trajectories[k]
-                            .trace[3 * m_task->num_trace * (i + 1) + 2 +
-                                   3 * j]);
+                        trajectory.trace[3 * num_trace * i + 3 * j],
+                        trajectory.trace[3 * num_trace * i + 1 + 3 * j],
+                        trajectory.trace[3 * num_trace * i + 2 + 3 * j],
+                        trajectory.trace[3 * num_trace * (i + 1) + 3 * j],
+                        trajectory.trace[3 * num_trace * (i + 1) + 1 + 3 * j],
+                        trajectory.trace[3 * num_trace * (i + 1) + 2 + 3 * j]);
 
                     // increment number of geometries
                     scn->ngeom += 1;
