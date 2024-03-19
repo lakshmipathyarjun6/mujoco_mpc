@@ -14,43 +14,15 @@
 
 #include "mjpc/tasks/tasks.h"
 
-#include <memory>
-#include <vector>
-
-#include "mjpc/task.h"
-#include "mjpc/tasks/acrobot/acrobot.h"
 #include "mjpc/tasks/allegro/allegro.h"
-#include "mjpc/tasks/bimanual/bimanual.h"
-#include "mjpc/tasks/cube/solve.h"
-#include "mjpc/tasks/cartpole/cartpole.h"
-#include "mjpc/tasks/fingers/fingers.h"
-#include "mjpc/tasks/hand/hand.h"
-#include "mjpc/tasks/humanoid/stand/stand.h"
-#include "mjpc/tasks/humanoid/tracking/tracking.h"
-#include "mjpc/tasks/humanoid/walk/walk.h"
-#include "mjpc/tasks/panda/panda.h"
-#include "mjpc/tasks/manipulation/manipulation.h"
-// DEEPMIND INTERNAL IMPORT
-#include "mjpc/tasks/op3/stand.h"
-#include "mjpc/tasks/particle/particle.h"
-#include "mjpc/tasks/quadrotor/quadrotor.h"
-#include "mjpc/tasks/quadruped/quadruped.h"
-#include "mjpc/tasks/swimmer/swimmer.h"
-#include "mjpc/tasks/walker/walker.h"
 
 namespace mjpc
 {
 
-  std::vector<std::shared_ptr<Task> > GetTasks()
-  {
-    return {
-        std::make_shared<Acrobot>(),
-        std::make_shared<AllegroAppleTask>(),
-        std::make_shared<AllegroDoorknobTask>(),
-        std::make_shared<Hand>(),
-        std::make_shared<humanoid::Stand>(),
-        std::make_shared<humanoid::Tracking>(),
-        std::make_shared<humanoid::Walk>(),
-        std::make_shared<Panda>()};
-  }
+    vector<shared_ptr<Task>> GetTasks()
+    {
+        return {make_shared<AllegroAppleTask>(),
+                make_shared<AllegroDoorknobTask>()};
+    }
+
 } // namespace mjpc
