@@ -29,6 +29,9 @@
     <sensor>
         <framepos name="object_position" objtype="body" objname="apple_sim"/>
         <framequat name="object_orientation" objtype="body" objname="apple_sim"/>
+
+        <!-- trace -->
+        <framepos name="trace0" objtype="body" objname="apple_sim"/>
     </sensor>
 
     <include file="./keyframes/apple_pass_1.xml" />

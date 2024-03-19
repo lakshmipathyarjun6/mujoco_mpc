@@ -11,10 +11,10 @@
 
     <custom>
         <numeric name="agent_planner" data="0" />
-        <numeric name="agent_horizon" data="0.25" />
+        <numeric name="agent_horizon" data="2.5" />
         <numeric name="agent_timestep" data="0.01" />
-        <numeric name="agent_policy_width" data="0.0035" />
-        <numeric name="sampling_trajectories" data="100" />
+        <numeric name="agent_policy_width" data="0.005" />
+        <numeric name="sampling_trajectories" data="10" />
         <numeric name="sampling_spline_points" data="6" />
         <numeric name="default_sampling_exploration" data="0.1" />
         <numeric name="root_pos_sampling_exploration" data="0.1" />
@@ -48,9 +48,6 @@
         <!-- <user name="Hand Root Position" dim="3" user="0 1000.0 0 1000"/>
         <user name="Hand Root Orientation" dim="3" user="0 10.0 0 20"/>
         <user name="Hand State" dim="16" user="0 1.0 0 20"/> -->
-
-        <!-- trace -->
-        <framepos name="trace0" objtype="body" objname="wrist"/>
     </sensor>
 
     <include file="right_hand_template.xml"/>
