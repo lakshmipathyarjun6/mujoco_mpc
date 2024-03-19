@@ -69,46 +69,8 @@ add_library(
   utilities.h
   tasks/tasks.cc
   tasks/tasks.h
-  tasks/acrobot/acrobot.cc
-  tasks/acrobot/acrobot.h
-  tasks/apple/apple.cc
-  tasks/apple/apple.h
   tasks/allegro/allegro.cc
   tasks/allegro/allegro.h
-  tasks/bimanual/bimanual.cc
-  tasks/bimanual/bimanual.h
-  tasks/cartpole/cartpole.cc
-  tasks/cartpole/cartpole.h
-  tasks/cube/solve.cc
-  tasks/cube/solve.h
-  tasks/fingers/fingers.cc
-  tasks/fingers/fingers.h
-  tasks/hand/hand.cc
-  tasks/hand/hand.h
-  tasks/humanoid/stand/stand.cc
-  tasks/humanoid/stand/stand.h
-  tasks/humanoid/tracking/tracking.cc
-  tasks/humanoid/tracking/tracking.h
-  tasks/humanoid/walk/walk.cc
-  tasks/humanoid/walk/walk.h
-  tasks/manipulation/common.cc
-  tasks/manipulation/common.h
-  tasks/manipulation/manipulation.cc
-  tasks/manipulation/manipulation.h
-  tasks/op3/stand.cc
-  tasks/op3/stand.h
-  tasks/panda/panda.cc
-  tasks/panda/panda.h
-  tasks/particle/particle.cc
-  tasks/particle/particle.h
-  tasks/quadrotor/quadrotor.cc
-  tasks/quadrotor/quadrotor.h
-  tasks/quadruped/quadruped.cc
-  tasks/quadruped/quadruped.h
-  tasks/swimmer/swimmer.cc
-  tasks/swimmer/swimmer.h
-  tasks/walker/walker.cc
-  tasks/walker/walker.h
   planners/planner.cc
   planners/planner.h
   planners/policy.h
