@@ -340,6 +340,7 @@ namespace mjpc
 
     AllegroTask::AllegroTask(string objectSimBodyName,
                              string handTrajSplineFile,
+                             string pcHandTrajSplineFile,
                              double startClampOffsetX, double startClampOffsetY,
                              double startClampOffsetZ, int maxContactSites,
                              string objectContactStartDataName,
@@ -374,15 +375,18 @@ namespace mjpc
         m_start_clamp_offset[1] = startClampOffsetY;
         m_start_clamp_offset[2] = startClampOffsetZ;
 
-        Document d = loadJSON(handTrajSplineFile);
+        Document dFullSplines = loadJSON(handTrajSplineFile);
+        Document dPcSplines = loadJSON(pcHandTrajSplineFile);
 
-        m_spline_dimension = d["dimension"].GetInt();
-        m_spline_degree = d["degree"].GetInt();
-        m_spline_loopback_time = d["time"].GetDouble();
+        m_spline_dimension = dFullSplines["dimension"].GetInt();
+        m_spline_degree = dFullSplines["degree"].GetInt();
+        m_spline_loopback_time = dFullSplines["time"].GetDouble();
 
         m_spline_loopback_time *= SLOWDOWN_FACTOR;
 
-        for (const auto &splineData : d["data"].GetArray())
+        m_num_pcs = dPcSplines["numComponents"].GetInt();
+
+        for (const auto &splineData : dFullSplines["data"].GetArray())
         {
             int numControlPoints = splineData["numControlPoints"].GetInt();
             string dofType = splineData["type"].GetString();
@@ -427,6 +431,61 @@ namespace mjpc
         {
             cout << "Done" << endl;
         }
+
+        const auto pcData = dPcSplines["data"].GetObject();
+
+        for (const auto &pcCenterData : pcData["center"].GetArray())
+        {
+            double dofMean = pcCenterData.GetDouble();
+            m_hand_pc_center.push_back(dofMean);
+        }
+
+        for (const auto &pcSplineData : pcData["components"].GetArray())
+        {
+            int numControlPoints = pcSplineData["numControlPoints"].GetInt();
+            string dofType = pcSplineData["type"].GetString();
+            string units = pcSplineData["units"].GetString();
+
+            TrajectorySplineProperties properties;
+            properties.numControlPoints = numControlPoints;
+            properties.dofType = m_doftype_property_mappings[dofType];
+            properties.units = m_measurement_units_property_mappings[units];
+
+            for (const auto &componentData :
+                 pcSplineData["componentData"].GetArray())
+            {
+                double entry = componentData.GetDouble();
+                m_hand_pc_component_matrix.push_back(entry);
+            }
+
+            vector<double> controlPoints;
+
+            for (const auto &controlPointData :
+                 pcSplineData["controlPointData"].GetArray())
+            {
+                double entry = controlPointData.GetDouble();
+                controlPoints.push_back(entry);
+            }
+
+            for (int i = 0; i < numControlPoints; i++)
+            {
+                controlPoints[i * 2] *= SLOWDOWN_FACTOR;
+            }
+
+            BSplineCurve<double> *bspc = new BSplineCurve<double>(
+                m_spline_dimension, m_spline_degree, numControlPoints,
+                m_doftype_property_mappings[dofType],
+                m_measurement_units_property_mappings[units]);
+
+            bspc->SetControlData(controlPoints);
+
+            m_hand_pc_traj_bspline_properties.push_back(properties);
+            m_hand_pc_traj_bspline_curves.push_back(bspc);
+        }
+
+        mju_transpose(m_hand_pc_component_matrix.data(),
+                      m_hand_pc_component_matrix.data(), m_num_pcs,
+                      ALLEGRO_NON_ROOT_DOFS);
     }
 
     vector<double> AllegroTask::GetDesiredState(double time) const
@@ -486,6 +545,87 @@ namespace mjpc
 
             double dofValue = curveValue[1];
 
+            desiredState.push_back(dofValue);
+        }
+
+        return desiredState;
+    }
+
+    vector<double> AllegroTask::GetDesiredStateFromPCs(double time) const
+    {
+        vector<double> desiredState;
+
+        double queryTime = fmod(time, m_spline_loopback_time);
+        double parametricTime = queryTime / m_spline_loopback_time;
+
+        // Get root state from original spline - no PC is performed on it
+        double rootEulerAngles[3] = {0.0, 0.0, 0.0};
+        double curveValue[2];
+
+        for (int i = 0; i < 6; i++)
+        {
+            TrajectorySplineProperties properties =
+                m_hand_traj_bspline_properties[i];
+
+            m_hand_traj_bspline_curves[i]->GetPositionInMeasurementUnits(
+                parametricTime, curveValue);
+
+            double dofValue = curveValue[1];
+
+            switch (properties.dofType)
+            {
+            case DofType::DOF_TYPE_ROTATION_BALL_X:
+                rootEulerAngles[0] = dofValue;
+                break;
+            case DofType::DOF_TYPE_ROTATION_BALL_Y:
+                rootEulerAngles[1] = dofValue;
+                break;
+            case DofType::DOF_TYPE_ROTATION_BALL_Z:
+                rootEulerAngles[2] = dofValue;
+                break;
+            default:
+                desiredState.push_back(dofValue);
+                break;
+            }
+        }
+
+        // Correct for start clamp offset
+        mju_sub3(desiredState.data(), desiredState.data(),
+                 m_start_clamp_offset);
+
+        // Convert root rotation to quaternion
+        double quat[4];
+        ConvertEulerAnglesToQuat(rootEulerAngles, quat);
+
+        for (int i = 0; i < 4; i++)
+        {
+            desiredState.push_back(quat[i]);
+        }
+
+        vector<double> pcState;
+        pcState.resize(m_num_pcs);
+
+        for (int i = 0; i < m_num_pcs; i++)
+        {
+            m_hand_pc_traj_bspline_curves[i]->GetPositionInMeasurementUnits(
+                parametricTime, curveValue);
+
+            pcState[i] = curveValue[1];
+        }
+
+        vector<double> uncompressedState;
+        uncompressedState.resize(ALLEGRO_NON_ROOT_DOFS);
+
+        mju_mulMatVec(uncompressedState.data(),
+                      m_hand_pc_component_matrix.data(), pcState.data(),
+                      ALLEGRO_NON_ROOT_DOFS, m_num_pcs);
+
+        mju_addTo(uncompressedState.data(), m_hand_pc_center.data(),
+                  ALLEGRO_NON_ROOT_DOFS);
+
+        for (int i = 0; i < ALLEGRO_NON_ROOT_DOFS; i++)
+        {
+            double dofValue = uncompressedState[i];
             desiredState.push_back(dofValue);
         }
 

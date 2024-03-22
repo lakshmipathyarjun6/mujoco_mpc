@@ -32,6 +32,7 @@
 // Not equal due to root quaternion
 #define ALLEGRO_DOFS 23
 #define ALLEGRO_VEL_DOFS 22
+#define ALLEGRO_NON_ROOT_DOFS 16
 
 #define ALLEGRO_ROOT "wrist"
 #define ALLEGRO_MOCAP_ROOT "palm"
@@ -116,16 +117,18 @@ namespace mjpc
         };
 
         AllegroTask(string objectSimBodyName, string handTrajSplineFile,
-                    double startClampOffsetX, double startClampOffsetY,
-                    double startClampOffsetZ, int maxContactSites,
-                    string objectContactStartDataName,
+                    string pcHandTrajSplineFile, double startClampOffsetX,
+                    double startClampOffsetY, double startClampOffsetZ,
+                    int maxContactSites, string objectContactStartDataName,
                     string handContactStartDataName);
 
         vector<double> GetDesiredState(double time) const override;
 
+        vector<double> GetDesiredStateFromPCs(double time) const override;
+
         vector<vector<double>> GetBSplineControlData(
-            int &dimension, int &degree, double &loopbackTime, double translationOffset[3],
-            vector<DofType> &dofTypes,
+            int &dimension, int &degree, double &loopbackTime,
+            double translationOffset[3], vector<DofType> &dofTypes,
             vector<MeasurementUnits> &measurementUnits) const override;
 
         // --------------------- Transition for allegro task
@@ -165,6 +168,12 @@ namespace mjpc
         vector<BSplineCurve<double> *> m_hand_traj_bspline_curves;
         vector<TrajectorySplineProperties> m_hand_traj_bspline_properties;
 
+        int m_num_pcs;
+        vector<double> m_hand_pc_center;
+        vector<double> m_hand_pc_component_matrix;
+        vector<BSplineCurve<double> *> m_hand_pc_traj_bspline_curves;
+        vector<TrajectorySplineProperties> m_hand_pc_traj_bspline_properties;
+
         double m_spline_loopback_time;
         double m_start_clamp_offset[3];
 
@@ -182,6 +191,8 @@ namespace mjpc
             : AllegroTask("apple_sim",
                           "/Users/arjunl/mujoco_mpc/mjpc/tasks/allegro/"
                           "splinetrajectories/apple_pass_1_hand.smexp",
+                          "/Users/arjunl/mujoco_mpc/mjpc/tasks/allegro/"
+                          "pcsplines/apple_pass_1.pcmexp",
                           -0.559216021990488, 1.0061246071752599,
                           1.3645857582385554, 1987,
                           "contact_pos_object_data_215_0",
@@ -202,6 +213,8 @@ namespace mjpc
             : AllegroTask("doorknob_sim",
                           "/Users/arjunl/mujoco_mpc/mjpc/tasks/allegro/"
                           "splinetrajectories/doorknob_use_1_hand.smexp",
+                          "/Users/arjunl/mujoco_mpc/mjpc/tasks/allegro/"
+                          "pcsplines/doorknob_use_1.pcmexp",
                           -1.05350866, 0.30617798, 1.28931948, 6455,
                           "contact_pos_object_data_252_0",
                           "contact_pos_hand_data_252_0")
