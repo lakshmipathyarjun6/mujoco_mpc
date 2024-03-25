@@ -10,7 +10,7 @@
         <geom class="palm_visual" mesh="base_link"/>
         <geom class="palm_collision" name="agent_collider_palm_collision"/>
         <!-- Thumb -->
-        <body name="th_base" gravcomp="1" pos="-0.0182 0.019333 -0.045987" quat="0.477714 -0.521334 -0.521334 -0.477714">
+        <body name="th_base" gravcomp="1" pos="-0.0182 0.019333 -0.045987" quat="-0.396524 0.599668 0.445978 0.533171">
           <joint name="thj0" class="thumb_base"/>
           <geom class="visual" mesh="link_12.0_right"/>
           <geom class="thumb_base_collision" name="agent_collider_thumb_base_collision"/>
@@ -35,7 +35,7 @@
           </body>
         </body>
         <!-- First finger -->
-        <body name="ff_base" gravcomp="1" pos="0 0.0435 -0.001542" quat="0.999048 -0.0436194 0 0">
+        <body name="ff_base" gravcomp="1" pos="0 0.0435 -0.001542" quat="0.999048 -0.0436212 0 0">
           <joint name="ffj0" class="base"/>
           <geom class="base_visual"/>
           <geom class="base_collision" name="agent_collider_ff_base_collision"/>
@@ -72,7 +72,7 @@
               <joint name="mfj2" class="medial"/>
               <geom class="medial_visual"/>
               <geom class="medial_collision" name="agent_collider_mf_medial_collision"/>
-              <body name="mf_distal" gravcomp="1" pos="0 0 0.0384">
+              <body name="mf_distal" gravcomp="1" pos="0 0 0.0384" quat="0.999095 0 -0.0425433 0">
                 <joint name="mfj3" class="distal"/>
                 <geom class="distal_visual"/>
                 <geom class="distal_collision" name="agent_collider_mf_distal_collision"/>
@@ -85,7 +85,7 @@
           </body>
         </body>
         <!-- Ring finger -->
-        <body name="rf_base" gravcomp="1" pos="0 -0.0435 -0.001542" quat="0.999048 0.0436194 0 0">
+        <body name="rf_base" gravcomp="1" pos="0 -0.0435 -0.001542" quat="0.999048 0.0436212 0 0">
           <joint name="rfj0" class="base"/>
           <geom class="base_visual"/>
           <geom class="base_collision" name="agent_collider_rf_base_collision"/>
