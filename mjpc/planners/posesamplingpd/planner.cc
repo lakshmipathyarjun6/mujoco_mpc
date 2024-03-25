@@ -243,14 +243,31 @@ namespace mjpc
         // Reset noise
         fill(m_noise.begin(), m_noise.end(), 0.0);
 
-        // shift index
-        int shift = i * m_model->nu * m_num_bspline_control_points *
-                    m_bspline_dimension;
+        int num_dofs = m_model->nu;
 
-        for (int dofIndex = 0; dofIndex < m_model->nu; dofIndex++)
+        // shift index
+        int shift =
+            i * num_dofs * m_num_bspline_control_points * m_bspline_dimension;
+
+        for (int dofIndex = 0; dofIndex < num_dofs; dofIndex++)
         {
             int dofOffset =
                 dofIndex * m_num_bspline_control_points * m_bspline_dimension;
+
+            double dofMult = 0.0;
+
+            if (dofIndex < 3)
+            {
+                dofMult = 0.0;
+            }
+            else if (dofIndex < 6)
+            {
+                dofMult = 0.0;
+            }
+            else
+            {
+                dofMult = 0.0;
+            }
 
             for (int controlPointIndex = controlPointStartIndex;
                  controlPointIndex <= controlPointEndIndex; controlPointIndex++)
@@ -261,14 +278,12 @@ namespace mjpc
                 for (int dimIndex = 0; dimIndex < m_bspline_dimension;
                      dimIndex++)
                 {
-                    double sigma = 0.0;
-
                     double added_noise =
                         (dimIndex == 0) ? 0.0
-                                        : ::Gaussian<double>(gen_, 0.0, sigma);
+                                        : ::Gaussian<double>(gen_, 0.0, 1.0);
 
                     m_noise[shift + dofOffset + controlPointOffset + dimIndex] =
-                        added_noise;
+                        dofMult * added_noise;
                 }
             }
         }
