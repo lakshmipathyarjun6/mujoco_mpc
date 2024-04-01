@@ -129,12 +129,6 @@ namespace mjpc
                                                   // by total return
 
         // ----- noise ----- //
-        double m_default_noise_exploration;   // default standard deviation for
-                                              // all joints
-        double m_root_pos_noise_exploration;  // default standard deviation for
-                                              // root joint positon
-        double m_root_quat_noise_exploration; // default standard deviation for
-                                              // root joint orientation
         vector<double> m_noise;
 
         // timing
