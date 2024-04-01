@@ -90,6 +90,10 @@ add_library(
   planners/sampling/planner.h
   planners/sampling/policy.cc
   planners/sampling/policy.h
+  planners/nothing/planner.cc
+  planners/nothing/planner.h
+  planners/nothing/policy.cc
+  planners/nothing/policy.h
   planners/posesamplingpd/planner.cc
   planners/posesamplingpd/planner.h
   planners/posesamplingpd/policy.cc
