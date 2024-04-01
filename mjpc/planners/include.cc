@@ -17,46 +17,28 @@
 #include <memory>
 #include <vector>
 
-#include "mjpc/planners/cross_entropy/planner.h"
-#include "mjpc/planners/gradient/planner.h"
-#include "mjpc/planners/ilqg/planner.h"
-#include "mjpc/planners/ilqs/planner.h"
 #include "mjpc/planners/planner.h"
-#include "mjpc/planners/robust/robust_planner.h"
-#include "mjpc/planners/sample_gradient/planner.h"
-#include "mjpc/planners/sampling/planner.h"
 
 #include "mjpc/planners/nothing/planner.h"
 #include "mjpc/planners/posesamplingpd/planner.h"
 
-namespace mjpc {
-const char kPlannerNames[] =
-    "Nothing\n"
-    "PoseSamplingPD\n"
-    "Gradient\n"
-    "Sampling\n"
-    "iLQG\n"
-    "iLQS\n"
-    "Robust Sampling\n"
-    "Cross Entropy\n"
-    "Sample Gradient";
+using namespace std;
 
-// load all available planners
-std::vector<std::unique_ptr<mjpc::Planner>> LoadPlanners() {
-  // planners
-  std::vector<std::unique_ptr<mjpc::Planner>> planners;
+namespace mjpc
+{
+    const char kPlannerNames[] = "Nothing\n"
+                                 "PoseSamplingPD\n";
 
-  planners.emplace_back(new mjpc::NothingPlanner);
-  planners.emplace_back(new mjpc::PoseSamplingPDPlanner);
-  planners.emplace_back(new mjpc::GradientPlanner);
-  planners.emplace_back(new mjpc::SamplingPlanner);
-  planners.emplace_back(new mjpc::iLQGPlanner);
-  planners.emplace_back(new mjpc::iLQSPlanner);
-  planners.emplace_back(
-      new RobustPlanner(std::make_unique<mjpc::SamplingPlanner>()));
-  planners.emplace_back(new mjpc::CrossEntropyPlanner);
-  planners.emplace_back(new mjpc::SampleGradientPlanner);
-  return planners;
-}
+    // load all available planners
+    vector<unique_ptr<mjpc::Planner>> LoadPlanners()
+    {
+        // planners
+        vector<unique_ptr<mjpc::Planner>> planners;
 
-}  // namespace mjpc
+        planners.emplace_back(new mjpc::NothingPlanner);
+        planners.emplace_back(new mjpc::PoseSamplingPDPlanner);
+
+        return planners;
+    }
+
+} // namespace mjpc

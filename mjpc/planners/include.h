@@ -20,14 +20,15 @@
 
 #include "mjpc/planners/planner.h"
 
-namespace mjpc {
+namespace mjpc
+{
 
-// Planner names, separated by '\n'.
-extern const char kPlannerNames[];
+    // Planner names, separated by '\n'.
+    extern const char kPlannerNames[];
 
-// Loads all available planners
-std::vector<std::unique_ptr<mjpc::Planner>> LoadPlanners();
+    // Loads all available planners
+    vector<unique_ptr<mjpc::Planner>> LoadPlanners();
 
-}  // namespace mjpc
+} // namespace mjpc
 
-#endif  // MJPC_PLANNERS_INCLUDE_H_
+#endif // MJPC_PLANNERS_INCLUDE_H_
