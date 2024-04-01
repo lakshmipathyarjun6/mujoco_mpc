@@ -1,13 +1,6 @@
-<mujoco model="Allegro Task">
+<mujoco model="Allegro General Task">
 
     <include file="../common.xml"/>
-
-    <size memory="1M"/>
-
-    <asset>
-        <mesh name="apple" file="apple.obj" />
-        <mesh name="doorknob" file="doorknob.obj" />
-    </asset>
 
     <custom>
         <numeric name="agent_planner" data="0" />
@@ -24,17 +17,6 @@
         <numeric name="ball_motor_kp" data="10" />
         <numeric name="ball_motor_kd" data="0.1" />
     </custom>
-
-    <statistic extent="0.4" center="0.3 0.1 0"/>
-
-    <visual>
-        <quality shadowsize="8192"/>
-        <global azimuth="180" elevation="-30"/>
-    </visual>
-
-    <default>
-        <geom friction=".6"/>
-    </default>
 
     <!-- <See https://github.com/lakshmipathyarjun6/mujoco_mpc/blob/c5c7ead065b7f4034ab265a13023231900dbfaa7/docs/OVERVIEW.md for user sensors used as residuals> -->
     <sensor>
