@@ -1,0 +1,19 @@
+<mujoco model="MANO Doorknob Use Task">
+
+    <include file="./task_template.xml"/>
+    <include file="../shared_task_templates/task_doorknob.xml"/>
+
+    <!-- <include file="./contacts/doorknob_use_1/doorknob_use_1_site_data.xml"/> -->
+
+    <worldbody>
+        <body name="hand_startclamp" pos="-1.05350866 0.30617798 1.28931948"> <!-- TODO: Fix start pos -->
+            <include file="right_hand_body.xml"/>
+        </body>
+        <include file="right_hand_mocap_vis.xml"/>
+        <include file="../shared_task_templates/doorknob_sim_body.xml"/>
+        <!-- <include file="./contacts/doorknob_use_1/doorknob_use_1_hand_sites.xml"/> -->
+    </worldbody>
+
+    <!-- <include file="./keyframes/doorknob_use_1.xml" /> -->
+
+</mujoco>

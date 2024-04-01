@@ -14,6 +14,7 @@
 
 #include "mjpc/tasks/tasks.h"
 
+#include "mjpc/tasks/MANO/MANO.h"
 #include "mjpc/tasks/allegro/allegro.h"
 
 namespace mjpc
@@ -23,6 +24,7 @@ namespace mjpc
     {
         return {make_shared<AllegroAppleTask>(),
                 make_shared<AllegroDoorknobTask>()};
+        // make_shared<MANOAppleTask>(), make_shared<MANODoorknobTask>()};
     }
 
 } // namespace mjpc
