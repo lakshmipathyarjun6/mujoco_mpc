@@ -1,0 +1,50 @@
+<mujoco model="MANO_right_mocap_vis">
+    <body name="wrist_mocap" mocap="true">
+        <geom type="mesh" mesh="right_wrist" size="1 1 1" contype="0" conaffinity="0" rgba="1 1 0 1"/>
+    </body>
+    <body name="thumb1_mocap" mocap="true">
+        <geom type="mesh" mesh="right_thumb1" size="1 1 1" contype="0" conaffinity="0" rgba="1 1 0 1"/>
+    </body>
+    <body name="thumb2_mocap" mocap="true">
+        <geom type="mesh" mesh="right_thumb2" size="1 1 1" contype="0" conaffinity="0" rgba="1 1 0 1"/>
+    </body>
+    <body name="thumb3_mocap" mocap="true">
+        <geom type="mesh" mesh="right_thumb3" size="1 1 1" contype="0" conaffinity="0" rgba="1 1 0 1"/>
+    </body>
+    <body name="ring1_mocap" mocap="true">
+        <geom type="mesh" mesh="right_ring1" size="1 1 1" contype="0" conaffinity="0" rgba="1 1 0 1"/>
+    </body>
+    <body name="ring2_mocap" mocap="true">
+        <geom type="mesh" mesh="right_ring2" size="1 1 1" contype="0" conaffinity="0" rgba="1 1 0 1"/>
+    </body>
+    <body name="ring3_mocap" mocap="true">
+        <geom type="mesh" mesh="right_ring3" size="1 1 1" contype="0" conaffinity="0" rgba="1 1 0 1"/>
+    </body>
+    <body name="pinky1_mocap" mocap="true">
+        <geom type="mesh" mesh="right_pinky1" size="1 1 1" contype="0" conaffinity="0" rgba="1 1 0 1"/>
+    </body>
+    <body name="pinky2_mocap" mocap="true">
+        <geom type="mesh" mesh="right_pinky2" size="1 1 1" contype="0" conaffinity="0" rgba="1 1 0 1"/>
+    </body>
+    <body name="pinky3_mocap" mocap="true">
+        <geom type="mesh" mesh="right_pinky3" size="1 1 1" contype="0" conaffinity="0" rgba="1 1 0 1"/>
+    </body>
+    <body name="middle1_mocap" mocap="true">
+        <geom type="mesh" mesh="right_middle1" size="1 1 1" contype="0" conaffinity="0" rgba="1 1 0 1"/>
+    </body>
+    <body name="middle2_mocap" mocap="true">
+        <geom type="mesh" mesh="right_middle2" size="1 1 1" contype="0" conaffinity="0" rgba="1 1 0 1"/>
+    </body>
+    <body name="middle3_mocap" mocap="true">
+        <geom type="mesh" mesh="right_middle3" size="1 1 1" contype="0" conaffinity="0" rgba="1 1 0 1"/>
+    </body>
+    <body name="index1_mocap" mocap="true">
+        <geom type="mesh" mesh="right_index1" size="1 1 1" contype="0" conaffinity="0" rgba="1 1 0 1"/>
+    </body>
+    <body name="index2_mocap" mocap="true">
+        <geom type="mesh" mesh="right_index2" size="1 1 1" contype="0" conaffinity="0" rgba="1 1 0 1"/>
+    </body>
+    <body name="index3_mocap" mocap="true">
+        <geom type="mesh" mesh="right_index3" size="1 1 1" contype="0" conaffinity="0" rgba="1 1 0 1"/>
+    </body>
+</mujoco>
