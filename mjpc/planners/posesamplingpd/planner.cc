@@ -77,14 +77,6 @@ namespace mjpc
             m_bspline_dimension, bspline_degree, m_num_bspline_control_points,
             bspline_doftype_data[0], bspline_measurementunit_data[0]);
 
-        // sampling noise
-        m_default_noise_exploration =
-            GetNumberOrDefault(0.1, model, "default_sampling_exploration");
-        m_root_pos_noise_exploration =
-            GetNumberOrDefault(1, model, "root_pos_sampling_exploration");
-        m_root_quat_noise_exploration =
-            GetNumberOrDefault(0.1, model, "root_quat_sampling_exploration");
-
         // set number of trajectories to rollout
         m_num_candidate_trajectories =
             GetNumberOrDefault(10, m_model, "sampling_trajectories");
