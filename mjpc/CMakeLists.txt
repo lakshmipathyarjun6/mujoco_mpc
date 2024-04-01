@@ -71,6 +71,8 @@ add_library(
   tasks/tasks.h
   tasks/allegro/allegro.cc
   tasks/allegro/allegro.h
+  tasks/MANO/MANO.cc
+  tasks/MANO/MANO.h
   planners/planner.cc
   planners/planner.h
   planners/policy.h

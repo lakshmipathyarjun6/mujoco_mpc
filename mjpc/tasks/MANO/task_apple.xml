@@ -1,4 +1,4 @@
-<mujoco model="Allegro Apple Handoff Task">
+<mujoco model="MANO Apple Handoff Task">
 
     <include file="./task_template.xml"/>
     <include file="../shared_templates/task_apple.xml"/>
@@ -9,10 +9,10 @@
         <body name="hand_startclamp" pos="-0.559216021990488 1.0061246071752599 1.3645857582385554">
             <include file="right_hand_body.xml"/>
         </body>
-        <include file="right_hand_mocap_vis.xml"/>
+        <!-- <include file="right_hand_mocap_vis.xml"/> -->
         <!-- <include file="./contacts/apple_pass_1/apple_pass_1_hand_sites.xml"/> -->
     </worldbody>
 
-    <include file="./keyframes/apple_pass_1.xml" />
+    <!-- <include file="./keyframes/apple_pass_1.xml" /> -->
 
 </mujoco>

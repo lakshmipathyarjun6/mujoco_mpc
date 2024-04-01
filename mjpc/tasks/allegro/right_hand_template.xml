@@ -1,6 +1,6 @@
 <mujoco model="allegro_right">
 
-  <compiler angle="radian" meshdir="assets" autolimits="true"/>
+  <compiler meshdir="assets"/>
 
   <default class="allegro_right">
     <joint axis="0 1 0" damping=".1"/>

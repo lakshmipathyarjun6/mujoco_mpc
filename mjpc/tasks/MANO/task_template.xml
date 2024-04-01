@@ -1,4 +1,4 @@
-<mujoco model="Allegro General Task">
+<mujoco model="MANO General Task">
 
     <include file="../common.xml"/>
 
@@ -18,18 +18,9 @@
         <numeric name="ball_motor_kd" data="0.1" />
     </custom>
 
-    <!-- <See https://github.com/lakshmipathyarjun6/mujoco_mpc/blob/c5c7ead065b7f4034ab265a13023231900dbfaa7/docs/OVERVIEW.md for user sensors used as residuals> -->
     <sensor>
-        <!-- cost -->
         <user name="Object Position" dim="3" user="0 1000.0 0 1000"/>
         <user name="Object Orientation" dim="3" user="0 10.0 0 20"/>
-        <!-- <user name="Hand Velocity" dim="22" user="0 4.0 0 10"/> -->
-        <!-- <user name="Contact Alignment" dim="19500" user="0 100.0 0 500"/> -->
-
-        <!-- Legacy -->
-        <!-- <user name="Hand Root Position" dim="3" user="0 1000.0 0 1000"/>
-        <user name="Hand Root Orientation" dim="3" user="0 10.0 0 20"/>
-        <user name="Hand State" dim="16" user="0 1.0 0 20"/> -->
     </sensor>
 
     <include file="right_hand_template.xml"/>

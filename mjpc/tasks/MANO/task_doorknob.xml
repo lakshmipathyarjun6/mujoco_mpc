@@ -1,18 +1,18 @@
-<mujoco model="Allegro Doorknob Use Task">
+<mujoco model="MANO Doorknob Use Task">
 
     <include file="./task_template.xml"/>
     <include file="../shared_templates/task_doorknob.xml"/>
 
     <!-- <include file="./contacts/doorknob_use_1/doorknob_use_1_site_data.xml"/> -->
 
-    <worldbody>
-        <body name="hand_startclamp" pos="-1.05350866 0.30617798 1.28931948">
+    <!-- <worldbody> -->
+        <!-- <body name="hand_startclamp" pos="-1.05350866 0.30617798 1.28931948">
             <include file="right_hand_body.xml"/>
-        </body>
-        <include file="right_hand_mocap_vis.xml"/>
+        </body> -->
+        <!-- <include file="right_hand_mocap_vis.xml"/> -->
         <!-- <include file="./contacts/doorknob_use_1/doorknob_use_1_hand_sites.xml"/> -->
-    </worldbody>
+    <!-- </worldbody> -->
 
-    <include file="./keyframes/doorknob_use_1.xml" />
+    <!-- <include file="./keyframes/doorknob_use_1.xml" /> -->
 
 </mujoco>
