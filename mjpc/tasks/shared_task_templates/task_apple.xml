@@ -1,0 +1,24 @@
+<mujoco model="General Apple Task">
+
+    <!-- <include file="./contacts/apple_pass_1/apple_pass_1_site_data.xml"/> -->
+
+    <worldbody>
+        <light pos="0 -0.1 0.5" dir="0 0.2 -1" diffuse="0.7 0.7 0.7" specular="0.3 0.3 0.3"
+            directional="true" castshadow="true"/>
+        <body name="apple_mocap" mocap="true">
+            <geom type="mesh" mesh="apple" contype="0" conaffinity="0" rgba="0 1 0 1.0"/>
+            <!-- <include file="./contacts/apple_pass_1/apple_pass_1_object_sites.xml"/> -->
+        </body>
+        <geom name="table" pos="0.22647 -0.4 0.34" size="0.5 0.5 0.5" type="box" material="grey_grid"/>
+        <geom name="floor" pos="0 0 -0.2" size="0 0 0.05" type="plane" material="blue_grid"/>
+    </worldbody>
+
+    <sensor>
+        <framepos name="object_position" objtype="body" objname="apple_sim"/>
+        <framequat name="object_orientation" objtype="body" objname="apple_sim"/>
+
+        <!-- trace -->
+        <framepos name="trace0" objtype="body" objname="apple_sim"/>
+    </sensor>
+
+</mujoco>

@@ -1,40 +1,18 @@
-<mujoco model="Allegro Custom Task">
+<mujoco model="Allegro Doorknob Use Task">
 
     <include file="./task_template.xml"/>
+    <include file="../shared_task_templates/task_doorknob.xml"/>
 
     <!-- <include file="./contacts/doorknob_use_1/doorknob_use_1_site_data.xml"/> -->
 
     <worldbody>
-        <light pos="0 -0.1 0.5" dir="0 0.2 -1" diffuse="0.7 0.7 0.7" specular="0.3 0.3 0.3"
-            directional="true" castshadow="true"/>
-        <body name="doorknob_mocap" mocap="true">
-            <geom type="mesh" mesh="doorknob" size="1 1 1" contype="0" conaffinity="0" rgba="0 1 0 1.0"/>
-            <!-- <include file="./contacts/doorknob_use_1/doorknob_use_1_object_sites.xml"/> -->
-        </body>
         <body name="hand_startclamp" pos="-1.05350866 0.30617798 1.28931948">
             <include file="right_hand_body.xml"/>
         </body>
         <include file="right_hand_mocap_vis.xml"/>
-        <body name="doorknob_attachment" pos="-0.0825822262763977 -0.6478415727615356 0.9384804964065552">
-            <body name="doorknob_sim" gravcomp="1" pos="-0.047 0 0" quat="0.47815212453295514 0.5128687163825603 -0.5009253359069297 -0.5073559237924161">
-                <joint axis="0 0 1" limited="true" range="0 1" type="slide"/>
-                <geom name="sim_geom_doorknob_visual" type="mesh" mesh="doorknob" contype="0" conaffinity="0" group="2" mass="0" rgba="0.8313 0.686 0.216 1.0"/>
-                <geom name="sim_geom_doorknob_collision_knob" type="ellipsoid" size="0.0325 0.0325 0.015" pos="0 0 0.021" group="3" mass="0.2485148625" />
-                <geom name="sim_geom_doorknob_collision_shaft" type="cylinder" size="0.01 0.0157" pos="0 0 -0.01" group="3" mass="0.2485148625" />
-                <geom name="sim_geom_doorknob_collision_stopper" type="box" size="0.05 0.025 0.005" pos="0 0 -0.0315" group="3" mass="0.2485148625" />
-            </body>
-        </body>
+        <include file="../shared_task_templates/doorknob_sim_body.xml"/>
         <!-- <include file="./contacts/doorknob_use_1/doorknob_use_1_hand_sites.xml"/> -->
-        <geom name="floor" pos="0 0 -0.2" size="0 0 0.05" type="plane" material="blue_grid"/>
     </worldbody>
-
-    <sensor>
-        <framepos name="object_position" objtype="body" objname="doorknob_sim"/>
-        <framequat name="object_orientation" objtype="body" objname="doorknob_sim"/>
-
-        <!-- trace -->
-        <framepos name="trace0" objtype="body" objname="doorknob_sim"/>
-    </sensor>
 
     <include file="./keyframes/doorknob_use_1.xml" />
 

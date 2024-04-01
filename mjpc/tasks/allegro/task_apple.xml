@@ -1,38 +1,18 @@
-<mujoco model="Allegro Custom Task">
+<mujoco model="Allegro Apple Pass Task">
 
     <include file="./task_template.xml"/>
+    <include file="../shared_task_templates/task_apple.xml"/>
 
     <!-- <include file="./contacts/apple_pass_1/apple_pass_1_site_data.xml"/> -->
 
     <worldbody>
-        <light pos="0 -0.1 0.5" dir="0 0.2 -1" diffuse="0.7 0.7 0.7" specular="0.3 0.3 0.3"
-            directional="true" castshadow="true"/>
-        <body name="apple_mocap" mocap="true">
-            <geom type="mesh" mesh="apple" contype="0" conaffinity="0" rgba="0 1 0 1.0"/>
-            <!-- <include file="./contacts/apple_pass_1/apple_pass_1_object_sites.xml"/> -->
-        </body>
         <body name="hand_startclamp" pos="-0.559216021990488 1.0061246071752599 1.3645857582385554">
             <include file="right_hand_body.xml"/>
         </body>
         <include file="right_hand_mocap_vis.xml"/>
-        <body name="apple_sim">
-            <freejoint/>
-            <!-- <geom name="sim_geom_apple_visual" type="mesh" mesh="apple" mass="2.485148625" rgba="1.0 0 0 1.0"/> -->
-            <geom name="sim_geom_apple_visual" type="mesh" mesh="apple" contype="0" conaffinity="0" group="2" mass="0" rgba="1.0 0 0 1.0"/>
-            <geom name="sim_geom_apple_collision" type="sphere" size="0.04" pos="0 0 -0.01" group="3" mass="2.485148625"/>
-        </body>
+        <include file="../shared_task_templates/apple_sim_body.xml" />
         <!-- <include file="./contacts/apple_pass_1/apple_pass_1_hand_sites.xml"/> -->
-        <geom name="table" pos="0.22647 -0.4 0.34" size="0.5 0.5 0.5" type="box" material="grey_grid"/>
-        <geom name="floor" pos="0 0 -0.2" size="0 0 0.05" type="plane" material="blue_grid"/>
     </worldbody>
-
-    <sensor>
-        <framepos name="object_position" objtype="body" objname="apple_sim"/>
-        <framequat name="object_orientation" objtype="body" objname="apple_sim"/>
-
-        <!-- trace -->
-        <framepos name="trace0" objtype="body" objname="apple_sim"/>
-    </sensor>
 
     <include file="./keyframes/apple_pass_1.xml" />
 
