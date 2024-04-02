@@ -24,8 +24,7 @@ namespace mjpc
     {
         return {make_shared<AllegroAppleTask>(),
                 make_shared<AllegroDoorknobTask>(),
-                make_shared<MANOAppleTask>()};
-        // make_shared<MANODoorknobTask>()};
+                make_shared<MANOAppleTask>(), make_shared<MANODoorknobTask>()};
     }
 
 } // namespace mjpc

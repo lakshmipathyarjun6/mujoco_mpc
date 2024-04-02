@@ -6,7 +6,7 @@
     <!-- <include file="./contacts/doorknob_use_1/doorknob_use_1_site_data.xml"/> -->
 
     <worldbody>
-        <body name="hand_startclamp" pos="-1.05350866 0.30617798 1.28931948"> <!-- TODO: Fix start pos -->
+        <body name="hand_startclamp" pos="-1.0741884708404541 0.31418800354003908 1.298376441001892">
             <include file="right_hand_body.xml"/>
         </body>
         <include file="right_hand_mocap_vis.xml"/>
