@@ -189,7 +189,7 @@ namespace mjpc
         int handQPosAdr = model->jnt_qposadr[bodyJointAdr];
 
         // Reference hand loading
-        vector<double> splineQPos = GetDesiredState(data->time);
+        vector<double> splineQPos = GetDesiredAgentState(data->time);
 
         mju_copy(m_hand_kinematic_buffer, data->qpos + handQPosAdr,
                  ALLEGRO_DOFS);
@@ -375,18 +375,18 @@ namespace mjpc
         m_start_clamp_offset[1] = startClampOffsetY;
         m_start_clamp_offset[2] = startClampOffsetZ;
 
-        Document dFullSplines = loadJSON(handTrajSplineFile);
+        Document dFullHandSplines = loadJSON(handTrajSplineFile);
         Document dPcSplines = loadJSON(pcHandTrajSplineFile);
 
-        m_spline_dimension = dFullSplines["dimension"].GetInt();
-        m_spline_degree = dFullSplines["degree"].GetInt();
-        m_spline_loopback_time = dFullSplines["time"].GetDouble();
+        m_spline_dimension = dFullHandSplines["dimension"].GetInt();
+        m_spline_degree = dFullHandSplines["degree"].GetInt();
+        m_spline_loopback_time = dFullHandSplines["time"].GetDouble();
 
         m_spline_loopback_time *= SLOWDOWN_FACTOR;
 
         m_num_pcs = dPcSplines["numComponents"].GetInt();
 
-        for (const auto &splineData : dFullSplines["data"].GetArray())
+        for (const auto &splineData : dFullHandSplines["data"].GetArray())
         {
             int numControlPoints = splineData["numControlPoints"].GetInt();
             string dofType = splineData["type"].GetString();
@@ -488,7 +488,7 @@ namespace mjpc
                       ALLEGRO_NON_ROOT_DOFS);
     }
 
-    vector<double> AllegroTask::GetDesiredState(double time) const
+    vector<double> AllegroTask::GetDesiredAgentState(double time) const
     {
         vector<double> desiredState;
 
@@ -551,7 +551,7 @@ namespace mjpc
         return desiredState;
     }
 
-    vector<double> AllegroTask::GetDesiredStateFromPCs(double time) const
+    vector<double> AllegroTask::GetDesiredAgentStateFromPCs(double time) const
     {
         vector<double> desiredState;
 
@@ -632,7 +632,7 @@ namespace mjpc
         return desiredState;
     }
 
-    vector<vector<double>> AllegroTask::GetBSplineControlData(
+    vector<vector<double>> AllegroTask::GetAgentBSplineControlData(
         int &dimension, int &degree, double &loopbackTime,
         double translationOffset[3], vector<DofType> &dofTypes,
         vector<MeasurementUnits> &measurementUnits) const

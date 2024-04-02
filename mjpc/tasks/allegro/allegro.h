@@ -115,11 +115,11 @@ namespace mjpc
                     int maxContactSites, string objectContactStartDataName,
                     string handContactStartDataName);
 
-        vector<double> GetDesiredState(double time) const override;
+        vector<double> GetDesiredAgentState(double time) const override;
 
-        vector<double> GetDesiredStateFromPCs(double time) const override;
+        vector<double> GetDesiredAgentStateFromPCs(double time) const override;
 
-        vector<vector<double>> GetBSplineControlData(
+        vector<vector<double>> GetAgentBSplineControlData(
             int &dimension, int &degree, double &loopbackTime,
             double translationOffset[3], vector<DofType> &dofTypes,
             vector<MeasurementUnits> &measurementUnits) const override;

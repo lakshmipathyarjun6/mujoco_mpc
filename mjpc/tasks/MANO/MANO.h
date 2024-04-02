@@ -39,12 +39,14 @@ namespace mjpc
         };
 
         MANOTask(string objectSimBodyName, string handTrajSplineFile,
-                 double startClampOffsetX, double startClampOffsetY,
-                 double startClampOffsetZ);
+                 string objectTrajSplineFile, double startClampOffsetX,
+                 double startClampOffsetY, double startClampOffsetZ);
 
-        vector<double> GetDesiredState(double time) const override;
+        vector<double> GetDesiredAgentState(double time) const override;
 
-        vector<vector<double>> GetBSplineControlData(
+        vector<double> GetDesiredObjectState(double time) const;
+
+        vector<vector<double>> GetAgentBSplineControlData(
             int &dimension, int &degree, double &loopbackTime,
             double translationOffset[3], vector<DofType> &dofTypes,
             vector<MeasurementUnits> &measurementUnits) const override;
@@ -76,6 +78,9 @@ namespace mjpc
         vector<BSplineCurve<double> *> m_hand_traj_bspline_curves;
         vector<TrajectorySplineProperties> m_hand_traj_bspline_properties;
 
+        vector<BSplineCurve<double> *> m_object_traj_bspline_curves;
+        vector<TrajectorySplineProperties> m_object_traj_bspline_properties;
+
         double m_spline_loopback_time;
         double m_start_clamp_offset[3];
 
@@ -93,6 +98,8 @@ namespace mjpc
             : MANOTask("apple_sim",
                        "/Users/arjunl/mujoco_mpc/mjpc/tasks/MANO/"
                        "splinetrajectories/apple_pass_1_hand.smexp",
+                       "/Users/arjunl/mujoco_mpc/mjpc/tasks/"
+                       "shared_spline_trajectories/apple_pass_1_object.smexp",
                        -0.58147233724594119, 1.0124462842941284,
                        1.3647385835647584)
         {
@@ -111,6 +118,8 @@ namespace mjpc
             : MANOTask("doorknob_sim",
                        "/Users/arjunl/mujoco_mpc/mjpc/tasks/MANO/"
                        "splinetrajectories/apple_pass_1_hand.smexp",
+                       "/Users/arjunl/mujoco_mpc/mjpc/tasks/"
+                       "shared_spline_trajectories/apple_pass_1_object.smexp",
                        0, 0,
                        0) // TODO: Filler - replace with actual doorknob data
         {

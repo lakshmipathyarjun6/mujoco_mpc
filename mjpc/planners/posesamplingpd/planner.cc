@@ -29,7 +29,7 @@ namespace mjpc
         vector<MeasurementUnits> bspline_measurementunit_data;
 
         vector<vector<double>> bspline_control_data =
-            m_task->GetBSplineControlData(
+            m_task->GetAgentBSplineControlData(
                 m_bspline_dimension, bspline_degree, m_bspline_loopback_time,
                 bspline_translation_offset, bspline_doftype_data,
                 bspline_measurementunit_data);
