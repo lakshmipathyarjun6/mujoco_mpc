@@ -117,11 +117,11 @@ namespace mjpc
         MANODoorknobTask()
             : MANOTask("doorknob_sim",
                        "/Users/arjunl/mujoco_mpc/mjpc/tasks/MANO/"
-                       "splinetrajectories/apple_pass_1_hand.smexp",
+                       "splinetrajectories/doorknob_use_1_hand.smexp",
                        "/Users/arjunl/mujoco_mpc/mjpc/tasks/"
-                       "shared_spline_trajectories/apple_pass_1_object.smexp",
-                       0, 0,
-                       0) // TODO: Filler - replace with actual doorknob data
+                       "shared_spline_trajectories/doorknob_use_1_object.smexp",
+                       -1.0741884708404541, 0.31418800354003908,
+                       1.298376441001892)
         {
         }
     };
