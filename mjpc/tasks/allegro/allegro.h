@@ -110,14 +110,17 @@ namespace mjpc
         };
 
         AllegroTask(string objectSimBodyName, string handTrajSplineFile,
-                    string pcHandTrajSplineFile, double startClampOffsetX,
-                    double startClampOffsetY, double startClampOffsetZ,
-                    int maxContactSites, string objectContactStartDataName,
+                    string objectTrajSplineFile, string pcHandTrajSplineFile,
+                    double startClampOffsetX, double startClampOffsetY,
+                    double startClampOffsetZ, int maxContactSites,
+                    string objectContactStartDataName,
                     string handContactStartDataName);
 
-        vector<double> GetDesiredAgentState(double time) const override;
+        vector<double> GetDesiredAgentState(double time) const;
 
-        vector<double> GetDesiredAgentStateFromPCs(double time) const override;
+        vector<double> GetDesiredAgentStateFromPCs(double time) const;
+
+        vector<double> GetDesiredObjectState(double time) const;
 
         vector<vector<double>> GetAgentBSplineControlData(
             int &dimension, int &degree, double &loopbackTime,
@@ -161,6 +164,9 @@ namespace mjpc
         vector<BSplineCurve<double> *> m_hand_traj_bspline_curves;
         vector<TrajectorySplineProperties> m_hand_traj_bspline_properties;
 
+        vector<BSplineCurve<double> *> m_object_traj_bspline_curves;
+        vector<TrajectorySplineProperties> m_object_traj_bspline_properties;
+
         int m_num_pcs;
         vector<double> m_hand_pc_center;
         vector<double> m_hand_pc_component_matrix;
@@ -181,15 +187,17 @@ namespace mjpc
         string XmlPath() const override;
 
         AllegroAppleTask()
-            : AllegroTask("apple_sim",
-                          "/Users/arjunl/mujoco_mpc/mjpc/tasks/allegro/"
-                          "splinetrajectories/apple_pass_1_hand.smexp",
-                          "/Users/arjunl/mujoco_mpc/mjpc/tasks/allegro/"
-                          "pcsplines/apple_pass_1.pcmexp",
-                          -0.559216021990488, 1.0061246071752599,
-                          1.3645857582385554, 1987,
-                          "contact_pos_object_data_215_0",
-                          "contact_pos_hand_data_215_0")
+            : AllegroTask(
+                  "apple_sim",
+                  "/Users/arjunl/mujoco_mpc/mjpc/tasks/allegro/"
+                  "splinetrajectories/apple_pass_1_hand.smexp",
+                  "/Users/arjunl/mujoco_mpc/mjpc/tasks/"
+                  "shared_spline_trajectories/apple_pass_1_object.smexp",
+                  "/Users/arjunl/mujoco_mpc/mjpc/tasks/allegro/"
+                  "pcsplines/apple_pass_1.pcmexp",
+                  -0.559216021990488, 1.0061246071752599, 1.3645857582385554,
+                  1987, "contact_pos_object_data_215_0",
+                  "contact_pos_hand_data_215_0")
         {
         }
 
@@ -203,14 +211,17 @@ namespace mjpc
         string XmlPath() const override;
 
         AllegroDoorknobTask()
-            : AllegroTask("doorknob_sim",
-                          "/Users/arjunl/mujoco_mpc/mjpc/tasks/allegro/"
-                          "splinetrajectories/doorknob_use_1_hand.smexp",
-                          "/Users/arjunl/mujoco_mpc/mjpc/tasks/allegro/"
-                          "pcsplines/doorknob_use_1.pcmexp",
-                          -1.05350866, 0.30617798, 1.28931948, 6455,
-                          "contact_pos_object_data_252_0",
-                          "contact_pos_hand_data_252_0")
+            : AllegroTask(
+                  "doorknob_sim",
+                  "/Users/arjunl/mujoco_mpc/mjpc/tasks/allegro/"
+                  "splinetrajectories/doorknob_use_1_hand.smexp",
+                  "/Users/arjunl/mujoco_mpc/mjpc/tasks/"
+                  "shared_spline_trajectories/doorknob_use_1_object.smexp",
+                  "/Users/arjunl/mujoco_mpc/mjpc/tasks/allegro/"
+                  "pcsplines/doorknob_use_1.pcmexp",
+                  -1.05350866, 0.30617798, 1.28931948, 6455,
+                  "contact_pos_object_data_252_0",
+                  "contact_pos_hand_data_252_0")
         {
         }
     };

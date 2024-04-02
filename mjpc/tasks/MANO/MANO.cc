@@ -16,13 +16,31 @@ namespace mjpc
         int offset = 0;
 
         // ---------- Residual (0) ----------
+        // goal position
+        double goal_position[3];
+        mju_copy3(goal_position, m_r_object_mocap_pos_buffer);
+
+        // system's position
+        double *position = SensorByName(model, data, OBJECT_CURRENT_POSITION);
+
         // position error
-        mju_zero3(residual + offset);
+        mju_sub3(residual + offset, position, goal_position);
         offset += 3;
 
         // ---------- Residual (1) ----------
+        // goal orientation
+        double goal_orientation[4];
+        mju_copy4(goal_orientation, m_r_object_mocap_quat_buffer);
+
+        // system's orientation
+        double *orientation =
+            SensorByName(model, data, OBJECT_CURRENT_ORIENTATION);
+
+        mju_normalize4(goal_orientation);
+        mju_normalize4(orientation);
+
         // orientation error
-        mju_zero3(residual + offset);
+        mju_subQuat(residual + offset, goal_orientation, orientation);
         offset += 3;
 
         // sensor dim sanity check
@@ -35,6 +53,18 @@ namespace mjpc
     // ---------------------------------------------------------------------------
     void MANOTask::TransitionLocked(mjModel *model, mjData *data)
     {
+        // Reference object loading
+        vector<double> splineObjectPos = GetDesiredObjectState(data->time);
+
+        mju_copy3(m_residual.m_r_object_mocap_pos_buffer,
+                  splineObjectPos.data());
+        mju_copy4(m_residual.m_r_object_mocap_quat_buffer,
+                  splineObjectPos.data() + 3);
+
+        // Object mocap is first in config
+        mju_copy3(data->mocap_pos, splineObjectPos.data());
+        mju_copy4(data->mocap_quat, splineObjectPos.data() + 3);
+
         // Fetch hand data
         int handRootBodyId = mj_name2id(model, mjOBJ_BODY, MANO_ROOT);
         int bodyJointAdr = model->body_jntadr[handRootBodyId];
@@ -55,13 +85,6 @@ namespace mjpc
                  4 * (model->nmocap - 1));
         mju_copy(data->qpos + handQPosAdr, m_hand_kinematic_buffer, MANO_DOFS);
         mj_kinematics(model, data);
-
-        // Reference object loading
-        vector<double> splineObjectPos = GetDesiredObjectState(data->time);
-
-        // Object mocap is first in config
-        mju_copy3(data->mocap_pos, splineObjectPos.data());
-        mju_copy4(data->mocap_quat, splineObjectPos.data() + 3);
 
         double loopedQueryTime = fmod(data->time, m_spline_loopback_time);
 
