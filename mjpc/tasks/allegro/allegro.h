@@ -52,13 +52,6 @@ using namespace std;
 
 namespace mjpc
 {
-    struct TrajectorySplineProperties
-    {
-        int numControlPoints;
-        DofType dofType;
-        MeasurementUnits units;
-    };
-
     class AllegroTask : public Task
     {
     public:

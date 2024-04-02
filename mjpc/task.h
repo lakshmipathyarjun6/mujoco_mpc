@@ -31,6 +31,12 @@ using namespace std;
 
 namespace mjpc
 {
+    struct TrajectorySplineProperties
+    {
+        int numControlPoints;
+        DofType dofType;
+        MeasurementUnits units;
+    };
 
     // tolerance for risk-neutral cost
     inline constexpr double kRiskNeutralTolerance = 1.0e-6;
