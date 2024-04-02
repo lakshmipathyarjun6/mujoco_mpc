@@ -136,19 +136,18 @@ namespace mjpc
         double CostValue(const double *residual) const;
 
         // returns the complete desired state for the agent at the given time
-        virtual vector<double> GetDesiredState(double time) const;
+        virtual vector<double> GetDesiredAgentState(double time) const;
 
         // returns the desired state for the agent at the given time computed
         // from principal components
-        virtual vector<double> GetDesiredStateFromPCs(double time) const;
+        virtual vector<double> GetDesiredAgentStateFromPCs(double time) const;
 
         // returns all bspline control data, if any - can be overridden in
         // derived classes
-        virtual vector<vector<double>>
-        GetBSplineControlData(int &dimension, int &degree, double &loopbackTime,
-                              double translationOffset[3],
-                              vector<DofType> &dofTypes,
-                              vector<MeasurementUnits> &measurementUnits) const;
+        virtual vector<vector<double>> GetAgentBSplineControlData(
+            int &dimension, int &degree, double &loopbackTime,
+            double translationOffset[3], vector<DofType> &dofTypes,
+            vector<MeasurementUnits> &measurementUnits) const;
 
         virtual void ModifyScene(const mjModel *model, const mjData *data,
                                  mjvScene *scene) const
