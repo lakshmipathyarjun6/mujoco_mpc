@@ -6,7 +6,7 @@
     <!-- <include file="./contacts/apple_pass_1/apple_pass_1_site_data.xml"/> -->
 
     <worldbody>
-        <body name="hand_startclamp" pos="-0.559216021990488 1.0061246071752599 1.3645857582385554"> <!-- TODO: Fix start pos -->
+        <body name="hand_startclamp" pos="-0.58147233724594119 1.0124462842941284 1.3647385835647584">
             <include file="right_hand_body.xml"/>
         </body>
         <include file="right_hand_mocap_vis.xml"/>
