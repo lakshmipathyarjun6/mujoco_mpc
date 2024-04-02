@@ -14,6 +14,4 @@
         <!-- <include file="./contacts/apple_pass_1/apple_pass_1_hand_sites.xml"/> -->
     </worldbody>
 
-    <include file="./keyframes/apple_pass_1.xml" />
-
 </mujoco>

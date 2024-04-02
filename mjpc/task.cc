@@ -299,20 +299,6 @@ namespace mjpc
     }
 
     // Does nothing by default, can be overridden in derived classes
-    vector<double> Task::GetDesiredAgentState(double time) const
-    {
-        vector<double> desired_state;
-        return desired_state;
-    }
-
-    // Does nothing by default, can be overridden in derived classes
-    vector<double> Task::GetDesiredAgentStateFromPCs(double time) const
-    {
-        vector<double> desired_state;
-        return desired_state;
-    }
-
-    // Does nothing by default, can be overridden in derived classes
     vector<vector<double>> Task::GetAgentBSplineControlData(
         int &dimension, int &degree, double &loopbackTime,
         double translationOffset[3], vector<DofType> &dofTypes,

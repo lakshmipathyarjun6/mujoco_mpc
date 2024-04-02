@@ -162,23 +162,17 @@ namespace mjpc
     // ---------------------------------------------------------------------------
     void AllegroTask::TransitionLocked(mjModel *model, mjData *data)
     {
-        // indices
-        double rounded_index = floor(data->time * FPS);
-        mode = int(rounded_index) % model->nkey;
-
-        // mode = min(mode, 1);
-
-        int handMocapQOffset = model->nq * mode;
-
-        int objectMocapPosOffset = 3 * model->nmocap * mode;
-        int objectMocapQuatOffset = 4 * model->nmocap * mode;
+        // Reference object loading
+        vector<double> splineObjectPos = GetDesiredObjectState(data->time);
 
         mju_copy3(m_residual.m_r_object_mocap_pos_buffer,
-                  model->key_mpos + objectMocapPosOffset);
+                  splineObjectPos.data());
         mju_copy4(m_residual.m_r_object_mocap_quat_buffer,
-                  model->key_mquat + objectMocapQuatOffset);
-        mju_copy(m_residual.m_r_qpos_buffer, model->key_qpos + handMocapQOffset,
-                 ALLEGRO_DOFS);
+                  splineObjectPos.data() + 3);
+
+        // Object mocap is first in config
+        mju_copy3(data->mocap_pos, splineObjectPos.data());
+        mju_copy4(data->mocap_quat, splineObjectPos.data() + 3);
 
         int handPalmBodyId = mj_name2id(model, mjOBJ_BODY, ALLEGRO_MOCAP_ROOT);
         int handPalmXPosOffset = 3 * handPalmBodyId;
@@ -277,8 +271,10 @@ namespace mjpc
         // ABSOLUTE_MAX_CONTACT_RESULT_BUFF_SIZE, data->site_xpos +
         // m_max_contact_sites * 3, m_max_contact_sites * 3);
 
+        double loopedQueryTime = fmod(data->time, m_spline_loopback_time);
+
         // Reset
-        if (mode == 0)
+        if (loopedQueryTime == 0)
         {
             int simObjBodyId =
                 mj_name2id(model, mjOBJ_BODY, m_object_sim_body_name.c_str());
@@ -296,10 +292,9 @@ namespace mjpc
                 if (simObjDofs == 7)
                 {
                     // Reset configuration to first mocap frame
-                    mju_copy3(data->qpos + objQposadr,
-                              model->key_mpos + objectMocapPosOffset);
+                    mju_copy3(data->qpos + objQposadr, splineObjectPos.data());
                     mju_copy4(data->qpos + objQposadr + 3,
-                              model->key_mquat + objectMocapQuatOffset);
+                              splineObjectPos.data() + 3);
                 }
                 else
                 {
@@ -308,8 +303,7 @@ namespace mjpc
                 }
             }
 
-            mju_copy(data->qpos + handQPosAdr,
-                     model->key_qpos + handMocapQOffset, ALLEGRO_DOFS);
+            mju_copy(data->qpos + handQPosAdr, splineQPos.data(), ALLEGRO_DOFS);
 
             // Zero out entire system velocity, acceleration, and forces
             mju_zero(data->qvel, model->nv);
@@ -332,14 +326,11 @@ namespace mjpc
                 model->site_sameframe[i] = 0;
             }
         }
-
-        // Object mocap is first in config
-        mju_copy3(data->mocap_pos, model->key_mpos + objectMocapPosOffset);
-        mju_copy4(data->mocap_quat, model->key_mquat + objectMocapQuatOffset);
     }
 
     AllegroTask::AllegroTask(string objectSimBodyName,
                              string handTrajSplineFile,
+                             string objectTrajSplineFile,
                              string pcHandTrajSplineFile,
                              double startClampOffsetX, double startClampOffsetY,
                              double startClampOffsetZ, int maxContactSites,
@@ -376,6 +367,7 @@ namespace mjpc
         m_start_clamp_offset[2] = startClampOffsetZ;
 
         Document dFullHandSplines = loadJSON(handTrajSplineFile);
+        Document dObjectSplines = loadJSON(objectTrajSplineFile);
         Document dPcSplines = loadJSON(pcHandTrajSplineFile);
 
         m_spline_dimension = dFullHandSplines["dimension"].GetInt();
@@ -430,6 +422,42 @@ namespace mjpc
         else
         {
             cout << "Done" << endl;
+        }
+
+        for (const auto &splineData : dObjectSplines["data"].GetArray())
+        {
+            int numControlPoints = splineData["numControlPoints"].GetInt();
+            string dofType = splineData["type"].GetString();
+            string units = splineData["units"].GetString();
+
+            TrajectorySplineProperties properties;
+            properties.numControlPoints = numControlPoints;
+            properties.dofType = m_doftype_property_mappings[dofType];
+            properties.units = m_measurement_units_property_mappings[units];
+
+            vector<double> controlPoints;
+
+            for (const auto &controlPointData :
+                 splineData["controlPointData"].GetArray())
+            {
+                double entry = controlPointData.GetDouble();
+                controlPoints.push_back(entry);
+            }
+
+            for (int i = 0; i < numControlPoints; i++)
+            {
+                controlPoints[i * 2] *= SLOWDOWN_FACTOR;
+            }
+
+            BSplineCurve<double> *bspc = new BSplineCurve<double>(
+                m_spline_dimension, m_spline_degree, numControlPoints,
+                m_doftype_property_mappings[dofType],
+                m_measurement_units_property_mappings[units]);
+
+            bspc->SetControlData(controlPoints);
+
+            m_object_traj_bspline_properties.push_back(properties);
+            m_object_traj_bspline_curves.push_back(bspc);
         }
 
         const auto pcData = dPcSplines["data"].GetObject();
@@ -627,6 +655,56 @@ namespace mjpc
         {
             double dofValue = uncompressedState[i];
             desiredState.push_back(dofValue);
+        }
+
+        return desiredState;
+    }
+
+    vector<double> AllegroTask::GetDesiredObjectState(double time) const
+    {
+        vector<double> desiredState;
+
+        double queryTime = fmod(time, m_spline_loopback_time);
+        double parametricTime = queryTime / m_spline_loopback_time;
+
+        double eulerAngles[3] = {0.0, 0.0, 0.0};
+        double curveValue[2];
+
+        // Mopcap single body rigid object will have exactly 6 dofs
+        for (int i = 0; i < 6; i++)
+        {
+            TrajectorySplineProperties properties =
+                m_hand_traj_bspline_properties[i];
+
+            m_object_traj_bspline_curves[i]->GetPositionInMeasurementUnits(
+                parametricTime, curveValue);
+
+            double dofValue = curveValue[1];
+
+            switch (properties.dofType)
+            {
+            case DofType::DOF_TYPE_ROTATION_BALL_X:
+                eulerAngles[0] = dofValue;
+                break;
+            case DofType::DOF_TYPE_ROTATION_BALL_Y:
+                eulerAngles[1] = dofValue;
+                break;
+            case DofType::DOF_TYPE_ROTATION_BALL_Z:
+                eulerAngles[2] = dofValue;
+                break;
+            default:
+                desiredState.push_back(dofValue);
+                break;
+            }
+        }
+
+        // Convert root rotation to quaternion
+        double quat[4];
+        ConvertEulerAnglesToQuat(eulerAngles, quat);
+
+        for (int i = 0; i < 4; i++)
+        {
+            desiredState.push_back(quat[i]);
         }
 
         return desiredState;

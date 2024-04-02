@@ -375,11 +375,6 @@ namespace mjpc
     {
         state.CopyTo(m_state.data(), m_mocap.data(), m_userdata.data(),
                      &m_time);
-
-        if (m_task->mode == 0)
-        {
-            Reset(0, nullptr);
-        }
     }
 
     // visualize planner-specific traces

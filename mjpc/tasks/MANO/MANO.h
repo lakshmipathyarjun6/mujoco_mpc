@@ -16,6 +16,9 @@
 
 #define MANO_ROOT "wrist"
 
+#define OBJECT_CURRENT_POSITION "object_position"
+#define OBJECT_CURRENT_ORIENTATION "object_orientation"
+
 using namespace std;
 
 namespace mjpc
@@ -29,6 +32,20 @@ namespace mjpc
             explicit ResidualFn(const MANOTask *task)
                 : mjpc::BaseResidualFn(task)
             {
+                fill(begin(m_r_object_mocap_pos_buffer),
+                     end(m_r_object_mocap_pos_buffer), 0);
+                fill(begin(m_r_object_mocap_quat_buffer),
+                     end(m_r_object_mocap_quat_buffer), 0);
+            }
+
+            explicit ResidualFn(const MANOTask *task,
+                                const double mocap_object_pos_buffer[3],
+                                const double mocap_object_quat_buffer[4])
+                : mjpc::BaseResidualFn(task)
+            {
+                mju_copy3(m_r_object_mocap_pos_buffer, mocap_object_pos_buffer);
+                mju_copy4(m_r_object_mocap_quat_buffer,
+                          mocap_object_quat_buffer);
             }
 
             void Residual(const mjModel *model, const mjData *data,
@@ -36,13 +53,16 @@ namespace mjpc
 
         private:
             friend class MANOTask;
+
+            double m_r_object_mocap_pos_buffer[3];
+            double m_r_object_mocap_quat_buffer[4];
         };
 
         MANOTask(string objectSimBodyName, string handTrajSplineFile,
                  string objectTrajSplineFile, double startClampOffsetX,
                  double startClampOffsetY, double startClampOffsetZ);
 
-        vector<double> GetDesiredAgentState(double time) const override;
+        vector<double> GetDesiredAgentState(double time) const;
 
         vector<double> GetDesiredObjectState(double time) const;
 
@@ -61,7 +81,9 @@ namespace mjpc
     protected:
         unique_ptr<mjpc::ResidualFn> ResidualLocked() const override
         {
-            return make_unique<ResidualFn>(this);
+            return make_unique<ResidualFn>(
+                this, m_residual.m_r_object_mocap_pos_buffer,
+                m_residual.m_r_object_mocap_quat_buffer);
         }
         ResidualFn *InternalResidual() override { return &m_residual; }
 

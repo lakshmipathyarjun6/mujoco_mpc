@@ -135,13 +135,6 @@ namespace mjpc
         // while holding a lock
         double CostValue(const double *residual) const;
 
-        // returns the complete desired state for the agent at the given time
-        virtual vector<double> GetDesiredAgentState(double time) const;
-
-        // returns the desired state for the agent at the given time computed
-        // from principal components
-        virtual vector<double> GetDesiredAgentStateFromPCs(double time) const;
-
         // returns all bspline control data, if any - can be overridden in
         // derived classes
         virtual vector<vector<double>> GetAgentBSplineControlData(
