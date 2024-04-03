@@ -3,7 +3,7 @@
     <body name="apple_sim">
         <freejoint/>
         <geom name="sim_geom_apple_visual" type="mesh" mesh="apple" contype="0" conaffinity="0" group="2" mass="0" rgba="1.0 0 0 1.0"/>
-        <geom name="sim_geom_apple_collision" type="sphere" size="0.04" pos="0 0 -0.01" group="3" mass="2.485148625"/>
+        <geom name="sim_geom_apple_collision" type="sphere" size="0.04" pos="0 0 -0.01" group="3" mass="0.2"/>
     </body>
 
 </mujoco>
