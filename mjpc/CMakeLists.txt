@@ -96,6 +96,10 @@ add_library(
   planners/nothing/planner.h
   planners/nothing/policy.cc
   planners/nothing/policy.h
+  planners/bsplinepd/planner.cc
+  planners/bsplinepd/planner.h
+  planners/bsplinepd/policy.cc
+  planners/bsplinepd/policy.h
   planners/posesamplingpd/planner.cc
   planners/posesamplingpd/planner.h
   planners/posesamplingpd/policy.cc
