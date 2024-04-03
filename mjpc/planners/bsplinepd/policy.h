@@ -1,44 +1,25 @@
-// Copyright 2022 DeepMind Technologies Limited
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-#ifndef MJPC_PLANNERS_POSE_SAMPLING_PD_POLICY_H_
-#define MJPC_PLANNERS_POSE_SAMPLING_PD_POLICY_H_
+#ifndef MJPC_PLANNERS_BSPLINE_PD_POLICY_H_
+#define MJPC_PLANNERS_BSPLINE_PD_POLICY_H_
 
 #include <mujoco/mujoco.h>
 
 #include "mjpc/planners/policy.h"
-#include "mjpc/spline/bspline.h"
-#include "mjpc/trajectory.h"
 #include "mjpc/utilities.h"
-
-#include <iterator>
-#include <set>
 
 using namespace std;
 
 namespace mjpc
 {
 
-    // policy for sampling planner
-    class PoseSamplingPDPolicy : public Policy
+    // the policy that does nothing
+    class BSplinePDPolicy : public Policy
     {
     public:
         // constructor
-        PoseSamplingPDPolicy() = default;
+        BSplinePDPolicy() = default;
 
         // destructor
-        ~PoseSamplingPDPolicy() override = default;
+        ~BSplinePDPolicy() override = default;
 
         // ----- methods ----- //
 
@@ -55,19 +36,19 @@ namespace mjpc
         void Action(double *action, const double *state,
                     double time) const override;
 
-        // copy bspline control points
-        void CopyControlPointsFrom(const PoseSamplingPDPolicy &policy);
-
-        // mainly for adding noise
-        void AdjustBSplineControlPoints(double *deltas);
-
     private:
-        // generate splien curves from control data
+        // assemble complete desired agent state
+        vector<double> ComputeDesiredAgentState(double time) const;
+
+        // generate spline curves from control data
         void GenerateBSplineControlData();
 
         // ----- members ----- //
         const mjModel *m_model;
         const Task *m_task;
+
+        int m_num_agent_joints;
+        vector<int> m_agent_joints;
 
         double m_root_ball_motor_kp;
         double m_root_ball_motor_kd;
@@ -90,4 +71,4 @@ namespace mjpc
 
 } // namespace mjpc
 
-#endif // MJPC_PLANNERS_POSE_SAMPLING_PD_POLICY_H_
+#endif // MJPC_PLANNERS_BSPLINE_PD_POLICY_H_

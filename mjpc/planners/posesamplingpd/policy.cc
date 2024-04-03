@@ -78,8 +78,15 @@ namespace mjpc
         GenerateBSplineControlData();
 
         // special gains for ball motors
-        m_ball_motor_kp = GetNumberOrDefault(1, m_model, "ball_motor_kp");
-        m_ball_motor_kd = GetNumberOrDefault(1, m_model, "ball_motor_kd");
+        m_root_ball_motor_kp =
+            GetNumberOrDefault(1, m_model, "root_ball_motor_kp");
+        m_root_ball_motor_kd =
+            GetNumberOrDefault(1, m_model, "root_ball_motor_kd");
+
+        m_intermediate_ball_motor_kp =
+            GetNumberOrDefault(1, m_model, "intermediate_ball_motor_kp");
+        m_intermediate_ball_motor_kd =
+            GetNumberOrDefault(1, m_model, "intermediate_ball_motor_kd");
     }
 
     // same as initialize minux framerate setting
@@ -185,7 +192,7 @@ namespace mjpc
         mju_subQuat(q_error, q_desired, q_current);
 
         // q_error = kp * ( q_desired - q )
-        mju_scl3(q_error, q_error, m_ball_motor_kp);
+        mju_scl3(q_error, q_error, m_root_ball_motor_kp);
 
         double w_desired[3] = {0};
         double w_current[3];
@@ -197,7 +204,7 @@ namespace mjpc
         mju_sub3(w_error, w_desired, w_current);
 
         // w_error = kd * ( w_desired - w )
-        mju_scl3(w_error, w_error, m_ball_motor_kd);
+        mju_scl3(w_error, w_error, m_root_ball_motor_kd);
 
         // kp(q_error) + kd(w_error)
         double r_tau[3];

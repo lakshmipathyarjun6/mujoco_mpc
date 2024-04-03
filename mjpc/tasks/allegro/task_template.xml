@@ -8,8 +8,8 @@
         <numeric name="agent_timestep" data="0.01" />
         <numeric name="agent_policy_width" data="0.005" />
         <numeric name="sampling_trajectories" data="10" />
-        <numeric name="ball_motor_kp" data="10" />
-        <numeric name="ball_motor_kd" data="0.1" />
+        <numeric name="root_ball_motor_kp" data="10" />
+        <numeric name="root_ball_motor_kd" data="0.1" />
     </custom>
 
     <!-- <See https://github.com/lakshmipathyarjun6/mujoco_mpc/blob/c5c7ead065b7f4034ab265a13023231900dbfaa7/docs/OVERVIEW.md for user sensors used as residuals> -->
