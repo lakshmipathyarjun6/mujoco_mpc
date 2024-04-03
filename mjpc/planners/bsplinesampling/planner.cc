@@ -398,7 +398,7 @@ namespace mjpc
             }
             else
             {
-                dofMult = 0.0;
+                dofMult = 60.0 * numbers::pi / 180.0;
             }
 
             for (int controlPointIndex = controlPointStartIndex;
