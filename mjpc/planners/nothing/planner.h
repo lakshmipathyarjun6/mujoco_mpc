@@ -78,18 +78,9 @@ namespace mjpc
 
         // policies
         NothingPolicy m_active_policy; // (Guarded by mtx_)
-        NothingPolicy m_candidate_policy;
-        NothingPolicy m_previous_policy;
 
         // trajectories
-        int m_num_candidate_trajectories; // actual number of candidate
-                                          // trajectories
-        double m_trajectory_improvement;  // improvement in total return since
-                                          // last update
-        Trajectory m_candidate_trajectory;
-
-        // timing
-        double m_policy_update_compute_time;
+        Trajectory m_trajectory;
 
         mutable shared_mutex m_mtx;
     };

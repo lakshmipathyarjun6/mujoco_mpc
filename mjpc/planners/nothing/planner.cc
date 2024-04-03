@@ -19,9 +19,6 @@ namespace mjpc
 
         // task
         m_task = &task;
-
-        // set number of trajectories to rollout
-        m_num_candidate_trajectories = 1;
     }
 
     // allocate memory
@@ -37,13 +34,11 @@ namespace mjpc
 
         // policy
         m_active_policy.Allocate(m_model, *m_task, kMaxTrajectoryHorizon);
-        m_previous_policy.Allocate(m_model, *m_task, kMaxTrajectoryHorizon);
 
-        m_candidate_trajectory.Initialize(
+        m_trajectory.Initialize(
             num_state, m_model->nu, m_task->num_residual, m_task->num_trace,
             kMaxTrajectoryHorizon);
-        m_candidate_trajectory.Allocate(kMaxTrajectoryHorizon);
-        m_candidate_policy.Allocate(m_model, *m_task, kMaxTrajectoryHorizon);
+        m_trajectory.Allocate(kMaxTrajectoryHorizon);
     }
 
     // reset memory to zeros
@@ -58,11 +53,9 @@ namespace mjpc
 
         // policy parameters
         m_active_policy.Reset(horizon, initial_repeated_action);
-        m_previous_policy.Reset(horizon, initial_repeated_action);
 
         // trajectory samples
-        m_candidate_trajectory.Reset(kMaxTrajectoryHorizon);
-        m_candidate_policy.Reset(horizon, initial_repeated_action);
+        m_trajectory.Reset(kMaxTrajectoryHorizon);
 
         for (const auto &d : data_)
         {
@@ -75,38 +68,25 @@ namespace mjpc
                 mju_zero(d->ctrl, m_model->nu);
             }
         }
-
-        // improvement
-        m_trajectory_improvement = 0.0;
     }
 
     // optimize nominal policy using random sampling
     void NothingPlanner::OptimizePolicy(int horizon, ThreadPool &pool)
     {
-        // ----- update policy ----- //
-        // start timer
-        auto policy_update_start = chrono::steady_clock::now();
-
-        // improvement: compare nominal to winner
-        double best_return = m_candidate_trajectory.total_return;
-        m_trajectory_improvement =
-            mju_max(best_return - m_candidate_trajectory.total_return, 0.0);
-
-        // stop timer
-        m_policy_update_compute_time = GetDuration(policy_update_start);
+        // Do nothing
     }
 
     // compute trajectory using nominal policy
     void NothingPlanner::NominalTrajectory(int horizon, ThreadPool &pool)
     {
         // set policy
-        auto nominal_policy = [&cp = m_candidate_policy](double *action,
+        auto nominal_policy = [&cp = m_active_policy](double *action,
                                                          const double *state,
                                                          double time)
         { cp.Action(action, state, time); };
 
         // rollout nominal policy
-        m_candidate_trajectory.Rollout(
+        m_trajectory.Rollout(
             nominal_policy, m_task, m_model, data_[0].get(), m_state.data(),
             m_time, m_mocap.data(), m_userdata.data(), horizon);
     }
@@ -116,21 +96,13 @@ namespace mjpc
                                           double time, bool use_previous)
     {
         const shared_lock<shared_mutex> lock(m_mtx);
-
-        if (use_previous)
-        {
-            m_previous_policy.Action(action, state, time);
-        }
-        else
-        {
-            m_active_policy.Action(action, state, time);
-        }
+        m_active_policy.Action(action, state, time);
     }
 
     // return trajectory with best total return
     const Trajectory *NothingPlanner::BestTrajectory()
     {
-        return &m_candidate_trajectory;
+        return &m_trajectory;
     }
 
     // set state
