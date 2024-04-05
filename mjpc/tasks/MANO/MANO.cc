@@ -43,6 +43,26 @@ namespace mjpc
         mju_subQuat(residual + offset, goal_orientation, orientation);
         offset += 3;
 
+        // ---------- Residual (2) ----------
+        double full_result[MAX_CONTACTS * XYZ_BLOCK_SIZE];
+        double relevant_result[MAX_CONTACTS * XYZ_BLOCK_SIZE];
+
+        fill(begin(full_result), end(full_result), 0);
+        fill(begin(relevant_result), end(relevant_result), 0);
+
+        mju_sub(full_result, m_r_hand_contact_position_buffer,
+                m_r_object_contact_position_buffer,
+                MAX_CONTACTS * XYZ_BLOCK_SIZE);
+
+        for (int i = 0; i < m_num_active_contacts; i++)
+        {
+            relevant_result[i] = full_result[i];
+        }
+
+        mju_copy(residual + offset, relevant_result,
+                 MAX_CONTACTS * XYZ_BLOCK_SIZE);
+        offset += MAX_CONTACTS * XYZ_BLOCK_SIZE;
+
         // sensor dim sanity check
         CheckSensorDim(model, offset);
     }
@@ -93,7 +113,11 @@ namespace mjpc
         mj_kinematics(model, data);
 
         // Contact loading
-        mju_zero(model->site_pos, m_max_contact_sites * XYZ_BLOCK_SIZE * 2);
+        mju_zero(model->site_pos, MAX_CONTACTS * XYZ_BLOCK_SIZE * 2);
+        mju_zero(m_residual.m_r_hand_contact_position_buffer,
+                 MAX_CONTACTS * XYZ_BLOCK_SIZE);
+        mju_zero(m_residual.m_r_object_contact_position_buffer,
+                 MAX_CONTACTS * XYZ_BLOCK_SIZE);
 
         // Set sameframe byte to 0 so actual offset will be computed
         for (int sid = 0; sid < model->nsite; sid++)
@@ -108,7 +132,7 @@ namespace mjpc
         mjtNum *metadataData =
             model->numeric_data + model->numeric_adr[siteMetadataOffset];
         int contactDataOffset = int(metadataData[0]);
-        int contactDataSize = int(metadataData[1]);
+        int numActiveContacts = int(metadataData[1]);
 
         // Load object contact site data
         int objectContactStartSiteId =
@@ -122,7 +146,7 @@ namespace mjpc
         mju_copy(model->site_pos + objectContactStartSiteId * XYZ_BLOCK_SIZE,
                  model->numeric_data +
                      model->numeric_adr[objectContactDataStart],
-                 contactDataSize * XYZ_BLOCK_SIZE);
+                 numActiveContacts * XYZ_BLOCK_SIZE);
 
         // Load hand contact site data
         // Doing this manually rather than running FK since reassembly and extra
@@ -135,7 +159,7 @@ namespace mjpc
         int handContactDataStart = handContactDataStartId + contactDataOffset;
 
         for (int handContactDataIndex = handContactDataStart;
-             handContactDataIndex < handContactDataStart + contactDataSize;
+             handContactDataIndex < handContactDataStart + numActiveContacts;
              handContactDataIndex++)
         {
             mjtNum *handContactBlock =
@@ -153,6 +177,16 @@ namespace mjpc
             mj_local2Global(data, model->site_pos + fullSiteOffset, nullptr,
                             localCoords, nullptr, handBodyIndex, 0);
         }
+
+        mj_kinematics(model, data);
+
+        m_residual.m_num_active_contacts = numActiveContacts;
+
+        mju_copy(m_residual.m_r_hand_contact_position_buffer, data->site_xpos,
+                 MAX_CONTACTS * XYZ_BLOCK_SIZE);
+        mju_copy(m_residual.m_r_object_contact_position_buffer,
+                 data->site_xpos + MAX_CONTACTS * XYZ_BLOCK_SIZE,
+                 MAX_CONTACTS * XYZ_BLOCK_SIZE);
 
         double loopedQueryTime = fmod(data->time, m_spline_loopback_time);
 
@@ -201,11 +235,10 @@ namespace mjpc
     MANOTask::MANOTask(string objectSimBodyName, string handTrajSplineFile,
                        string objectTrajSplineFile, double startClampOffsetX,
                        double startClampOffsetY, double startClampOffsetZ,
-                       int totalFrames, int maxContactSites,
-                       string objectContactStartDataName,
+                       int totalFrames, string objectContactStartDataName,
                        string handContactStartDataName)
         : m_residual(this), m_object_sim_body_name(objectSimBodyName),
-          m_total_frames(totalFrames), m_max_contact_sites(maxContactSites),
+          m_total_frames(totalFrames),
           m_object_contact_start_data_name(objectContactStartDataName),
           m_hand_contact_start_data_name(handContactStartDataName)
     {

@@ -5,7 +5,6 @@
             directional="true" castshadow="true"/>
         <body name="doorknob_mocap" mocap="true">
             <geom type="mesh" mesh="doorknob" size="1 1 1" contype="0" conaffinity="0" rgba="0 1 0 1.0"/>
-            <include file="./contacts/doorknob_use_1/doorknob_use_1_object_sites.xml"/>
         </body>
         <geom name="floor" pos="0 0 -0.2" size="0 0 0.05" type="plane" material="blue_grid"/>
     </worldbody>

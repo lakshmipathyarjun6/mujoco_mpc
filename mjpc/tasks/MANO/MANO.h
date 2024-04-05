@@ -26,6 +26,8 @@
 #define OBJECT_CONTACT_START_SITE_NAME "contact_site_object_0"
 #define HAND_CONTACT_START_SITE_NAME "contact_site_hand_0"
 
+#define MAX_CONTACTS 16
+
 using namespace std;
 
 namespace mjpc
@@ -37,22 +39,39 @@ namespace mjpc
         {
         public:
             explicit ResidualFn(const MANOTask *task)
-                : mjpc::BaseResidualFn(task)
+                : mjpc::BaseResidualFn(task), m_num_active_contacts(0)
             {
                 fill(begin(m_r_object_mocap_pos_buffer),
                      end(m_r_object_mocap_pos_buffer), 0);
                 fill(begin(m_r_object_mocap_quat_buffer),
                      end(m_r_object_mocap_quat_buffer), 0);
+                fill(begin(m_r_hand_contact_position_buffer),
+                     end(m_r_hand_contact_position_buffer), 0);
+                fill(begin(m_r_object_contact_position_buffer),
+                     end(m_r_hand_contact_position_buffer), 0);
             }
 
-            explicit ResidualFn(const MANOTask *task,
-                                const double mocap_object_pos_buffer[3],
-                                const double mocap_object_quat_buffer[4])
+            explicit ResidualFn(
+                const MANOTask *task, int num_active_contacts,
+                const double mocap_object_pos_buffer[3],
+                const double mocap_object_quat_buffer[4],
+                const double
+                    hand_contact_position_buffer[MAX_CONTACTS * XYZ_BLOCK_SIZE],
+                const double object_contact_position_buffer[MAX_CONTACTS *
+                                                            XYZ_BLOCK_SIZE])
                 : mjpc::BaseResidualFn(task)
             {
+                m_num_active_contacts = num_active_contacts;
+
                 mju_copy3(m_r_object_mocap_pos_buffer, mocap_object_pos_buffer);
                 mju_copy4(m_r_object_mocap_quat_buffer,
                           mocap_object_quat_buffer);
+                mju_copy(m_r_hand_contact_position_buffer,
+                         hand_contact_position_buffer,
+                         MAX_CONTACTS * XYZ_BLOCK_SIZE);
+                mju_copy(m_r_object_contact_position_buffer,
+                         object_contact_position_buffer,
+                         MAX_CONTACTS * XYZ_BLOCK_SIZE);
             }
 
             void Residual(const mjModel *model, const mjData *data,
@@ -63,13 +82,19 @@ namespace mjpc
 
             double m_r_object_mocap_pos_buffer[3];
             double m_r_object_mocap_quat_buffer[4];
+
+            int m_num_active_contacts;
+
+            double
+                m_r_hand_contact_position_buffer[MAX_CONTACTS * XYZ_BLOCK_SIZE];
+            double m_r_object_contact_position_buffer[MAX_CONTACTS *
+                                                      XYZ_BLOCK_SIZE];
         };
 
         MANOTask(string objectSimBodyName, string handTrajSplineFile,
                  string objectTrajSplineFile, double startClampOffsetX,
                  double startClampOffsetY, double startClampOffsetZ,
-                 int totalFrames, int maxContactSites,
-                 string objectContactStartDataName,
+                 int totalFrames, string objectContactStartDataName,
                  string handContactStartDataName);
 
         vector<double> GetDesiredAgentState(double time) const;
@@ -92,8 +117,11 @@ namespace mjpc
         unique_ptr<mjpc::ResidualFn> ResidualLocked() const override
         {
             return make_unique<ResidualFn>(
-                this, m_residual.m_r_object_mocap_pos_buffer,
-                m_residual.m_r_object_mocap_quat_buffer);
+                this, m_residual.m_num_active_contacts,
+                m_residual.m_r_object_mocap_pos_buffer,
+                m_residual.m_r_object_mocap_quat_buffer,
+                m_residual.m_r_hand_contact_position_buffer,
+                m_residual.m_r_object_contact_position_buffer);
         }
         ResidualFn *InternalResidual() override { return &m_residual; }
 
@@ -103,7 +131,6 @@ namespace mjpc
         string m_object_sim_body_name;
 
         int m_total_frames;
-        int m_max_contact_sites;
         string m_object_contact_start_data_name;
         string m_hand_contact_start_data_name;
 
@@ -138,8 +165,7 @@ namespace mjpc
                        "/Users/arjunl/mujoco_mpc/mjpc/tasks/"
                        "shared_spline_trajectories/apple_pass_1_object.smexp",
                        -0.58147233724594119, 1.0124462842941284,
-                       1.3647385835647584, 703, 16,
-                       "contact_pos_object_data_215_0",
+                       1.3647385835647584, 703, "contact_pos_object_data_215_0",
                        "contact_pos_hand_data_215_0")
         {
         }
@@ -160,8 +186,7 @@ namespace mjpc
                        "/Users/arjunl/mujoco_mpc/mjpc/tasks/"
                        "shared_spline_trajectories/doorknob_use_1_object.smexp",
                        -1.0741884708404541, 0.31418800354003908,
-                       1.298376441001892, 1040, 16,
-                       "contact_pos_object_data_252_0",
+                       1.298376441001892, 1040, "contact_pos_object_data_252_0",
                        "contact_pos_hand_data_252_0")
         {
         }
