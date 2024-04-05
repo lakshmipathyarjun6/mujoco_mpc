@@ -19,6 +19,7 @@
         <!-- cost -->
         <user name="Object Position" dim="3" user="0 1000.0 0 1000"/>
         <user name="Object Orientation" dim="3" user="0 10.0 0 20"/>
+        <user name="Contact Alignment" dim="48" user="0 5000.0 0 10000"/>
     </sensor>
 
     <include file="right_hand_template.xml"/>
