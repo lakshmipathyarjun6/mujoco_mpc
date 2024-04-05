@@ -1,0 +1,18 @@
+<mujoco>
+    <site name="contact_site_object_0" group="4" rgba="1 0 1 1" />
+    <site name="contact_site_object_1" group="4" rgba="1 0 1 1" />
+    <site name="contact_site_object_2" group="4" rgba="1 0 1 1" />
+    <site name="contact_site_object_3" group="4" rgba="1 0 1 1" />
+    <site name="contact_site_object_4" group="4" rgba="1 0 1 1" />
+    <site name="contact_site_object_5" group="4" rgba="1 0 1 1" />
+    <site name="contact_site_object_6" group="4" rgba="1 0 1 1" />
+    <site name="contact_site_object_7" group="4" rgba="1 0 1 1" />
+    <site name="contact_site_object_8" group="4" rgba="1 0 1 1" />
+    <site name="contact_site_object_9" group="4" rgba="1 0 1 1" />
+    <site name="contact_site_object_10" group="4" rgba="1 0 1 1" />
+    <site name="contact_site_object_11" group="4" rgba="1 0 1 1" />
+    <site name="contact_site_object_12" group="4" rgba="1 0 1 1" />
+    <site name="contact_site_object_13" group="4" rgba="1 0 1 1" />
+    <site name="contact_site_object_14" group="4" rgba="1 0 1 1" />
+    <site name="contact_site_object_15" group="4" rgba="1 0 1 1" />
+</mujoco>
