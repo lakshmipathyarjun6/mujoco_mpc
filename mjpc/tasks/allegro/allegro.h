@@ -152,7 +152,6 @@ namespace mjpc
         string m_object_sim_body_name;
 
         int m_max_contact_sites;
-
         string m_object_contact_start_data_name;
         string m_hand_contact_start_data_name;
 

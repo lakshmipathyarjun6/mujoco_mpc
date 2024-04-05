@@ -53,6 +53,12 @@ namespace mjpc
     // ---------------------------------------------------------------------------
     void MANOTask::TransitionLocked(mjModel *model, mjData *data)
     {
+        // TODO: Find way to remove
+        // Don't know how to turn contacts into continuous time queries
+        double fps = DEFAULT_MOCAP_FPS / SLOWDOWN_FACTOR;
+        double rounded_index = floor(data->time * fps);
+        int contact_frame_index = int(rounded_index) % m_total_frames;
+
         // Reference object loading
         vector<double> splineObjectPos = GetDesiredObjectState(data->time);
 
@@ -85,6 +91,68 @@ namespace mjpc
                  4 * (model->nmocap - 1));
         mju_copy(data->qpos + handQPosAdr, m_hand_kinematic_buffer, MANO_DOFS);
         mj_kinematics(model, data);
+
+        // Contact loading
+        mju_zero(model->site_pos, m_max_contact_sites * XYZ_BLOCK_SIZE * 2);
+
+        // Set sameframe byte to 0 so actual offset will be computed
+        for (int sid = 0; sid < model->nsite; sid++)
+        {
+            model->site_sameframe[sid] = 0;
+        }
+
+        int siteMetadataStartId =
+            mj_name2id(model, mjOBJ_NUMERIC, SITE_DATA_START_NAME);
+        int siteMetadataOffset = siteMetadataStartId + contact_frame_index;
+
+        mjtNum *metadataData =
+            model->numeric_data + model->numeric_adr[siteMetadataOffset];
+        int contactDataOffset = int(metadataData[0]);
+        int contactDataSize = int(metadataData[1]);
+
+        // Load object contact site data
+        int objectContactStartSiteId =
+            mj_name2id(model, mjOBJ_SITE, OBJECT_CONTACT_START_SITE_NAME);
+        int objectContactDataStartId = mj_name2id(
+            model, mjOBJ_NUMERIC, m_object_contact_start_data_name.c_str());
+
+        int objectContactDataStart =
+            objectContactDataStartId + contactDataOffset;
+
+        mju_copy(model->site_pos + objectContactStartSiteId * XYZ_BLOCK_SIZE,
+                 model->numeric_data +
+                     model->numeric_adr[objectContactDataStart],
+                 contactDataSize * XYZ_BLOCK_SIZE);
+
+        // Load hand contact site data
+        // Doing this manually rather than running FK since reassembly and extra
+        // geoms is pointlessly expensive and convoluted
+        int handContactStartSiteId =
+            mj_name2id(model, mjOBJ_SITE, HAND_CONTACT_START_SITE_NAME);
+        int handContactDataStartId = mj_name2id(
+            model, mjOBJ_NUMERIC, m_hand_contact_start_data_name.c_str());
+
+        int handContactDataStart = handContactDataStartId + contactDataOffset;
+
+        for (int handContactDataIndex = handContactDataStart;
+             handContactDataIndex < handContactDataStart + contactDataSize;
+             handContactDataIndex++)
+        {
+            mjtNum *handContactBlock =
+                model->numeric_data + model->numeric_adr[handContactDataIndex];
+
+            int handBodyIndex = handContactBlock[0];
+            double localCoords[3] = {handContactBlock[1], handContactBlock[2],
+                                     handContactBlock[3]};
+
+            int siteRelativeOffset =
+                handContactDataIndex - handContactDataStart;
+            int fullSiteOffset =
+                (handContactStartSiteId + siteRelativeOffset) * 3;
+
+            mj_local2Global(data, model->site_pos + fullSiteOffset, nullptr,
+                            localCoords, nullptr, handBodyIndex, 0);
+        }
 
         double loopedQueryTime = fmod(data->time, m_spline_loopback_time);
 
@@ -132,8 +200,14 @@ namespace mjpc
 
     MANOTask::MANOTask(string objectSimBodyName, string handTrajSplineFile,
                        string objectTrajSplineFile, double startClampOffsetX,
-                       double startClampOffsetY, double startClampOffsetZ)
-        : m_residual(this), m_object_sim_body_name(objectSimBodyName)
+                       double startClampOffsetY, double startClampOffsetZ,
+                       int totalFrames, int maxContactSites,
+                       string objectContactStartDataName,
+                       string handContactStartDataName)
+        : m_residual(this), m_object_sim_body_name(objectSimBodyName),
+          m_total_frames(totalFrames), m_max_contact_sites(maxContactSites),
+          m_object_contact_start_data_name(objectContactStartDataName),
+          m_hand_contact_start_data_name(handContactStartDataName)
     {
         m_doftype_property_mappings["rotation"] = DofType::DOF_TYPE_ROTATION;
         m_doftype_property_mappings["rotationBallX"] =
