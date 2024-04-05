@@ -3,7 +3,7 @@
     <include file="./task_template.xml"/>
     <include file="../shared_task_templates/task_doorknob.xml"/>
 
-    <!-- <include file="./contacts/doorknob_use_1/doorknob_use_1_site_data.xml"/> -->
+    <include file="./contacts/doorknob_use_1/doorknob_use_1_site_data.xml"/>
 
     <worldbody>
         <body name="hand_startclamp" pos="-1.0741884708404541 0.31418800354003908 1.298376441001892">
@@ -11,7 +11,7 @@
         </body>
         <include file="right_hand_mocap_vis.xml"/>
         <include file="../shared_task_templates/doorknob_sim_body.xml"/>
-        <!-- <include file="./contacts/doorknob_use_1/doorknob_use_1_hand_sites.xml"/> -->
+        <include file="./contacts/doorknob_use_1/doorknob_use_1_hand_sites.xml"/>
     </worldbody>
 
 </mujoco>

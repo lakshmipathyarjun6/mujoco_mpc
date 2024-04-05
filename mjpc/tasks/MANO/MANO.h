@@ -8,16 +8,23 @@
 
 #include "JSONUtils.hpp"
 
+#define DEFAULT_MOCAP_FPS 120
 #define SLOWDOWN_FACTOR 10
 
 // Not equal due to ball joints
 #define MANO_DOFS 67
 #define MANO_VEL_DOFS 51
 
+#define XYZ_BLOCK_SIZE 3
+
 #define MANO_ROOT "wrist"
 
 #define OBJECT_CURRENT_POSITION "object_position"
 #define OBJECT_CURRENT_ORIENTATION "object_orientation"
+
+#define SITE_DATA_START_NAME "contact_numdata_0"
+#define OBJECT_CONTACT_START_SITE_NAME "contact_site_object_0"
+#define HAND_CONTACT_START_SITE_NAME "contact_site_hand_0"
 
 using namespace std;
 
@@ -60,7 +67,10 @@ namespace mjpc
 
         MANOTask(string objectSimBodyName, string handTrajSplineFile,
                  string objectTrajSplineFile, double startClampOffsetX,
-                 double startClampOffsetY, double startClampOffsetZ);
+                 double startClampOffsetY, double startClampOffsetZ,
+                 int totalFrames, int maxContactSites,
+                 string objectContactStartDataName,
+                 string handContactStartDataName);
 
         vector<double> GetDesiredAgentState(double time) const;
 
@@ -91,6 +101,11 @@ namespace mjpc
         ResidualFn m_residual;
 
         string m_object_sim_body_name;
+
+        int m_total_frames;
+        int m_max_contact_sites;
+        string m_object_contact_start_data_name;
+        string m_hand_contact_start_data_name;
 
         double m_hand_kinematic_buffer[MANO_DOFS];
 
@@ -123,7 +138,9 @@ namespace mjpc
                        "/Users/arjunl/mujoco_mpc/mjpc/tasks/"
                        "shared_spline_trajectories/apple_pass_1_object.smexp",
                        -0.58147233724594119, 1.0124462842941284,
-                       1.3647385835647584)
+                       1.3647385835647584, 703, 16,
+                       "contact_pos_object_data_215_0",
+                       "contact_pos_hand_data_215_0")
         {
         }
 
@@ -143,7 +160,9 @@ namespace mjpc
                        "/Users/arjunl/mujoco_mpc/mjpc/tasks/"
                        "shared_spline_trajectories/doorknob_use_1_object.smexp",
                        -1.0741884708404541, 0.31418800354003908,
-                       1.298376441001892)
+                       1.298376441001892, 1040, 16,
+                       "contact_pos_object_data_252_0",
+                       "contact_pos_hand_data_252_0")
         {
         }
     };
