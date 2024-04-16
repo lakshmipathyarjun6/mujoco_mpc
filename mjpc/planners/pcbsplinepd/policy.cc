@@ -109,7 +109,7 @@ namespace mjpc
     void PCBSplinePDPolicy::Action(double *action, const double *state,
                                    double time) const
     {
-        // Do bsplinepd
+        // Do pc bsplinepd
         vector<double> desiredState = ComputeDesiredAgentState(time);
 
         // For now, assume translation and hinge joints are servo controlled

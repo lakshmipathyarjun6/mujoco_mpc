@@ -1,4 +1,4 @@
-#include "mjpc/planners/bsplinesampling/planner.h"
+#include "mjpc/planners/pcbsplinesampling/planner.h"
 
 namespace mjpc
 {
@@ -6,7 +6,7 @@ namespace mjpc
     namespace mju = ::mujoco::util_mjpc;
 
     // initialize data and settings
-    void BSplineSamplingPlanner::Initialize(mjModel *model, const Task &task)
+    void PCBSplineSamplingPlanner::Initialize(mjModel *model, const Task &task)
     {
         // delete mjData instances since model might have changed.
         data_.clear();
@@ -23,14 +23,18 @@ namespace mjpc
         // original bspline data
         // only care about some of the parameters - use dummies for the rest
         int bspline_degree = 0;
+        int num_max_pcs = 0;
         double bspline_translation_offset[3];
 
+        vector<double> pc_center;
+        vector<double> pc_component_matrix;
         vector<DofType> bspline_doftype_data;
         vector<MeasurementUnits> bspline_measurementunit_data;
 
         vector<vector<double>> bspline_control_data =
-            m_task->GetAgentBSplineControlData(
+            m_task->GetAgentPCBSplineControlData(
                 m_bspline_dimension, bspline_degree, m_bspline_loopback_time,
+                num_max_pcs, pc_center, pc_component_matrix,
                 bspline_translation_offset, bspline_doftype_data,
                 bspline_measurementunit_data);
 
@@ -91,7 +95,7 @@ namespace mjpc
     }
 
     // allocate memory
-    void BSplineSamplingPlanner::Allocate()
+    void PCBSplineSamplingPlanner::Allocate()
     {
         // initial state
         int num_state = m_model->nq + m_model->nv + m_model->na;
@@ -104,6 +108,8 @@ namespace mjpc
         // policy
         m_active_policy.Allocate(m_model, *m_task, kMaxTrajectoryHorizon);
         m_previous_policy.Allocate(m_model, *m_task, kMaxTrajectoryHorizon);
+
+        m_num_active_pcs = m_active_policy.m_num_max_pcs;
 
         // noise
         m_noise.resize(kMaxTrajectory * m_model->nu *
@@ -124,8 +130,8 @@ namespace mjpc
     }
 
     // reset memory to zeros
-    void BSplineSamplingPlanner::Reset(int horizon,
-                                       const double *initial_repeated_action)
+    void PCBSplineSamplingPlanner::Reset(int horizon,
+                                         const double *initial_repeated_action)
     {
         // state
         fill(m_state.begin(), m_state.end(), 0.0);
@@ -167,7 +173,7 @@ namespace mjpc
     }
 
     // optimize nominal policy using random sampling
-    void BSplineSamplingPlanner::OptimizePolicy(int horizon, ThreadPool &pool)
+    void PCBSplineSamplingPlanner::OptimizePolicy(int horizon, ThreadPool &pool)
     {
         OptimizePolicyCandidates(1, horizon, pool);
 
@@ -191,8 +197,8 @@ namespace mjpc
     }
 
     // compute trajectory using nominal policy
-    void BSplineSamplingPlanner::NominalTrajectory(int horizon,
-                                                   ThreadPool &pool)
+    void PCBSplineSamplingPlanner::NominalTrajectory(int horizon,
+                                                     ThreadPool &pool)
     {
         // set policy
         auto nominal_policy =
@@ -207,10 +213,10 @@ namespace mjpc
     }
 
     // set action from policy
-    void BSplineSamplingPlanner::ActionFromPolicy(double *action,
-                                                  const double *state,
-                                                  double time,
-                                                  bool use_previous)
+    void PCBSplineSamplingPlanner::ActionFromPolicy(double *action,
+                                                    const double *state,
+                                                    double time,
+                                                    bool use_previous)
     {
         const shared_lock<shared_mutex> lock(m_mtx);
 
@@ -225,7 +231,7 @@ namespace mjpc
     }
 
     // return trajectory with best total return
-    const Trajectory *BSplineSamplingPlanner::BestTrajectory()
+    const Trajectory *PCBSplineSamplingPlanner::BestTrajectory()
     {
         return m_best_candidate_trajectory_index >= 0
                    ? &m_candidate_trajectories
@@ -234,14 +240,14 @@ namespace mjpc
     }
 
     // set state
-    void BSplineSamplingPlanner::SetState(const State &state)
+    void PCBSplineSamplingPlanner::SetState(const State &state)
     {
         state.CopyTo(m_state.data(), m_mocap.data(), m_userdata.data(),
                      &m_time);
     }
 
     // visualize planner-specific traces
-    void BSplineSamplingPlanner::Traces(mjvScene *scn)
+    void PCBSplineSamplingPlanner::Traces(mjvScene *scn)
     {
         // sample color
         float color[4] = {1.0, 1.0, 1.0, 1.0};
@@ -294,24 +300,29 @@ namespace mjpc
     }
 
     // planner-specific GUI elements
-    void BSplineSamplingPlanner::GUI(mjUI &ui)
+    void PCBSplineSamplingPlanner::GUI(mjUI &ui)
     {
-        mjuiDef defSampling[] = {{mjITEM_SLIDERINT, "Samples", 2,
-                                  &m_num_candidate_trajectories, "0 1"},
-                                 {mjITEM_END}};
+        mjuiDef defPCSampling[] = {
+            {mjITEM_SLIDERINT, "Samples", 2, &m_num_candidate_trajectories,
+             "0 1"},
+            {mjITEM_SLIDERINT, "Num PCs", 2, &m_num_active_pcs, "0 1"},
+            {mjITEM_END}};
 
         // set number of trajectory slider limits
-        mju::sprintf_arr(defSampling[0].other, "%i %i", 1, kMaxTrajectory);
+        mju::sprintf_arr(defPCSampling[0].other, "%i %i", 1, kMaxTrajectory);
+
+        // set number of pc component slider limits
+        mju::sprintf_arr(defPCSampling[1].other, "%i %i", 1, m_model->nu - 6);
 
         // add sampling planner
-        mjui_add(&ui, defSampling);
+        mjui_add(&ui, defPCSampling);
     }
 
     // planner-specific plots
-    void BSplineSamplingPlanner::Plots(mjvFigure *fig_planner,
-                                       mjvFigure *fig_timer, int planner_shift,
-                                       int timer_shift, int planning,
-                                       int *shift)
+    void PCBSplineSamplingPlanner::Plots(mjvFigure *fig_planner,
+                                         mjvFigure *fig_timer,
+                                         int planner_shift, int timer_shift,
+                                         int planning, int *shift)
     {
         // ----- planner ----- //
         double planner_bounds[2] = {-6.0, 6.0};
@@ -363,7 +374,7 @@ namespace mjpc
     }
 
     // add random noise to candidate policy
-    void BSplineSamplingPlanner::AddNoiseToControlPoints(
+    void PCBSplineSamplingPlanner::AddNoiseToControlPoints(
         int i, int controlPointStartIndex, int controlPointEndIndex)
     {
         // start timer
@@ -396,9 +407,14 @@ namespace mjpc
             {
                 dofMult = 0.0;
             }
+            else if (dofIndex > 6 + m_num_active_pcs) // do not add noise
+                                                      // to non-active pcs
+            {
+                dofMult = 0.0;
+            }
             else
             {
-                dofMult = 60.0 * numbers::pi / 180.0;
+                dofMult = 10.0 * numbers::pi / 180.0;
             }
 
             for (int controlPointIndex = controlPointStartIndex;
@@ -428,8 +444,8 @@ namespace mjpc
     }
 
     // compute candidate trajectories
-    void BSplineSamplingPlanner::Rollouts(int num_trajectory, int horizon,
-                                          ThreadPool &pool)
+    void PCBSplineSamplingPlanner::Rollouts(int num_trajectory, int horizon,
+                                            ThreadPool &pool)
     {
         // reset noise compute time
         m_noise_compute_time = 0.0;
@@ -472,8 +488,9 @@ namespace mjpc
                     // copy nominal policy
                     {
                         const shared_lock<shared_mutex> lock(s.m_mtx);
-                        s.m_candidate_policies[i].CopyControlPointsFrom(
-                            s.m_active_policy);
+                        s.m_candidate_policies[i]
+                            .CopyControlPointsAndActivePCsFrom(
+                                s.m_active_policy);
                     }
 
                     // sample perturbed control points
@@ -501,15 +518,20 @@ namespace mjpc
         pool.ResetCount();
     }
 
-    int BSplineSamplingPlanner::OptimizePolicyCandidates(int ncandidates,
-                                                         int horizon,
-                                                         ThreadPool &pool)
+    int PCBSplineSamplingPlanner::OptimizePolicyCandidates(int ncandidates,
+                                                           int horizon,
+                                                           ThreadPool &pool)
     {
         // if num_trajectory_ has changed, use it in this new iteration.
         // num_trajectory_ might change while this function runs. Keep it
         // constant for the duration of this function.
         ncandidates = min(ncandidates, m_num_candidate_trajectories);
         ResizeMjData(m_model, pool.NumThreads());
+
+        for (int i = 0; i < kMaxTrajectory; i++)
+        {
+            m_candidate_policies[i].AdjustPCComponentMatrix(m_num_active_pcs);
+        }
 
         // ----- rollout noisy policies ----- //
         // start timer
@@ -545,23 +567,21 @@ namespace mjpc
         return ncandidates;
     }
 
-    double BSplineSamplingPlanner::CandidateScore(int candidate) const
+    double PCBSplineSamplingPlanner::CandidateScore(int candidate) const
     {
         return m_candidate_trajectories[m_candidate_trajectory_order[candidate]]
             .total_return;
     }
 
     // set action from candidate policy
-    void BSplineSamplingPlanner::ActionFromCandidatePolicy(double *action,
-                                                           int candidate,
-                                                           const double *state,
-                                                           double time)
+    void PCBSplineSamplingPlanner::ActionFromCandidatePolicy(
+        double *action, int candidate, const double *state, double time)
     {
         m_candidate_policies[m_candidate_trajectory_order[candidate]].Action(
             action, state, time);
     }
 
-    void BSplineSamplingPlanner::CopyCandidateToPolicy(int candidate)
+    void PCBSplineSamplingPlanner::CopyCandidateToPolicy(int candidate)
     {
         // set winner
         m_best_candidate_trajectory_index =

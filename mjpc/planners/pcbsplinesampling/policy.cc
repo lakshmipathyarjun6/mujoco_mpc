@@ -1,11 +1,11 @@
-#include "mjpc/planners/bsplinesampling/policy.h"
+#include "mjpc/planners/pcbsplinesampling/policy.h"
 
 namespace mjpc
 {
 
     // allocate memory
-    void BSplineSamplingPolicy::Allocate(const mjModel *model, const Task &task,
-                                         int horizon)
+    void PCBSplineSamplingPolicy::Allocate(const mjModel *model,
+                                           const Task &task, int horizon)
     {
         // model
         m_model = model;
@@ -16,8 +16,9 @@ namespace mjpc
         // original bspline data
         // direct copy-pasta from planner solely to preserve inheritance
         // structure
-        m_bspline_control_data = m_task->GetAgentBSplineControlData(
+        m_bspline_control_data = m_task->GetAgentPCBSplineControlData(
             m_bspline_dimension, m_bspline_degree, m_bspline_loopback_time,
+            m_num_max_pcs, m_pc_center, m_pc_component_matrix,
             m_bspline_translation_offset, m_bspline_doftype_data,
             m_bspline_measurementunit_data);
 
@@ -83,28 +84,31 @@ namespace mjpc
             GetNumberOrDefault(1, m_model, "intermediate_ball_motor_kp");
         m_intermediate_ball_motor_kd =
             GetNumberOrDefault(1, m_model, "intermediate_ball_motor_kd");
+
+        AdjustPCComponentMatrix(m_num_max_pcs);
     }
 
-    void BSplineSamplingPolicy::Reset(int horizon,
-                                      const double *initial_repeated_action)
+    void PCBSplineSamplingPolicy::Reset(int horizon,
+                                        const double *initial_repeated_action)
     {
         m_bspline_control_data.clear();
         m_bspline_doftype_data.clear();
         m_bspline_measurementunit_data.clear();
 
         // original bspline data
-        m_bspline_control_data = m_task->GetAgentBSplineControlData(
+        m_bspline_control_data = m_task->GetAgentPCBSplineControlData(
             m_bspline_dimension, m_bspline_degree, m_bspline_loopback_time,
+            m_num_max_pcs, m_pc_center, m_pc_component_matrix,
             m_bspline_translation_offset, m_bspline_doftype_data,
             m_bspline_measurementunit_data);
 
         GenerateBSplineControlData();
     }
 
-    void BSplineSamplingPolicy::Action(double *action, const double *state,
-                                       double time) const
+    void PCBSplineSamplingPolicy::Action(double *action, const double *state,
+                                         double time) const
     {
-        // Do bspline sampling
+        // Do pc bspline sampling
         vector<double> desiredState = ComputeDesiredAgentState(time);
 
         // For now, assume translation and hinge joints are servo controlled
@@ -161,7 +165,7 @@ namespace mjpc
             case mjJNT_SLIDE:
             case mjJNT_HINGE:
             {
-                // Why does this alone do Sampling control?
+                // Why does this alone do PD control?
                 // We want target velocity 0, which is handled by joint damping
                 // of the system Action automatically gets multiplied by the
                 // gain Corrective gain (kp * q_current) already is copmuted by
@@ -191,9 +195,34 @@ namespace mjpc
         Clamp(action, m_model->actuator_ctrlrange, m_model->nu);
     }
 
+    // Reduce the number of components to the number of active pcs being
+    // used
+    void PCBSplineSamplingPolicy::AdjustPCComponentMatrix(int numActivePCs)
+    {
+        m_active_pc_component_matrix.clear();
+
+        m_num_active_pcs = numActivePCs;
+
+        int numNonRootDofs = m_model->nu - 6;
+        m_active_pc_component_matrix.resize(m_num_active_pcs * numNonRootDofs);
+
+        vector<double> componentMatrixBuff;
+        componentMatrixBuff.resize(m_num_max_pcs * numNonRootDofs);
+
+        mju_transpose(componentMatrixBuff.data(), m_pc_component_matrix.data(),
+                      numNonRootDofs, m_num_active_pcs);
+
+        mju_copy(m_active_pc_component_matrix.data(),
+                 componentMatrixBuff.data(), m_num_active_pcs * numNonRootDofs);
+
+        mju_transpose(m_active_pc_component_matrix.data(),
+                      m_active_pc_component_matrix.data(), m_num_active_pcs,
+                      numNonRootDofs);
+    }
+
     // copy bspline control points
-    void BSplineSamplingPolicy::CopyControlPointsFrom(
-        const BSplineSamplingPolicy &policy)
+    void PCBSplineSamplingPolicy::CopyControlPointsAndActivePCsFrom(
+        const PCBSplineSamplingPolicy &policy)
     {
         m_bspline_control_data.clear();
 
@@ -201,28 +230,45 @@ namespace mjpc
              policy.m_bspline_control_data.end(),
              back_inserter(m_bspline_control_data));
 
+        m_num_active_pcs = policy.m_num_active_pcs;
+
         GenerateBSplineControlData();
     }
 
     // deltas should be of size m_model->nu * m_num_bspline_control_points *
     // m_bspline_dimension
-    void BSplineSamplingPolicy::AdjustBSplineControlPoints(double *deltas)
+    void PCBSplineSamplingPolicy::AdjustBSplineControlPoints(double *deltas)
     {
-        for (int dofIndex = 0; dofIndex < m_model->nu; dofIndex++)
+        for (int rootDofIndex = 0; rootDofIndex < 6; rootDofIndex++)
         {
-            mju_addTo(m_bspline_control_data[dofIndex].data(),
-                      deltas + dofIndex * m_num_bspline_control_points *
+            mju_addTo(m_bspline_control_data[rootDofIndex].data(),
+                      deltas + rootDofIndex * m_num_bspline_control_points *
                                    m_bspline_dimension,
                       m_num_bspline_control_points * m_bspline_dimension);
-            m_control_bspline_curves[dofIndex]->SetControlData(
-                m_bspline_control_data[dofIndex]);
+
+            m_control_bspline_curves[rootDofIndex]->SetControlData(
+                m_bspline_control_data[rootDofIndex]);
+        }
+
+        // Ignore noise for all inactive PCs
+        for (int pcDofIndex = 0; pcDofIndex < m_num_active_pcs; pcDofIndex++)
+        {
+            int dofOffset = 6 + pcDofIndex;
+
+            mju_addTo(m_bspline_control_data[dofOffset].data(),
+                      deltas + pcDofIndex * m_num_bspline_control_points *
+                                   m_bspline_dimension,
+                      m_num_bspline_control_points * m_bspline_dimension);
+
+            m_control_bspline_curves[dofOffset]->SetControlData(
+                m_bspline_control_data[dofOffset]);
         }
     }
 
     // Begin private methods
 
     vector<double>
-    BSplineSamplingPolicy::ComputeDesiredAgentState(double time) const
+    PCBSplineSamplingPolicy::ComputeDesiredAgentState(double time) const
     {
         vector<double> desiredState;
 
@@ -232,15 +278,42 @@ namespace mjpc
         vector<double> curveValue;
         curveValue.resize(m_bspline_dimension);
 
+        vector<double> pcSplineVals;
+        pcSplineVals.resize(m_num_active_pcs);
+
         vector<double> rawSplineVals;
         rawSplineVals.resize(m_model->nu);
 
-        for (int i = 0; i < m_model->nu; i++)
+        for (int i = 0; i < 6; i++)
         {
             m_control_bspline_curves[i]->GetPositionInMeasurementUnits(
                 parametricTime, curveValue.data());
 
             rawSplineVals[i] = curveValue[1];
+        }
+
+        for (int i = 0; i < m_num_active_pcs; i++)
+        {
+            m_control_bspline_curves[i + 6]->GetPositionInMeasurementUnits(
+                parametricTime, curveValue.data());
+
+            pcSplineVals[i] = curveValue[1];
+        }
+
+        vector<double> uncompressedState;
+        int numNonRootDofs = m_model->nu - 6;
+
+        uncompressedState.resize(numNonRootDofs);
+
+        mju_mulMatVec(uncompressedState.data(),
+                      m_active_pc_component_matrix.data(), pcSplineVals.data(),
+                      numNonRootDofs, m_num_active_pcs);
+
+        mju_addTo(uncompressedState.data(), m_pc_center.data(), numNonRootDofs);
+
+        for (int i = 0; i < numNonRootDofs; i++)
+        {
+            rawSplineVals[i + 6] = uncompressedState[i];
         }
 
         int dofIndex = 0;
@@ -320,9 +393,9 @@ namespace mjpc
         return desiredState;
     }
 
-    void BSplineSamplingPolicy::GenerateBSplineControlData()
+    void PCBSplineSamplingPolicy::GenerateBSplineControlData()
     {
-        int numControlSplinesToGenerate = m_model->nu;
+        int numControlSplinesToGenerate = m_num_max_pcs + 6;
 
         m_control_bspline_curves.clear();
 
