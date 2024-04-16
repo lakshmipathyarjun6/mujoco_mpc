@@ -104,6 +104,10 @@ add_library(
   planners/bsplinesampling/planner.h
   planners/bsplinesampling/policy.cc
   planners/bsplinesampling/policy.h
+  planners/pcbsplinepd/planner.cc
+  planners/pcbsplinepd/planner.h
+  planners/pcbsplinepd/policy.cc
+  planners/pcbsplinepd/policy.h
   planners/posesamplingpd/planner.cc
   planners/posesamplingpd/planner.h
   planners/posesamplingpd/policy.cc

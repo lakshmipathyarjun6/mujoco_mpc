@@ -22,6 +22,7 @@
 #include "mjpc/planners/bsplinepd/planner.h"
 #include "mjpc/planners/bsplinesampling/planner.h"
 #include "mjpc/planners/nothing/planner.h"
+#include "mjpc/planners/pcbsplinepd/planner.h"
 #include "mjpc/planners/posesamplingpd/planner.h"
 
 using namespace std;
@@ -31,6 +32,7 @@ namespace mjpc
     const char kPlannerNames[] = "Nothing\n"
                                  "BSplinePD\n"
                                  "BSplineSampling\n"
+                                 "PCBSplinePD\n"
                                  "PoseSamplingPD\n";
 
     // load all available planners
@@ -42,6 +44,7 @@ namespace mjpc
         planners.emplace_back(new mjpc::NothingPlanner);
         planners.emplace_back(new mjpc::BSplinePDPlanner);
         planners.emplace_back(new mjpc::BSplineSamplingPlanner);
+        planners.emplace_back(new mjpc::PCBSplinePDPlanner);
         planners.emplace_back(new mjpc::PoseSamplingPDPlanner);
 
         return planners;

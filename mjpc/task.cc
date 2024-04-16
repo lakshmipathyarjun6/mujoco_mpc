@@ -318,4 +318,27 @@ namespace mjpc
         return bspline_control_data;
     }
 
+    vector<vector<double>> Task::GetAgentPCBSplineControlData(
+        int &dimension, int &degree, double &loopbackTime, int &numMaxPCs,
+        vector<double> &centerData, vector<double> &componentData,
+        double translationOffset[3], vector<DofType> &dofTypes,
+        vector<MeasurementUnits> &measurementUnits) const
+    {
+        vector<vector<double>> bspline_control_data;
+
+        dimension = 0;
+        degree = 0;
+        loopbackTime = 0.0;
+        numMaxPCs = 0;
+
+        translationOffset = {0};
+
+        dofTypes.clear();
+        measurementUnits.clear();
+        centerData.clear();
+        componentData.clear();
+
+        return bspline_control_data;
+    }
+
 } // namespace mjpc

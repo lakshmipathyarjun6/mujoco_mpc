@@ -142,6 +142,15 @@ namespace mjpc
             double translationOffset[3], vector<DofType> &dofTypes,
             vector<MeasurementUnits> &measurementUnits) const;
 
+        // returns all principal component bspline control data for the hand
+        // state along with normal bsplines for the root, if any - can be
+        // overridden in derived classes
+        virtual vector<vector<double>> GetAgentPCBSplineControlData(
+            int &dimension, int &degree, double &loopbackTime, int &numMaxPCs,
+            vector<double> &centerData, vector<double> &componentData,
+            double translationOffset[3], vector<DofType> &dofTypes,
+            vector<MeasurementUnits> &measurementUnits) const;
+
         virtual void ModifyScene(const mjModel *model, const mjData *data,
                                  mjvScene *scene) const
         {
