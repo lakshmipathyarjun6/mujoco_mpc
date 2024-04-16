@@ -23,6 +23,7 @@
 #include "mjpc/planners/bsplinesampling/planner.h"
 #include "mjpc/planners/nothing/planner.h"
 #include "mjpc/planners/pcbsplinepd/planner.h"
+#include "mjpc/planners/pcbsplinesampling/planner.h"
 #include "mjpc/planners/posesamplingpd/planner.h"
 
 using namespace std;
@@ -33,6 +34,7 @@ namespace mjpc
                                  "BSplinePD\n"
                                  "BSplineSampling\n"
                                  "PCBSplinePD\n"
+                                 "PCBSplineSampling\n"
                                  "PoseSamplingPD\n";
 
     // load all available planners
@@ -45,6 +47,7 @@ namespace mjpc
         planners.emplace_back(new mjpc::BSplinePDPlanner);
         planners.emplace_back(new mjpc::BSplineSamplingPlanner);
         planners.emplace_back(new mjpc::PCBSplinePDPlanner);
+        planners.emplace_back(new mjpc::PCBSplineSamplingPlanner);
         planners.emplace_back(new mjpc::PoseSamplingPDPlanner);
 
         return planners;

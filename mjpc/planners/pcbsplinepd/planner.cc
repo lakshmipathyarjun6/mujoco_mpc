@@ -82,7 +82,10 @@ namespace mjpc
         auto nominal_policy = [&cp = m_active_policy](double *action,
                                                       const double *state,
                                                       double time)
-        { cp.Action(action, state, time); };
+        {
+            cp.AdjustPCComponentMatrix();
+            cp.Action(action, state, time);
+        };
 
         // rollout nominal policy
         m_trajectory.Rollout(nominal_policy, m_task, m_model, data_[0].get(),
