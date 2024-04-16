@@ -127,6 +127,12 @@ namespace mjpc
             double translationOffset[3], vector<DofType> &dofTypes,
             vector<MeasurementUnits> &measurementUnits) const override;
 
+        vector<vector<double>> GetAgentPCBSplineControlData(
+            int &dimension, int &degree, double &loopbackTime, int &numMaxPCs,
+            vector<double> &centerData, vector<double> &componentData,
+            double translationOffset[3], vector<DofType> &dofTypes,
+            vector<MeasurementUnits> &measurementUnits) const override;
+
         // --------------------- Transition for allegro task
         // ------------------------
         //   Set `data->mocap_pos` based on `data->time` to move the object

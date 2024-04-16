@@ -754,6 +754,83 @@ namespace mjpc
         return bsplineControlData;
     }
 
+    vector<vector<double>> AllegroTask::GetAgentPCBSplineControlData(
+        int &dimension, int &degree, double &loopbackTime, int &numMaxPCs,
+        vector<double> &centerData, vector<double> &componentData,
+        double translationOffset[3], vector<DofType> &dofTypes,
+        vector<MeasurementUnits> &measurementUnits) const
+    {
+        vector<vector<double>> bsplineControlData;
+
+        dimension = m_spline_dimension;
+        degree = m_spline_degree;
+        loopbackTime = m_spline_loopback_time;
+        numMaxPCs = m_num_pcs;
+
+        mju_copy3(translationOffset, m_start_clamp_offset);
+
+        dofTypes.clear();
+        measurementUnits.clear();
+
+        for (int i = 0; i < 6; i++)
+        {
+            vector<double> dataCopy; // Deep copy to avoid modifying original
+
+            vector<double> dataOriginal =
+                m_hand_traj_bspline_curves[i]->GetControlData();
+
+            TrajectorySplineProperties properties =
+                m_hand_traj_bspline_properties[i];
+
+            int numElements = dataOriginal.size();
+
+            // Intentionally avoid memcpy
+            for (int j = 0; j < numElements; j++)
+            {
+                dataCopy.push_back(dataOriginal[j]);
+            }
+
+            bsplineControlData.push_back(dataCopy);
+            dofTypes.push_back(properties.dofType);
+            measurementUnits.push_back(properties.units);
+        }
+
+        for (int i = 0; i < m_num_pcs; i++)
+        {
+            vector<double> dataCopy; // Deep copy to avoid modifying original
+
+            vector<double> dataOriginal =
+                m_hand_pc_traj_bspline_curves[i]->GetControlData();
+
+            TrajectorySplineProperties properties =
+                m_hand_pc_traj_bspline_properties[i];
+
+            int numElements = dataOriginal.size();
+
+            // Intentionally avoid memcpy
+            for (int j = 0; j < numElements; j++)
+            {
+                dataCopy.push_back(dataOriginal[j]);
+            }
+
+            bsplineControlData.push_back(dataCopy);
+            dofTypes.push_back(properties.dofType);
+            measurementUnits.push_back(properties.units);
+        }
+
+        for (int i = 0; i < m_hand_pc_center.size(); i++)
+        {
+            centerData.push_back(m_hand_pc_center[i]);
+        }
+
+        for (int i = 0; i < m_hand_pc_component_matrix.size(); i++)
+        {
+            componentData.push_back(m_hand_pc_component_matrix[i]);
+        }
+
+        return bsplineControlData;
+    }
+
     string AllegroAppleTask::XmlPath() const
     {
         return GetModelPath("allegro/task_apple.xml");
