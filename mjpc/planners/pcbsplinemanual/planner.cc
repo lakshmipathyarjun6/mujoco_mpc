@@ -126,9 +126,15 @@ namespace mjpc
 
         for (int i = 0; i < num_pcs; i++)
         {
-            string name = "PC " + to_string(i + 1);
-            mjuiDef element = {mjITEM_SLIDERNUM, "PC", 2,
-                               &m_active_policy.m_pc_state[i], "0 1"};
+            char numBuffer[3];
+            snprintf(numBuffer, 3, "%02d", i + 1);
+
+            mjuiDef element = {mjITEM_SLIDERNUM,
+                               {'P', 'C', ' ', numBuffer[0], numBuffer[1]},
+                               2,
+                               &m_active_policy.m_pc_state[i],
+                               "0 1"};
+
             defPCBsplineManualPlanner.push_back(element);
         }
         defPCBsplineManualPlanner.push_back({mjITEM_END});
