@@ -1,0 +1,17 @@
+<mujoco model="MANO Waterbottle Pour Task">
+
+    <include file="./task_template.xml"/>
+    <include file="../shared_task_templates/task_waterbottle_pour.xml"/>
+
+    <include file="./contacts/waterbottle_pour_1/waterbottle_pour_1_site_data.xml"/>
+
+    <worldbody>
+        <body name="hand_startclamp" pos="-0.4804867506027222 1.0599700212478638 1.2646256685256958">
+            <include file="right_hand_body.xml"/>
+        </body>
+        <include file="right_hand_mocap_vis.xml"/>
+        <include file="../shared_task_templates/waterbottle_sim_body.xml" />
+        <include file="./contacts/waterbottle_pour_1/waterbottle_pour_1_hand_sites.xml"/>
+    </worldbody>
+
+</mujoco>
