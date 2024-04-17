@@ -771,6 +771,8 @@ namespace mjpc
 
         dofTypes.clear();
         measurementUnits.clear();
+        centerData.clear();
+        componentData.clear();
 
         for (int i = 0; i < 6; i++)
         {
