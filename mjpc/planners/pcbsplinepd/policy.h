@@ -36,13 +36,12 @@ namespace mjpc
         void Action(double *action, const double *state,
                     double time) const override;
 
-        // Reduce the number of components to the number of active pcs being
-        // used
-        void AdjustPCComponentMatrix();
+        // record pc state at current time to m_pc_state
+        void RecordPCState(double time);
 
         // Make available to planner
-        int m_num_max_pcs;
-        int m_num_active_pcs;
+        int m_num_pcs;
+        vector<double> m_pc_state;
 
     private:
         // assemble complete desired agent state
@@ -66,7 +65,6 @@ namespace mjpc
 
         vector<double> m_pc_center;
         vector<double> m_pc_component_matrix;
-        vector<double> m_active_pc_component_matrix;
 
         int m_num_bspline_control_points;
         int m_bspline_dimension;

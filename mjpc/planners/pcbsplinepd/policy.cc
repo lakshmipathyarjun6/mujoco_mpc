@@ -17,7 +17,7 @@ namespace mjpc
         // structure
         m_bspline_control_data = m_task->GetAgentPCBSplineControlData(
             m_bspline_dimension, m_bspline_degree, m_bspline_loopback_time,
-            m_num_max_pcs, m_pc_center, m_pc_component_matrix,
+            m_num_pcs, m_pc_center, m_pc_component_matrix,
             m_bspline_translation_offset, m_bspline_doftype_data,
             m_bspline_measurementunit_data);
 
@@ -84,9 +84,9 @@ namespace mjpc
         m_intermediate_ball_motor_kd =
             GetNumberOrDefault(1, m_model, "intermediate_ball_motor_kd");
 
-        m_num_active_pcs = m_num_max_pcs;
+        m_pc_state.resize(m_num_pcs);
 
-        AdjustPCComponentMatrix();
+        fill(begin(m_pc_state), end(m_pc_state), 0);
     }
 
     void PCBSplinePDPolicy::Reset(int horizon,
@@ -99,7 +99,7 @@ namespace mjpc
         // original bspline data
         m_bspline_control_data = m_task->GetAgentPCBSplineControlData(
             m_bspline_dimension, m_bspline_degree, m_bspline_loopback_time,
-            m_num_max_pcs, m_pc_center, m_pc_component_matrix,
+            m_num_pcs, m_pc_center, m_pc_component_matrix,
             m_bspline_translation_offset, m_bspline_doftype_data,
             m_bspline_measurementunit_data);
 
@@ -196,27 +196,22 @@ namespace mjpc
         Clamp(action, m_model->actuator_ctrlrange, m_model->nu);
     }
 
-    // Reduce the number of components to the number of active pcs being
-    // used
-    void PCBSplinePDPolicy::AdjustPCComponentMatrix()
+    // record pc state at current time to m_pc_state
+    void PCBSplinePDPolicy::RecordPCState(double time)
     {
-        m_active_pc_component_matrix.clear();
+        double queryTime = fmod(time, m_bspline_loopback_time);
+        double parametricTime = queryTime / m_bspline_loopback_time;
 
-        int numNonRootDofs = m_model->nu - 6;
-        m_active_pc_component_matrix.resize(m_num_active_pcs * numNonRootDofs);
+        vector<double> curveValue;
+        curveValue.resize(m_bspline_dimension);
 
-        vector<double> componentMatrixBuff;
-        componentMatrixBuff.resize(m_num_max_pcs * numNonRootDofs);
+        for (int i = 0; i < m_num_pcs; i++)
+        {
+            m_control_bspline_curves[i + 6]->GetPositionInMeasurementUnits(
+                parametricTime, curveValue.data());
 
-        mju_transpose(componentMatrixBuff.data(), m_pc_component_matrix.data(),
-                      numNonRootDofs, m_num_active_pcs);
-
-        mju_copy(m_active_pc_component_matrix.data(),
-                 componentMatrixBuff.data(), m_num_active_pcs * numNonRootDofs);
-
-        mju_transpose(m_active_pc_component_matrix.data(),
-                      m_active_pc_component_matrix.data(), m_num_active_pcs,
-                      numNonRootDofs);
+            m_pc_state[i] = curveValue[1];
+        }
     }
 
     // Begin private methods
@@ -233,7 +228,7 @@ namespace mjpc
         curveValue.resize(m_bspline_dimension);
 
         vector<double> pcSplineVals;
-        pcSplineVals.resize(m_num_active_pcs);
+        pcSplineVals.resize(m_num_pcs);
 
         vector<double> rawSplineVals;
         rawSplineVals.resize(m_model->nu);
@@ -246,7 +241,7 @@ namespace mjpc
             rawSplineVals[i] = curveValue[1];
         }
 
-        for (int i = 0; i < m_num_active_pcs; i++)
+        for (int i = 0; i < m_num_pcs; i++)
         {
             m_control_bspline_curves[i + 6]->GetPositionInMeasurementUnits(
                 parametricTime, curveValue.data());
@@ -259,9 +254,8 @@ namespace mjpc
 
         uncompressedState.resize(numNonRootDofs);
 
-        mju_mulMatVec(uncompressedState.data(),
-                      m_active_pc_component_matrix.data(), pcSplineVals.data(),
-                      numNonRootDofs, m_num_active_pcs);
+        mju_mulMatVec(uncompressedState.data(), m_pc_component_matrix.data(),
+                      pcSplineVals.data(), numNonRootDofs, m_num_pcs);
 
         mju_addTo(uncompressedState.data(), m_pc_center.data(), numNonRootDofs);
 
@@ -349,7 +343,7 @@ namespace mjpc
 
     void PCBSplinePDPolicy::GenerateBSplineControlData()
     {
-        int numControlSplinesToGenerate = m_num_max_pcs + 6;
+        int numControlSplinesToGenerate = m_num_pcs + 6;
 
         m_control_bspline_curves.clear();
 
