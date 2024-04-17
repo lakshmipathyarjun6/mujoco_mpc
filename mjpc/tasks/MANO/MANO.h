@@ -14,6 +14,7 @@
 // Not equal due to ball joints
 #define MANO_DOFS 67
 #define MANO_VEL_DOFS 51
+#define MANO_NON_ROOT_VEL_DOFS 45
 
 #define XYZ_BLOCK_SIZE 3
 
@@ -92,17 +93,26 @@ namespace mjpc
         };
 
         MANOTask(string objectSimBodyName, string handTrajSplineFile,
-                 string objectTrajSplineFile, double startClampOffsetX,
-                 double startClampOffsetY, double startClampOffsetZ,
-                 int totalFrames, string objectContactStartDataName,
+                 string objectTrajSplineFile, string pcHandTrajSplineFile,
+                 double startClampOffsetX, double startClampOffsetY,
+                 double startClampOffsetZ, int totalFrames,
+                 string objectContactStartDataName,
                  string handContactStartDataName);
 
         vector<double> GetDesiredAgentState(double time) const;
+
+        vector<double> GetDesiredAgentStateFromPCs(double time) const;
 
         vector<double> GetDesiredObjectState(double time) const;
 
         vector<vector<double>> GetAgentBSplineControlData(
             int &dimension, int &degree, double &loopbackTime,
+            double translationOffset[3], vector<DofType> &dofTypes,
+            vector<MeasurementUnits> &measurementUnits) const override;
+
+        vector<vector<double>> GetAgentPCBSplineControlData(
+            int &dimension, int &degree, double &loopbackTime, int &numMaxPCs,
+            vector<double> &centerData, vector<double> &componentData,
             double translationOffset[3], vector<DofType> &dofTypes,
             vector<MeasurementUnits> &measurementUnits) const override;
 
@@ -145,6 +155,12 @@ namespace mjpc
         vector<BSplineCurve<double> *> m_object_traj_bspline_curves;
         vector<TrajectorySplineProperties> m_object_traj_bspline_properties;
 
+        int m_num_pcs;
+        vector<double> m_hand_pc_center;
+        vector<double> m_hand_pc_component_matrix;
+        vector<BSplineCurve<double> *> m_hand_pc_traj_bspline_curves;
+        vector<TrajectorySplineProperties> m_hand_pc_traj_bspline_properties;
+
         double m_spline_loopback_time;
         double m_start_clamp_offset[3];
 
@@ -164,6 +180,8 @@ namespace mjpc
                        "splinetrajectories/apple_pass_1_hand.smexp",
                        "/Users/arjunl/mujoco_mpc/mjpc/tasks/"
                        "shared_spline_trajectories/apple_pass_1_object.smexp",
+                       "/Users/arjunl/mujoco_mpc/mjpc/tasks/MANO/"
+                       "pcsplines/apple_pass_1.pcmexp",
                        -0.58147233724594119, 1.0124462842941284,
                        1.3647385835647584, 703, "contact_pos_object_data_215_0",
                        "contact_pos_hand_data_215_0")
@@ -185,6 +203,8 @@ namespace mjpc
                        "splinetrajectories/doorknob_use_1_hand.smexp",
                        "/Users/arjunl/mujoco_mpc/mjpc/tasks/"
                        "shared_spline_trajectories/doorknob_use_1_object.smexp",
+                       "/Users/arjunl/mujoco_mpc/mjpc/tasks/MANO/"
+                       "pcsplines/doorknob_use_1.pcmexp",
                        -1.0741884708404541, 0.31418800354003908,
                        1.298376441001892, 1040, "contact_pos_object_data_252_0",
                        "contact_pos_hand_data_252_0")

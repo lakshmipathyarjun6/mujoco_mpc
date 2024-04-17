@@ -233,9 +233,10 @@ namespace mjpc
     }
 
     MANOTask::MANOTask(string objectSimBodyName, string handTrajSplineFile,
-                       string objectTrajSplineFile, double startClampOffsetX,
-                       double startClampOffsetY, double startClampOffsetZ,
-                       int totalFrames, string objectContactStartDataName,
+                       string objectTrajSplineFile, string pcHandTrajSplineFile,
+                       double startClampOffsetX, double startClampOffsetY,
+                       double startClampOffsetZ, int totalFrames,
+                       string objectContactStartDataName,
                        string handContactStartDataName)
         : m_residual(this), m_object_sim_body_name(objectSimBodyName),
           m_total_frames(totalFrames),
@@ -269,12 +270,15 @@ namespace mjpc
 
         Document dFullHandSplines = loadJSON(handTrajSplineFile);
         Document dObjectSplines = loadJSON(objectTrajSplineFile);
+        Document dPcSplines = loadJSON(pcHandTrajSplineFile);
 
         m_spline_dimension = dFullHandSplines["dimension"].GetInt();
         m_spline_degree = dFullHandSplines["degree"].GetInt();
         m_spline_loopback_time = dFullHandSplines["time"].GetDouble();
 
         m_spline_loopback_time *= SLOWDOWN_FACTOR;
+
+        m_num_pcs = dPcSplines["numComponents"].GetInt();
 
         for (const auto &splineData : dFullHandSplines["data"].GetArray())
         {
@@ -347,6 +351,61 @@ namespace mjpc
             m_object_traj_bspline_properties.push_back(properties);
             m_object_traj_bspline_curves.push_back(bspc);
         }
+
+        const auto pcData = dPcSplines["data"].GetObject();
+
+        for (const auto &pcCenterData : pcData["center"].GetArray())
+        {
+            double dofMean = pcCenterData.GetDouble();
+            m_hand_pc_center.push_back(dofMean);
+        }
+
+        for (const auto &pcSplineData : pcData["components"].GetArray())
+        {
+            int numControlPoints = pcSplineData["numControlPoints"].GetInt();
+            string dofType = pcSplineData["type"].GetString();
+            string units = pcSplineData["units"].GetString();
+
+            TrajectorySplineProperties properties;
+            properties.numControlPoints = numControlPoints;
+            properties.dofType = m_doftype_property_mappings[dofType];
+            properties.units = m_measurement_units_property_mappings[units];
+
+            for (const auto &componentData :
+                 pcSplineData["componentData"].GetArray())
+            {
+                double entry = componentData.GetDouble();
+                m_hand_pc_component_matrix.push_back(entry);
+            }
+
+            vector<double> controlPoints;
+
+            for (const auto &controlPointData :
+                 pcSplineData["controlPointData"].GetArray())
+            {
+                double entry = controlPointData.GetDouble();
+                controlPoints.push_back(entry);
+            }
+
+            for (int i = 0; i < numControlPoints; i++)
+            {
+                controlPoints[i * 2] *= SLOWDOWN_FACTOR;
+            }
+
+            BSplineCurve<double> *bspc = new BSplineCurve<double>(
+                m_spline_dimension, m_spline_degree, numControlPoints,
+                m_doftype_property_mappings[dofType],
+                m_measurement_units_property_mappings[units]);
+
+            bspc->SetControlData(controlPoints);
+
+            m_hand_pc_traj_bspline_properties.push_back(properties);
+            m_hand_pc_traj_bspline_curves.push_back(bspc);
+        }
+
+        mju_transpose(m_hand_pc_component_matrix.data(),
+                      m_hand_pc_component_matrix.data(), m_num_pcs,
+                      MANO_NON_ROOT_VEL_DOFS);
 
         if (m_hand_traj_bspline_curves.size() != MANO_VEL_DOFS)
         {
@@ -424,6 +483,119 @@ namespace mjpc
                     parametricTime, curveValue);
 
                 double dofValue = curveValue[1];
+
+                switch (properties.dofType)
+                {
+                case DofType::DOF_TYPE_ROTATION_BALL_X:
+                    eulerAngles[0] = dofValue;
+                    break;
+                case DofType::DOF_TYPE_ROTATION_BALL_Y:
+                    eulerAngles[1] = dofValue;
+                    break;
+                case DofType::DOF_TYPE_ROTATION_BALL_Z:
+                    eulerAngles[2] = dofValue;
+                    break;
+                default:
+                    cout << "ERROR: Unknown non-root dof type" << endl;
+                    break;
+                }
+            }
+
+            ConvertEulerAnglesToQuat(eulerAngles, quat);
+
+            for (int j = 0; j < 4; j++)
+            {
+                desiredState.push_back(quat[j]);
+            }
+        }
+
+        return desiredState;
+    }
+
+    vector<double> MANOTask::GetDesiredAgentStateFromPCs(double time) const
+    {
+        vector<double> desiredState;
+
+        double queryTime = fmod(time, m_spline_loopback_time);
+        double parametricTime = queryTime / m_spline_loopback_time;
+
+        // Get root state from original spline - no PC is performed on it
+        double eulerAngles[3] = {0.0, 0.0, 0.0};
+        double curveValue[2];
+
+        for (int i = 0; i < 6; i++)
+        {
+            TrajectorySplineProperties properties =
+                m_hand_traj_bspline_properties[i];
+
+            m_hand_traj_bspline_curves[i]->GetPositionInMeasurementUnits(
+                parametricTime, curveValue);
+
+            double dofValue = curveValue[1];
+
+            switch (properties.dofType)
+            {
+            case DofType::DOF_TYPE_ROTATION_BALL_X:
+                eulerAngles[0] = dofValue;
+                break;
+            case DofType::DOF_TYPE_ROTATION_BALL_Y:
+                eulerAngles[1] = dofValue;
+                break;
+            case DofType::DOF_TYPE_ROTATION_BALL_Z:
+                eulerAngles[2] = dofValue;
+                break;
+            default:
+                desiredState.push_back(dofValue);
+                break;
+            }
+        }
+
+        // Correct for start clamp offset
+        mju_sub3(desiredState.data(), desiredState.data(),
+                 m_start_clamp_offset);
+
+        // Convert root rotation to quaternion
+        double quat[4];
+        ConvertEulerAnglesToQuat(eulerAngles, quat);
+
+        for (int i = 0; i < 4; i++)
+        {
+            desiredState.push_back(quat[i]);
+        }
+
+        vector<double> pcState;
+        pcState.resize(m_num_pcs);
+
+        for (int i = 0; i < m_num_pcs; i++)
+        {
+            m_hand_pc_traj_bspline_curves[i]->GetPositionInMeasurementUnits(
+                parametricTime, curveValue);
+
+            pcState[i] = curveValue[1];
+        }
+
+        vector<double> uncompressedState;
+        uncompressedState.resize(MANO_NON_ROOT_VEL_DOFS);
+
+        mju_mulMatVec(uncompressedState.data(),
+                      m_hand_pc_component_matrix.data(), pcState.data(),
+                      MANO_NON_ROOT_VEL_DOFS, m_num_pcs);
+
+        mju_addTo(uncompressedState.data(), m_hand_pc_center.data(),
+                  MANO_NON_ROOT_VEL_DOFS);
+
+        // All remaining dofs are ball joints
+        for (int i = 0; i < MANO_NON_ROOT_VEL_DOFS; i += 3)
+        {
+            mju_zero3(eulerAngles);
+            mju_zero4(quat);
+
+            for (int j = i; j < i + 3; j++)
+            {
+                TrajectorySplineProperties properties =
+                    m_hand_traj_bspline_properties[6 + j];
+
+                double dofValue = uncompressedState[j];
 
                 switch (properties.dofType)
                 {
@@ -542,6 +714,85 @@ namespace mjpc
             bsplineControlData.push_back(dataCopy);
             dofTypes.push_back(properties.dofType);
             measurementUnits.push_back(properties.units);
+        }
+
+        return bsplineControlData;
+    }
+
+    vector<vector<double>> MANOTask::GetAgentPCBSplineControlData(
+        int &dimension, int &degree, double &loopbackTime, int &numMaxPCs,
+        vector<double> &centerData, vector<double> &componentData,
+        double translationOffset[3], vector<DofType> &dofTypes,
+        vector<MeasurementUnits> &measurementUnits) const
+    {
+        vector<vector<double>> bsplineControlData;
+
+        dimension = m_spline_dimension;
+        degree = m_spline_degree;
+        loopbackTime = m_spline_loopback_time;
+        numMaxPCs = m_num_pcs;
+
+        mju_copy3(translationOffset, m_start_clamp_offset);
+
+        dofTypes.clear();
+        measurementUnits.clear();
+        centerData.clear();
+        componentData.clear();
+
+        for (int i = 0; i < 6; i++)
+        {
+            vector<double> dataCopy; // Deep copy to avoid modifying original
+
+            vector<double> dataOriginal =
+                m_hand_traj_bspline_curves[i]->GetControlData();
+
+            TrajectorySplineProperties properties =
+                m_hand_traj_bspline_properties[i];
+
+            int numElements = dataOriginal.size();
+
+            // Intentionally avoid memcpy
+            for (int j = 0; j < numElements; j++)
+            {
+                dataCopy.push_back(dataOriginal[j]);
+            }
+
+            bsplineControlData.push_back(dataCopy);
+            dofTypes.push_back(properties.dofType);
+            measurementUnits.push_back(properties.units);
+        }
+
+        for (int i = 0; i < m_num_pcs; i++)
+        {
+            vector<double> dataCopy; // Deep copy to avoid modifying original
+
+            vector<double> dataOriginal =
+                m_hand_pc_traj_bspline_curves[i]->GetControlData();
+
+            TrajectorySplineProperties properties =
+                m_hand_pc_traj_bspline_properties[i];
+
+            int numElements = dataOriginal.size();
+
+            // Intentionally avoid memcpy
+            for (int j = 0; j < numElements; j++)
+            {
+                dataCopy.push_back(dataOriginal[j]);
+            }
+
+            bsplineControlData.push_back(dataCopy);
+            dofTypes.push_back(properties.dofType);
+            measurementUnits.push_back(properties.units);
+        }
+
+        for (int i = 0; i < m_hand_pc_center.size(); i++)
+        {
+            centerData.push_back(m_hand_pc_center[i]);
+        }
+
+        for (int i = 0; i < m_hand_pc_component_matrix.size(); i++)
+        {
+            componentData.push_back(m_hand_pc_component_matrix[i]);
         }
 
         return bsplineControlData;
