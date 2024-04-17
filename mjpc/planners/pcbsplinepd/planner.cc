@@ -82,10 +82,7 @@ namespace mjpc
         auto nominal_policy = [&cp = m_active_policy](double *action,
                                                       const double *state,
                                                       double time)
-        {
-            cp.AdjustPCComponentMatrix();
-            cp.Action(action, state, time);
-        };
+        { cp.Action(action, state, time); };
 
         // rollout nominal policy
         m_trajectory.Rollout(nominal_policy, m_task, m_model, data_[0].get(),
@@ -99,7 +96,7 @@ namespace mjpc
                                               bool use_previous)
     {
         const shared_lock<shared_mutex> lock(m_mtx);
-        m_active_policy.AdjustPCComponentMatrix();
+        m_active_policy.RecordPCState(time);
         m_active_policy.Action(action, state, time);
     }
 
@@ -122,17 +119,25 @@ namespace mjpc
     // planner-specific GUI elements
     void PCBSplinePDPlanner::GUI(mjUI &ui)
     {
-        mjuiDef defPCBsplinePDPlanner[] = {{mjITEM_SLIDERINT, "Num PCs", 2,
-                                            &m_active_policy.m_num_active_pcs,
-                                            "0 1"},
-                                           {mjITEM_END}};
+        vector<mjuiDef> defPCBsplinePDPlanner;
 
-        // set number of pc component slider limits
-        mju::sprintf_arr(defPCBsplinePDPlanner[0].other, "%i %i", 1,
-                         m_active_policy.m_num_max_pcs);
+        for (int i = 0; i < m_active_policy.m_num_pcs; i++)
+        {
+            char numBuffer[3];
+            snprintf(numBuffer, 3, "%02d", i + 1);
+
+            mjuiDef element = {mjITEM_SLIDERNUM,
+                               {'P', 'C', ' ', numBuffer[0], numBuffer[1]},
+                               2,
+                               &m_active_policy.m_pc_state[i],
+                               "-2 2"};
+
+            defPCBsplinePDPlanner.push_back(element);
+        }
+        defPCBsplinePDPlanner.push_back({mjITEM_END});
 
         // add gradient descent planner
-        mjui_add(&ui, defPCBsplinePDPlanner);
+        mjui_add(&ui, defPCBsplinePDPlanner.data());
     }
 
     // planner-specific plots
