@@ -812,4 +812,14 @@ namespace mjpc
 
     string MANODoorknobTask::Name() const { return "MANO Doorknob Use"; }
 
+    string MANOWaterbottlePourTask::XmlPath() const
+    {
+        return GetModelPath("MANO/task_waterbottle_pour.xml");
+    }
+
+    string MANOWaterbottlePourTask::Name() const
+    {
+        return "MANO Waterbottle Pour";
+    }
+
 } // namespace mjpc

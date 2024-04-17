@@ -47,6 +47,7 @@
     <asset>
         <mesh name="apple" file="../../shared_assets/apple.obj" />
         <mesh name="doorknob" file="../../shared_assets/doorknob.obj" />
+        <mesh name="waterbottle" file="../../shared_assets/waterbottle.obj" />
     </asset>
 
 </mujoco>

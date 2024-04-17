@@ -212,6 +212,28 @@ namespace mjpc
         }
     };
 
+    class MANOWaterbottlePourTask : public MANOTask
+    {
+    public:
+        string Name() const override;
+        string XmlPath() const override;
+
+        MANOWaterbottlePourTask()
+            : MANOTask(
+                  "waterbottle_sim",
+                  "/Users/arjunl/mujoco_mpc/mjpc/tasks/MANO/"
+                  "splinetrajectories/waterbottle_pour_1_hand.smexp",
+                  "/Users/arjunl/mujoco_mpc/mjpc/tasks/"
+                  "shared_spline_trajectories/waterbottle_pour_1_object.smexp",
+                  "/Users/arjunl/mujoco_mpc/mjpc/tasks/MANO/"
+                  "pcsplines/waterbottle_pour_1.pcmexp",
+                  -0.4804867506027222, 1.0599700212478638, 1.2646256685256958,
+                  927, "contact_pos_object_data_185_0",
+                  "contact_pos_hand_data_185_0")
+        {
+        }
+    };
+
 } // namespace mjpc
 
 #endif // MJPC_TASKS_MANO_HAND_H_
