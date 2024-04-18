@@ -85,8 +85,10 @@ namespace mjpc
             GetNumberOrDefault(1, m_model, "intermediate_ball_motor_kd");
 
         m_pc_state.resize(m_num_pcs);
+        m_tx_deltas.resize(3);
 
         fill(begin(m_pc_state), end(m_pc_state), 0);
+        fill(begin(m_tx_deltas), end(m_tx_deltas), 0);
     }
 
     void PCBSplineManualPolicy::Reset(int horizon,
@@ -219,6 +221,8 @@ namespace mjpc
 
             rawSplineVals[i] = curveValue[1];
         }
+
+        mju_addTo3(rawSplineVals.data(), m_tx_deltas.data());
 
         vector<double> uncompressedState;
         int numNonRootDofs = m_model->nu - 6;

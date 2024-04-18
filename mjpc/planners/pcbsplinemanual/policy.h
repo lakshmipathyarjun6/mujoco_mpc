@@ -39,6 +39,7 @@ namespace mjpc
         // Make available to planner
         int m_num_pcs;
         vector<double> m_pc_state;
+        vector<double> m_tx_deltas;
 
     private:
         // assemble complete desired agent state
