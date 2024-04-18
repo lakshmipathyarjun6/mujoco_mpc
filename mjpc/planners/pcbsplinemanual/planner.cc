@@ -124,6 +124,33 @@ namespace mjpc
 
         vector<mjuiDef> defPCBsplineManualPlanner;
 
+        for (int i = 0; i < 3; i++)
+        {
+            char dim = 'B';
+
+            switch (i)
+            {
+            case 0:
+                dim = 'X';
+                break;
+            case 1:
+                dim = 'Y';
+                break;
+            case 2:
+                dim = 'Z';
+                break;
+            default:
+                break;
+            }
+
+            mjuiDef element = {mjITEM_SLIDERNUM,
+                               {'R', 'o', 'o', 't', 'D', 'T', dim},
+                               2,
+                               &m_active_policy.m_tx_deltas[i],
+                               "-0.1 0.1"};
+
+            defPCBsplineManualPlanner.push_back(element);
+        }
         for (int i = 0; i < num_pcs; i++)
         {
             char numBuffer[3];
