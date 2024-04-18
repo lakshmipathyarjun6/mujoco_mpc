@@ -133,7 +133,7 @@ namespace mjpc
                                {'P', 'C', ' ', numBuffer[0], numBuffer[1]},
                                2,
                                &m_active_policy.m_pc_state[i],
-                               "0 1"};
+                               "-3 3"};
 
             defPCBsplineManualPlanner.push_back(element);
         }
