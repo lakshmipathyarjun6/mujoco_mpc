@@ -75,7 +75,7 @@ namespace mjpc
     {
         // TODO: Find way to remove
         // Don't know how to turn contacts into continuous time queries
-        double fps = DEFAULT_MOCAP_FPS / SLOWDOWN_FACTOR;
+        double fps = DEFAULT_MOCAP_FPS / MANO_SLOWDOWN_FACTOR;
         double rounded_index = floor(data->time * fps);
         int contact_frame_index = int(rounded_index) % m_total_frames;
 
@@ -276,7 +276,7 @@ namespace mjpc
         m_spline_degree = dFullHandSplines["degree"].GetInt();
         m_spline_loopback_time = dFullHandSplines["time"].GetDouble();
 
-        m_spline_loopback_time *= SLOWDOWN_FACTOR;
+        m_spline_loopback_time *= MANO_SLOWDOWN_FACTOR;
 
         m_num_pcs = dPcSplines["numComponents"].GetInt();
 
@@ -302,7 +302,7 @@ namespace mjpc
 
             for (int i = 0; i < numControlPoints; i++)
             {
-                controlPoints[i * 2] *= SLOWDOWN_FACTOR;
+                controlPoints[i * 2] *= MANO_SLOWDOWN_FACTOR;
             }
 
             BSplineCurve<double> *bspc = new BSplineCurve<double>(
@@ -338,7 +338,7 @@ namespace mjpc
 
             for (int i = 0; i < numControlPoints; i++)
             {
-                controlPoints[i * 2] *= SLOWDOWN_FACTOR;
+                controlPoints[i * 2] *= MANO_SLOWDOWN_FACTOR;
             }
 
             BSplineCurve<double> *bspc = new BSplineCurve<double>(
@@ -389,7 +389,7 @@ namespace mjpc
 
             for (int i = 0; i < numControlPoints; i++)
             {
-                controlPoints[i * 2] *= SLOWDOWN_FACTOR;
+                controlPoints[i * 2] *= MANO_SLOWDOWN_FACTOR;
             }
 
             BSplineCurve<double> *bspc = new BSplineCurve<double>(
