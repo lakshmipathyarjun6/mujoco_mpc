@@ -1215,6 +1215,7 @@ void UiEvent(mjuiState* state) {
             mju_copy(sim->dnew->act, act, sim->mnew->na);
           }
 
+          sim->agent->Reset();
           sim->agent->PlotReset();
         }
         break;
