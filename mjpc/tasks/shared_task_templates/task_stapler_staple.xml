@@ -6,7 +6,9 @@
         <body name="stapler_mocap" mocap="true">
             <geom type="mesh" mesh="stapler" contype="0" conaffinity="0" rgba="0 1 0 1.0"/>
         </body>
-        <geom name="table" pos="0.13301 -0.96019 0.34533" size="0.5 0.5 0.5" type="box" group="2" material="grey_grid"/>
+        <body name="tablebody">
+            <geom name="table" pos="0.13301 -0.96019 0.84498" size="0.5 0.5 0.5" type="plane" group="2" material="grey_grid"/>
+        </body>
         <geom name="floor" pos="0 0 -0.2" size="0 0 0.05" type="plane" material="blue_grid"/>
     </worldbody>
 
