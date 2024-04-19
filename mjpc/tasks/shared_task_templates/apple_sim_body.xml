@@ -3,7 +3,9 @@
     <body name="apple_sim">
         <freejoint/>
         <geom name="sim_geom_apple_visual" type="mesh" mesh="apple" contype="0" conaffinity="0" group="2" mass="0" rgba="1.0 0 0 1.0"/>
-        <geom name="sim_geom_apple_collision" type="sphere" size="0.04" pos="0 0 -0.01" group="3" mass="0.2"/>
+        <!-- <geom name="sim_geom_apple_collision" type="sphere" size="0.04" pos="0 0 -0.01" group="3" mass="0.2"/> -->
+        <geom name="sim_geom_apple_collision_stem" type="mesh" mesh="apple_contact0" density="1250" condim="4" group="3" />
+        <geom name="sim_geom_apple_collision_fruit" type="mesh" mesh="apple_contact1" density="1250" condim="4" group="3" />
         <include file="./contacts/apple_pass_1/apple_pass_1_object_sites.xml"/>
     </body>
 

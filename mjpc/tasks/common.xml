@@ -39,15 +39,21 @@
     </visual>
 
     <default>
-        <geom friction=".6"/>
+        <geom friction="1.0"/>
     </default>
 
     <compiler angle="radian" autolimits="true"/>
 
     <asset>
-        <mesh name="apple" file="../../shared_assets/apple.obj" />
-        <mesh name="doorknob" file="../../shared_assets/doorknob.obj" />
-        <mesh name="waterbottle" file="../../shared_assets/waterbottle.obj" />
+        <mesh name="apple" file="../../shared_assets/apple/apple.obj" />
+        <mesh name="apple_contact0" file="../../shared_assets/apple/contact0.stl"  />
+        <mesh name="apple_contact1" file="../../shared_assets/apple/contact1.stl"  />
+
+        <mesh name="doorknob" file="../../shared_assets/doorknob/doorknob.obj" />
+
+        <mesh name="waterbottle" file="../../shared_assets/waterbottle/waterbottle.obj" />
+        <mesh name="waterbottle_contact0" file="../../shared_assets/waterbottle/contact0.stl"  />
+        <mesh name="waterbottle_contact1" file="../../shared_assets/waterbottle/contact1.stl"  />
     </asset>
 
 </mujoco>
