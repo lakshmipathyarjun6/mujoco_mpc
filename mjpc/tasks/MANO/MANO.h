@@ -9,7 +9,7 @@
 #include "JSONUtils.hpp"
 
 #define DEFAULT_MOCAP_FPS 120
-#define SLOWDOWN_FACTOR 10
+#define MANO_SLOWDOWN_FACTOR 10
 
 // Not equal due to ball joints
 #define MANO_DOFS 67
