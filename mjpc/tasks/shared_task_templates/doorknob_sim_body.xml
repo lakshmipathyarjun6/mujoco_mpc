@@ -6,7 +6,7 @@
             <geom name="sim_geom_doorknob_collision_knob" type="ellipsoid" size="0.0325 0.0325 0.015" pos="0 0 0.021" density="1250" condim="4" group="3" />
             <geom name="sim_geom_doorknob_collision_shaft" type="cylinder" size="0.01 0.0157" pos="0 0 -0.01" density="1250" condim="4" group="3" />
             <geom name="sim_geom_doorknob_collision_stopper" type="box" size="0.05 0.025 0.005" pos="0 0 -0.0315" density="1250" condim="4" group="3" />
-            <include file="./contacts/doorknob_use_1/doorknob_use_1_object_sites.xml"/>
+            <include file="./contacts/sites/object_contact_sites.xml"/>
         </body>
     </body>
 </mujoco>
