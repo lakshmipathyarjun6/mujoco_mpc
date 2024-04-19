@@ -15,4 +15,9 @@
     <site name="contact_site_object_13" group="2" rgba="1 0 1 1" />
     <site name="contact_site_object_14" group="2" rgba="1 0 1 1" />
     <site name="contact_site_object_15" group="2" rgba="1 0 1 1" />
+    <site name="contact_site_object_16" group="2" rgba="1 0 1 1" />
+    <site name="contact_site_object_17" group="2" rgba="1 0 1 1" />
+    <site name="contact_site_object_18" group="2" rgba="1 0 1 1" />
+    <site name="contact_site_object_19" group="2" rgba="1 0 1 1" />
+    <site name="contact_site_object_20" group="2" rgba="1 0 1 1" />
 </mujoco>
