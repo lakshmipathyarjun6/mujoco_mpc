@@ -14,4 +14,23 @@
         <include file="./contacts/sites/hand_contact_sites.xml"/>
     </worldbody>
 
+    <contact>
+        <exclude body1="wrist" body2="tablebody"/>
+        <exclude body1="index1" body2="tablebody"/>
+        <exclude body1="index2" body2="tablebody"/>
+        <exclude body1="index3" body2="tablebody"/>
+        <exclude body1="middle1" body2="tablebody"/>
+        <exclude body1="middle2" body2="tablebody"/>
+        <exclude body1="middle3" body2="tablebody"/>
+        <exclude body1="pinky1" body2="tablebody"/>
+        <exclude body1="pinky2" body2="tablebody"/>
+        <exclude body1="pinky3" body2="tablebody"/>
+        <exclude body1="ring1" body2="tablebody"/>
+        <exclude body1="ring2" body2="tablebody"/>
+        <exclude body1="ring3" body2="tablebody"/>
+        <exclude body1="thumb1" body2="tablebody"/>
+        <exclude body1="thumb2" body2="tablebody"/>
+        <exclude body1="thumb3" body2="tablebody"/>
+    </contact>
+
 </mujoco>
