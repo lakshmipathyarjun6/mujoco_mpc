@@ -1,0 +1,12 @@
+<mujoco>
+
+    <body name="phone_sim">
+        <freejoint/>
+        <geom name="sim_geom_phone_visual" type="mesh" mesh="phone" contype="0" conaffinity="0" group="2" mass="0" rgba="1.0 0 0 1.0"/>
+        <geom name="sim_geom_phone_collision_antenna" type="mesh" mesh="phone_contact0" density="1250" condim="4" group="3" />
+        <geom name="sim_geom_phone_collision_top" type="mesh" mesh="phone_contact1" density="1250" condim="4" group="3" />
+        <geom name="sim_geom_phone_collision_bottom" type="mesh" mesh="phone_contact2" density="1250" condim="4" group="3" />
+        <include file="./contacts/sites/object_contact_sites.xml"/>
+    </body>
+
+</mujoco>
