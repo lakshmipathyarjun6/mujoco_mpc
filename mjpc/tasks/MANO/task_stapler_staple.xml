@@ -1,0 +1,17 @@
+<mujoco model="MANO Stapler Staple Task">
+
+    <include file="./task_template.xml"/>
+    <include file="../shared_task_templates/task_stapler_staple.xml"/>
+
+    <include file="./contacts/data/stapler_staple_2.xml"/>
+
+    <worldbody>
+        <body name="hand_startclamp" pos="-0.4984360337257385 0.5916348099708557 1.2731690406799317">
+            <include file="right_hand_body.xml"/>
+        </body>
+        <include file="right_hand_mocap_vis.xml"/>
+        <include file="../shared_task_templates/stapler_sim_body.xml" />
+        <include file="./contacts/sites/hand_contact_sites.xml"/>
+    </worldbody>
+
+</mujoco>

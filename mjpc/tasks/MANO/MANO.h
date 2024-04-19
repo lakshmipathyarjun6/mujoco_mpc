@@ -168,13 +168,13 @@ namespace mjpc
         map<string, MeasurementUnits> m_measurement_units_property_mappings;
     };
 
-    class MANOAppleTask : public MANOTask
+    class MANOApplePassTask : public MANOTask
     {
     public:
         string Name() const override;
         string XmlPath() const override;
 
-        MANOAppleTask()
+        MANOApplePassTask()
             : MANOTask("apple_sim",
                        "/Users/arjunl/mujoco_mpc/mjpc/tasks/MANO/"
                        "splinetrajectories/apple_pass_1_hand.smexp",
@@ -191,13 +191,13 @@ namespace mjpc
     private:
     };
 
-    class MANODoorknobTask : public MANOTask
+    class MANODoorknobUseTask : public MANOTask
     {
     public:
         string Name() const override;
         string XmlPath() const override;
 
-        MANODoorknobTask()
+        MANODoorknobUseTask()
             : MANOTask("doorknob_sim",
                        "/Users/arjunl/mujoco_mpc/mjpc/tasks/MANO/"
                        "splinetrajectories/doorknob_use_1_hand.smexp",
@@ -208,6 +208,92 @@ namespace mjpc
                        -1.0741884708404541, 0.31418800354003908,
                        1.298376441001892, 1040, "contact_pos_object_data_252_0",
                        "contact_pos_hand_data_252_0")
+        {
+        }
+    };
+
+    class MANOFlashlightOnTask : public MANOTask
+    {
+    public:
+        string Name() const override;
+        string XmlPath() const override;
+
+        MANOFlashlightOnTask()
+            : MANOTask(
+                  "flashlight_sim",
+                  "/Users/arjunl/mujoco_mpc/mjpc/tasks/MANO/"
+                  "splinetrajectories/flashlight_on_1_hand.smexp",
+                  "/Users/arjunl/mujoco_mpc/mjpc/tasks/"
+                  "shared_spline_trajectories/flashlight_on_1_object.smexp",
+                  "/Users/arjunl/mujoco_mpc/mjpc/tasks/MANO/"
+                  "pcsplines/flashlight_on_1.pcmexp",
+                  -0.6258119344711304, 0.8344507813453675, 1.3911676406860352,
+                  1040, "contact_pos_object_data_205_0",
+                  "contact_pos_hand_data_205_0")
+        {
+        }
+    };
+
+    class MANOHammerUseTask : public MANOTask
+    {
+    public:
+        string Name() const override;
+        string XmlPath() const override;
+
+        MANOHammerUseTask()
+            : MANOTask("hammer_sim",
+                       "/Users/arjunl/mujoco_mpc/mjpc/tasks/MANO/"
+                       "splinetrajectories/hammer_use_2_hand.smexp",
+                       "/Users/arjunl/mujoco_mpc/mjpc/tasks/"
+                       "shared_spline_trajectories/hammer_use_2_object.smexp",
+                       "/Users/arjunl/mujoco_mpc/mjpc/tasks/MANO/"
+                       "pcsplines/hammer_use_2.pcmexp",
+                       -0.7610342502593994, 0.60684651136398318,
+                       1.355204939842224, 768, "contact_pos_object_data_139_0",
+                       "contact_pos_hand_data_139_0")
+        {
+        }
+    };
+
+    class MANOPhoneCallTask : public MANOTask
+    {
+    public:
+        string Name() const override;
+        string XmlPath() const override;
+
+        MANOPhoneCallTask()
+            : MANOTask("phone_sim",
+                       "/Users/arjunl/mujoco_mpc/mjpc/tasks/MANO/"
+                       "splinetrajectories/phone_call_1_hand.smexp",
+                       "/Users/arjunl/mujoco_mpc/mjpc/tasks/"
+                       "shared_spline_trajectories/phone_call_1_object.smexp",
+                       "/Users/arjunl/mujoco_mpc/mjpc/tasks/MANO/"
+                       "pcsplines/phone_call_1.pcmexp",
+                       -0.7065898180007935, 0.3405895233154297,
+                       1.313579797744751, 1145, "contact_pos_object_data_198_0",
+                       "contact_pos_hand_data_198_0")
+        {
+        }
+    };
+
+    class MANOStaplerStapleTask : public MANOTask
+    {
+    public:
+        string Name() const override;
+        string XmlPath() const override;
+
+        MANOStaplerStapleTask()
+            : MANOTask(
+                  "stapler_sim",
+                  "/Users/arjunl/mujoco_mpc/mjpc/tasks/MANO/"
+                  "splinetrajectories/stapler_staple_2_hand.smexp",
+                  "/Users/arjunl/mujoco_mpc/mjpc/tasks/"
+                  "shared_spline_trajectories/stapler_staple_2_object.smexp",
+                  "/Users/arjunl/mujoco_mpc/mjpc/tasks/MANO/"
+                  "pcsplines/stapler_staple_2.pcmexp",
+                  -0.4984360337257385, 0.5916348099708557, 1.2731690406799317,
+                  877, "contact_pos_object_data_230_0",
+                  "contact_pos_hand_data_230_0")
         {
         }
     };

@@ -1,0 +1,17 @@
+<mujoco model="MANO Phone Call Task">
+
+    <include file="./task_template.xml"/>
+    <include file="../shared_task_templates/task_phone_call.xml"/>
+
+    <include file="./contacts/data/phone_call_1.xml"/>
+
+    <worldbody>
+        <body name="hand_startclamp" pos="-0.7065898180007935 0.3405895233154297 1.313579797744751">
+            <include file="right_hand_body.xml"/>
+        </body>
+        <include file="right_hand_mocap_vis.xml"/>
+        <include file="../shared_task_templates/phone_sim_body.xml" />
+        <include file="./contacts/sites/hand_contact_sites.xml"/>
+    </worldbody>
+
+</mujoco>

@@ -1,0 +1,17 @@
+<mujoco model="MANO Hammer Use Task">
+
+    <include file="./task_template.xml"/>
+    <include file="../shared_task_templates/task_hammer_use.xml"/>
+
+    <include file="./contacts/data/hammer_use_2.xml"/>
+
+    <worldbody>
+        <body name="hand_startclamp" pos="-0.7610342502593994 0.60684651136398318 1.355204939842224">
+            <include file="right_hand_body.xml"/>
+        </body>
+        <include file="right_hand_mocap_vis.xml"/>
+        <include file="../shared_task_templates/hammer_sim_body.xml" />
+        <include file="./contacts/sites/hand_contact_sites.xml"/>
+    </worldbody>
+
+</mujoco>

@@ -22,9 +22,14 @@ namespace mjpc
 
     vector<shared_ptr<Task>> GetTasks()
     {
-        return {make_shared<AllegroAppleTask>(),
-                make_shared<AllegroDoorknobTask>(),
-                make_shared<MANOAppleTask>(), make_shared<MANODoorknobTask>(),
+        return {make_shared<AllegroApplePassTask>(),
+                make_shared<AllegroDoorknobUseTask>(),
+                make_shared<MANOApplePassTask>(),
+                make_shared<MANODoorknobUseTask>(),
+                make_shared<MANOFlashlightOnTask>(),
+                make_shared<MANOHammerUseTask>(),
+                make_shared<MANOPhoneCallTask>(),
+                make_shared<MANOStaplerStapleTask>(),
                 make_shared<MANOWaterbottlePourTask>()};
     }
 

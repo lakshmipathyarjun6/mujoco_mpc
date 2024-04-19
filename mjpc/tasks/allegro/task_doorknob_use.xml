@@ -1,7 +1,7 @@
 <mujoco model="Allegro Doorknob Use Task">
 
     <include file="./task_template.xml"/>
-    <include file="../shared_task_templates/task_doorknob.xml"/>
+    <include file="../shared_task_templates/task_doorknob_use.xml"/>
 
     <!-- <include file="./contacts/doorknob_use_1/doorknob_use_1_site_data.xml"/> -->
 

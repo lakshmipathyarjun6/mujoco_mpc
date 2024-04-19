@@ -1,0 +1,17 @@
+<mujoco model="MANO Flashlight On Task">
+
+    <include file="./task_template.xml"/>
+    <include file="../shared_task_templates/task_flashlight_on.xml"/>
+
+    <include file="./contacts/data/flashlight_on_1.xml"/>
+
+    <worldbody>
+        <body name="hand_startclamp" pos="-0.6258119344711304 0.8344507813453675 1.3911676406860352">
+            <include file="right_hand_body.xml"/>
+        </body>
+        <include file="right_hand_mocap_vis.xml"/>
+        <include file="../shared_task_templates/flashlight_sim_body.xml" />
+        <include file="./contacts/sites/hand_contact_sites.xml"/>
+    </worldbody>
+
+</mujoco>

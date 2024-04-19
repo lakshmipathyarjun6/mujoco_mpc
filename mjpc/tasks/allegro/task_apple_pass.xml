@@ -1,7 +1,7 @@
 <mujoco model="Allegro Apple Pass Task">
 
     <include file="./task_template.xml"/>
-    <include file="../shared_task_templates/task_apple.xml"/>
+    <include file="../shared_task_templates/task_apple_pass.xml"/>
 
     <!-- <include file="./contacts/apple_pass_1/apple_pass_1_site_data.xml"/> -->
 

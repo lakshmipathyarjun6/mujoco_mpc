@@ -1,7 +1,7 @@
 <mujoco model="MANO Doorknob Use Task">
 
     <include file="./task_template.xml"/>
-    <include file="../shared_task_templates/task_doorknob.xml"/>
+    <include file="../shared_task_templates/task_doorknob_use.xml"/>
 
     <include file="./contacts/data/doorknob_use_1.xml"/>
 

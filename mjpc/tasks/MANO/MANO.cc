@@ -798,19 +798,47 @@ namespace mjpc
         return bsplineControlData;
     }
 
-    string MANOAppleTask::XmlPath() const
+    string MANOApplePassTask::XmlPath() const
     {
-        return GetModelPath("MANO/task_apple.xml");
+        return GetModelPath("MANO/task_apple_pass.xml");
     }
 
-    string MANOAppleTask::Name() const { return "MANO Apple Pass"; }
+    string MANOApplePassTask::Name() const { return "MANO Apple Pass"; }
 
-    string MANODoorknobTask::XmlPath() const
+    string MANODoorknobUseTask::XmlPath() const
     {
-        return GetModelPath("MANO/task_doorknob.xml");
+        return GetModelPath("MANO/task_doorknob_use.xml");
     }
 
-    string MANODoorknobTask::Name() const { return "MANO Doorknob Use"; }
+    string MANODoorknobUseTask::Name() const { return "MANO Doorknob Use"; }
+
+    string MANOFlashlightOnTask::XmlPath() const
+    {
+        return GetModelPath("MANO/task_flashlight_on.xml");
+    }
+
+    string MANOFlashlightOnTask::Name() const { return "MANO Flashlight On"; }
+
+    string MANOHammerUseTask::XmlPath() const
+    {
+        return GetModelPath("MANO/task_hammer_use.xml");
+    }
+
+    string MANOHammerUseTask::Name() const { return "MANO Hammer Use"; }
+
+    string MANOPhoneCallTask::XmlPath() const
+    {
+        return GetModelPath("MANO/task_phone_call.xml");
+    }
+
+    string MANOPhoneCallTask::Name() const { return "MANO Phone Call"; }
+
+    string MANOStaplerStapleTask::XmlPath() const
+    {
+        return GetModelPath("MANO/task_stapler_staple.xml");
+    }
+
+    string MANOStaplerStapleTask::Name() const { return "MANO Stapler Staple"; }
 
     string MANOWaterbottlePourTask::XmlPath() const
     {
