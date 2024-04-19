@@ -51,6 +51,26 @@
 
         <mesh name="doorknob" file="../../shared_assets/doorknob/doorknob.obj" />
 
+        <mesh name="flashlight" file="../../shared_assets/flashlight/flashlight.obj" />
+        <mesh name="flashlight_contact0" file="../../shared_assets/flashlight/contact0.stl"  />
+        <mesh name="flashlight_contact1" file="../../shared_assets/flashlight/contact1.stl"  />
+
+        <mesh name="hammer" file="../../shared_assets/hammer/hammer.obj" />
+        <mesh name="hammer_contact0" file="../../shared_assets/hammer/contact0.stl"  />
+        <mesh name="hammer_contact1" file="../../shared_assets/hammer/contact1.stl"  />
+
+        <mesh name="phone" file="../../shared_assets/phone/phone.obj" />
+        <mesh name="phone_contact0" file="../../shared_assets/phone/contact0.stl"  />
+        <mesh name="phone_contact1" file="../../shared_assets/phone/contact1.stl"  />
+        <mesh name="phone_contact2" file="../../shared_assets/phone/contact2.stl"  />
+
+        <mesh name="stapler" file="../../shared_assets/stapler/stapler.obj" />
+        <mesh name="stapler_contact0" file="../../shared_assets/stapler/contact0.stl"  />
+        <mesh name="stapler_contact1" file="../../shared_assets/stapler/contact1.stl"  />
+        <mesh name="stapler_contact2" file="../../shared_assets/stapler/contact2.stl"  />
+        <mesh name="stapler_contact3" file="../../shared_assets/stapler/contact3.stl"  />
+        <mesh name="stapler_contact4" file="../../shared_assets/stapler/contact4.stl"  />
+
         <mesh name="waterbottle" file="../../shared_assets/waterbottle/waterbottle.obj" />
         <mesh name="waterbottle_contact0" file="../../shared_assets/waterbottle/contact0.stl"  />
         <mesh name="waterbottle_contact1" file="../../shared_assets/waterbottle/contact1.stl"  />
