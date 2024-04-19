@@ -3,7 +3,9 @@
     <body name="waterbottle_sim">
         <freejoint/>
         <geom name="sim_geom_waterbottle_visual" type="mesh" mesh="waterbottle" contype="0" conaffinity="0" group="2" mass="0" rgba="1.0 0 0 1.0"/>
-        <geom name="sim_geom_waterbottle_collision" type="cylinder" size="0.03 0.047" pos="0 0 -0.022" group="3" mass="0.2"/>
+        <!-- <geom name="sim_geom_waterbottle_collision" type="cylinder" size="0.03 0.047" pos="0 0 -0.022" group="3" mass="0.2"/> -->
+        <geom name="sim_geom_waterbottle_collision_base" type="mesh" mesh="waterbottle_contact0" condim="4" group="3" density="1250" />
+        <geom name="sim_geom_waterbottle_collision_shaft" type="mesh" mesh="waterbottle_contact1" condim="4" group="3" density="1250" />
         <include file="./contacts/waterbottle_pour_1/waterbottle_pour_1_object_sites.xml"/>
     </body>
 
