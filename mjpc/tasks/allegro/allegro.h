@@ -185,13 +185,13 @@ namespace mjpc
         map<string, MeasurementUnits> m_measurement_units_property_mappings;
     };
 
-    class AllegroAppleTask : public AllegroTask
+    class AllegroApplePassTask : public AllegroTask
     {
     public:
         string Name() const override;
         string XmlPath() const override;
 
-        AllegroAppleTask()
+        AllegroApplePassTask()
             : AllegroTask(
                   "apple_sim",
                   "/Users/arjunl/mujoco_mpc/mjpc/tasks/allegro/"
@@ -209,13 +209,13 @@ namespace mjpc
     private:
     };
 
-    class AllegroDoorknobTask : public AllegroTask
+    class AllegroDoorknobUseTask : public AllegroTask
     {
     public:
         string Name() const override;
         string XmlPath() const override;
 
-        AllegroDoorknobTask()
+        AllegroDoorknobUseTask()
             : AllegroTask(
                   "doorknob_sim",
                   "/Users/arjunl/mujoco_mpc/mjpc/tasks/allegro/"

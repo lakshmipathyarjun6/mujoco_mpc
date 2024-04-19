@@ -1,7 +1,7 @@
 <mujoco model="MANO Apple Pass Task">
 
     <include file="./task_template.xml"/>
-    <include file="../shared_task_templates/task_apple.xml"/>
+    <include file="../shared_task_templates/task_apple_pass.xml"/>
 
     <include file="./contacts/data/apple_pass_1.xml"/>
 

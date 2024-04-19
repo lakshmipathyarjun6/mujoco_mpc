@@ -833,18 +833,21 @@ namespace mjpc
         return bsplineControlData;
     }
 
-    string AllegroAppleTask::XmlPath() const
+    string AllegroApplePassTask::XmlPath() const
     {
-        return GetModelPath("allegro/task_apple.xml");
+        return GetModelPath("allegro/task_apple_pass.xml");
     }
 
-    string AllegroAppleTask::Name() const { return "Allegro Apple Pass"; }
+    string AllegroApplePassTask::Name() const { return "Allegro Apple Pass"; }
 
-    string AllegroDoorknobTask::XmlPath() const
+    string AllegroDoorknobUseTask::XmlPath() const
     {
-        return GetModelPath("allegro/task_doorknob.xml");
+        return GetModelPath("allegro/task_doorknob_use.xml");
     }
 
-    string AllegroDoorknobTask::Name() const { return "Allegro Doorknob Use"; }
+    string AllegroDoorknobUseTask::Name() const
+    {
+        return "Allegro Doorknob Use";
+    }
 
 } // namespace mjpc
