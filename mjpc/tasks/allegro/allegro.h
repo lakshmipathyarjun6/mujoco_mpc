@@ -32,7 +32,7 @@
 // Not equal due to root quaternion
 #define ALLEGRO_DOFS 23
 #define ALLEGRO_VEL_DOFS 22
-#define ALLEGRO_NON_ROOT_DOFS 16
+#define ALLEGRO_NON_ROOT_VEL_DOFS 16
 
 #define XYZ_BLOCK_SIZE 3
 #define QUAT_BLOCK_SIZE 4
@@ -62,10 +62,8 @@ namespace mjpc
         {
         public:
             explicit ResidualFn(const AllegroTask *task)
-                : mjpc::BaseResidualFn(task)
+                : mjpc::BaseResidualFn(task), m_bspline_loopback_time(0.0)
             {
-                m_bspline_loopback_time = 0.0;
-
                 m_hand_traj_bspline_curves.clear();
                 m_hand_traj_bspline_properties.clear();
 
@@ -217,8 +215,6 @@ namespace mjpc
         int m_max_contact_sites;
         string m_object_contact_start_data_name;
         string m_hand_contact_start_data_name;
-
-        double m_hand_kinematic_buffer[ALLEGRO_DOFS];
 
         int m_spline_dimension;
         int m_spline_degree;

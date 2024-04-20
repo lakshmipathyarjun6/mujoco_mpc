@@ -298,16 +298,16 @@ namespace mjpc
         // Reference hand loading
         vector<double> splineQPos = GetDesiredAgentState(data->time);
 
-        mju_copy(m_hand_kinematic_buffer, data->qpos + handQPosAdr,
-                 ALLEGRO_DOFS);
+        double hand_kinematic_buffer[ALLEGRO_DOFS];
+
+        mju_copy(hand_kinematic_buffer, data->qpos + handQPosAdr, ALLEGRO_DOFS);
         mju_copy(data->qpos + handQPosAdr, splineQPos.data(), ALLEGRO_DOFS);
         mj_kinematics(model, data);
         mju_copy(data->mocap_pos + 3, data->xpos + handPalmXPosOffset,
                  3 * (model->nmocap - 1));
         mju_copy(data->mocap_quat + 4, data->xquat + handPalmXQuatOffset,
                  4 * (model->nmocap - 1));
-        mju_copy(data->qpos + handQPosAdr, m_hand_kinematic_buffer,
-                 ALLEGRO_DOFS);
+        mju_copy(data->qpos + handQPosAdr, hand_kinematic_buffer, ALLEGRO_DOFS);
         mj_kinematics(model, data);
 
         // // Contact loading
@@ -605,6 +605,7 @@ namespace mjpc
 
             TrajectorySplineProperties *properties =
                 new TrajectorySplineProperties();
+
             properties->numControlPoints = numControlPoints;
             properties->dofType = doftypePropertyMappings[dofType];
             properties->units = measurementUnitsPropertyMappings[units];
@@ -643,7 +644,7 @@ namespace mjpc
 
         mju_transpose(m_hand_pc_component_matrix.data(),
                       m_hand_pc_component_matrix.data(), m_num_pcs,
-                      ALLEGRO_NON_ROOT_DOFS);
+                      ALLEGRO_NON_ROOT_VEL_DOFS);
     }
 
     vector<double> AllegroTask::GetDesiredAgentState(double time) const
@@ -772,16 +773,16 @@ namespace mjpc
         }
 
         vector<double> uncompressedState;
-        uncompressedState.resize(ALLEGRO_NON_ROOT_DOFS);
+        uncompressedState.resize(ALLEGRO_NON_ROOT_VEL_DOFS);
 
         mju_mulMatVec(uncompressedState.data(),
                       m_hand_pc_component_matrix.data(), pcState.data(),
-                      ALLEGRO_NON_ROOT_DOFS, m_num_pcs);
+                      ALLEGRO_NON_ROOT_VEL_DOFS, m_num_pcs);
 
         mju_addTo(uncompressedState.data(), m_hand_pc_center.data(),
-                  ALLEGRO_NON_ROOT_DOFS);
+                  ALLEGRO_NON_ROOT_VEL_DOFS);
 
-        for (int i = 0; i < ALLEGRO_NON_ROOT_DOFS; i++)
+        for (int i = 0; i < ALLEGRO_NON_ROOT_VEL_DOFS; i++)
         {
             double dofValue = uncompressedState[i];
             desiredState.push_back(dofValue);
