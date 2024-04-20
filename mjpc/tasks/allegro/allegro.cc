@@ -31,6 +31,9 @@ namespace mjpc
     {
         int offset = 0;
 
+        // Query reference traj. bsplines for desired states
+        vector<double> splineObjectPos = GetDesiredObjectState(data->time);
+
         // bool agent_object_collision_detected = false;
         vector<mjContact *> agent_object_collisions;
 
@@ -82,8 +85,8 @@ namespace mjpc
 
         // ---------- Residual (0) ----------
         // goal position
-        double goal_position[3];
-        mju_copy3(goal_position, m_r_object_mocap_pos_buffer);
+        double goal_position[XYZ_BLOCK_SIZE];
+        mju_copy3(goal_position, splineObjectPos.data());
 
         // system's position
         double *position = SensorByName(model, data, OBJECT_CURRENT_POSITION);
@@ -94,8 +97,8 @@ namespace mjpc
 
         // ---------- Residual (1) ----------
         // goal orientation
-        double goal_orientation[4];
-        mju_copy4(goal_orientation, m_r_object_mocap_quat_buffer);
+        double goal_orientation[QUAT_BLOCK_SIZE];
+        mju_copy4(goal_orientation, splineObjectPos.data() + 3);
 
         // system's orientation
         double *orientation =
@@ -156,6 +159,121 @@ namespace mjpc
         CheckSensorDim(model, offset);
     }
 
+    vector<double>
+    AllegroTask::ResidualFn::GetDesiredAgentState(double time) const
+    {
+        vector<double> desiredState;
+
+        double queryTime = fmod(time, m_bspline_loopback_time);
+        double parametricTime = queryTime / m_bspline_loopback_time;
+
+        double rootEulerAngles[XYZ_BLOCK_SIZE] = {0.0, 0.0, 0.0};
+        double curveValue[2];
+
+        for (int i = 0; i < 6; i++)
+        {
+            TrajectorySplineProperties *properties =
+                m_hand_traj_bspline_properties[i];
+
+            m_hand_traj_bspline_curves[i]->GetPositionInMeasurementUnits(
+                parametricTime, curveValue);
+
+            double dofValue = curveValue[1];
+
+            switch (properties->dofType)
+            {
+            case DofType::DOF_TYPE_ROTATION_BALL_X:
+                rootEulerAngles[0] = dofValue;
+                break;
+            case DofType::DOF_TYPE_ROTATION_BALL_Y:
+                rootEulerAngles[1] = dofValue;
+                break;
+            case DofType::DOF_TYPE_ROTATION_BALL_Z:
+                rootEulerAngles[2] = dofValue;
+                break;
+            default:
+                desiredState.push_back(dofValue);
+                break;
+            }
+        }
+
+        // Correct for start clamp offset
+        mju_sub3(desiredState.data(), desiredState.data(),
+                 m_start_clamp_offset);
+
+        // Convert root rotation to quaternion
+        double quat[QUAT_BLOCK_SIZE];
+        ConvertEulerAnglesToQuat(rootEulerAngles, quat);
+
+        for (int i = 0; i < 4; i++)
+        {
+            desiredState.push_back(quat[i]);
+        }
+
+        for (int i = 6; i < ALLEGRO_VEL_DOFS; i++)
+        {
+            m_hand_traj_bspline_curves[i]->GetPositionInMeasurementUnits(
+                parametricTime, curveValue);
+
+            double dofValue = curveValue[1];
+
+            desiredState.push_back(dofValue);
+        }
+
+        return desiredState;
+    }
+
+    vector<double>
+    AllegroTask::ResidualFn::GetDesiredObjectState(double time) const
+    {
+        vector<double> desiredState;
+
+        double queryTime = fmod(time, m_bspline_loopback_time);
+        double parametricTime = queryTime / m_bspline_loopback_time;
+
+        double eulerAngles[XYZ_BLOCK_SIZE] = {0.0, 0.0, 0.0};
+        double curveValue[2];
+
+        // Mopcap single body rigid object will have exactly 6 dofs
+        for (int i = 0; i < 6; i++)
+        {
+            TrajectorySplineProperties *properties =
+                m_object_traj_bspline_properties[i];
+
+            m_object_traj_bspline_curves[i]->GetPositionInMeasurementUnits(
+                parametricTime, curveValue);
+
+            double dofValue = curveValue[1];
+
+            switch (properties->dofType)
+            {
+            case DofType::DOF_TYPE_ROTATION_BALL_X:
+                eulerAngles[0] = dofValue;
+                break;
+            case DofType::DOF_TYPE_ROTATION_BALL_Y:
+                eulerAngles[1] = dofValue;
+                break;
+            case DofType::DOF_TYPE_ROTATION_BALL_Z:
+                eulerAngles[2] = dofValue;
+                break;
+            default:
+                desiredState.push_back(dofValue);
+                break;
+            }
+        }
+
+        // Convert root rotation to quaternion
+        double quat[QUAT_BLOCK_SIZE];
+        ConvertEulerAnglesToQuat(eulerAngles, quat);
+
+        for (int i = 0; i < 4; i++)
+        {
+            desiredState.push_back(quat[i]);
+        }
+
+        return desiredState;
+    }
+
     // --------------------- Transition for allegro task
     // ------------------------
     //   Set `data->mocap_pos` based on `data->time` to move the object site.
@@ -164,11 +282,6 @@ namespace mjpc
     {
         // Reference object loading
         vector<double> splineObjectPos = GetDesiredObjectState(data->time);
-
-        mju_copy3(m_residual.m_r_object_mocap_pos_buffer,
-                  splineObjectPos.data());
-        mju_copy4(m_residual.m_r_object_mocap_quat_buffer,
-                  splineObjectPos.data() + 3);
 
         // Object mocap is first in config
         mju_copy3(data->mocap_pos, splineObjectPos.data());
@@ -246,8 +359,8 @@ namespace mjpc
         //     model->numeric_adr[handContactDataIndex];
 
         //     int handBodyIndex = handContactBlock[0];
-        //     double localCoords[3] = {handContactBlock[1],
-        //     handContactBlock[2], handContactBlock[3]};
+        //     double localCoords[XYZ_BLOCK_SIZE] = {handContactBlock[1],
+        //     handContactBlock[2], handContactBlock[XYZ_BLOCK_SIZE]};
 
         //     int siteRelativeOffset = handContactDataIndex -
         //     handContactDataStart; int fullSiteOffset =
@@ -341,30 +454,34 @@ namespace mjpc
           m_object_contact_start_data_name(objectContactStartDataName),
           m_hand_contact_start_data_name(handContactStartDataName)
     {
-        m_doftype_property_mappings["rotation"] = DofType::DOF_TYPE_ROTATION;
-        m_doftype_property_mappings["rotationBallX"] =
-            DofType::DOF_TYPE_ROTATION_BALL_X;
-        m_doftype_property_mappings["rotationBallY"] =
-            DofType::DOF_TYPE_ROTATION_BALL_Y;
-        m_doftype_property_mappings["rotationBallZ"] =
-            DofType::DOF_TYPE_ROTATION_BALL_Z;
-        m_doftype_property_mappings["translation"] =
-            DofType::DOF_TYPE_TRANSLATION;
+        map<string, DofType> doftypePropertyMappings;
+        map<string, MeasurementUnits> measurementUnitsPropertyMappings;
 
-        m_measurement_units_property_mappings["radians"] =
+        doftypePropertyMappings["rotation"] = DofType::DOF_TYPE_ROTATION;
+        doftypePropertyMappings["rotationBallX"] =
+            DofType::DOF_TYPE_ROTATION_BALL_X;
+        doftypePropertyMappings["rotationBallY"] =
+            DofType::DOF_TYPE_ROTATION_BALL_Y;
+        doftypePropertyMappings["rotationBallZ"] =
+            DofType::DOF_TYPE_ROTATION_BALL_Z;
+        doftypePropertyMappings["translation"] = DofType::DOF_TYPE_TRANSLATION;
+
+        measurementUnitsPropertyMappings["radians"] =
             MeasurementUnits::ROT_UNIT_RADIANS;
-        m_measurement_units_property_mappings["degrees"] =
+        measurementUnitsPropertyMappings["degrees"] =
             MeasurementUnits::ROT_UNIT_DEGREES;
-        m_measurement_units_property_mappings["meters"] =
+        measurementUnitsPropertyMappings["meters"] =
             MeasurementUnits::TRANS_UNIT_METERS;
-        m_measurement_units_property_mappings["centimeters"] =
+        measurementUnitsPropertyMappings["centimeters"] =
             MeasurementUnits::TRANS_UNIT_CENTIMETERS;
-        m_measurement_units_property_mappings["millimeters"] =
+        measurementUnitsPropertyMappings["millimeters"] =
             MeasurementUnits::TRANS_UNIT_MILLIMETERS;
 
         m_start_clamp_offset[0] = startClampOffsetX;
         m_start_clamp_offset[1] = startClampOffsetY;
         m_start_clamp_offset[2] = startClampOffsetZ;
+
+        mju_copy3(m_residual.m_start_clamp_offset, m_start_clamp_offset);
 
         Document dFullHandSplines = loadJSON(handTrajSplineFile);
         Document dObjectSplines = loadJSON(objectTrajSplineFile);
@@ -376,6 +493,8 @@ namespace mjpc
 
         m_spline_loopback_time *= ALLEGRO_SLOWDOWN_FACTOR;
 
+        m_residual.m_bspline_loopback_time = m_spline_loopback_time;
+
         m_num_pcs = dPcSplines["numComponents"].GetInt();
 
         for (const auto &splineData : dFullHandSplines["data"].GetArray())
@@ -384,10 +503,12 @@ namespace mjpc
             string dofType = splineData["type"].GetString();
             string units = splineData["units"].GetString();
 
-            TrajectorySplineProperties properties;
-            properties.numControlPoints = numControlPoints;
-            properties.dofType = m_doftype_property_mappings[dofType];
-            properties.units = m_measurement_units_property_mappings[units];
+            TrajectorySplineProperties *properties =
+                new TrajectorySplineProperties();
+
+            properties->numControlPoints = numControlPoints;
+            properties->dofType = doftypePropertyMappings[dofType];
+            properties->units = measurementUnitsPropertyMappings[units];
 
             vector<double> controlPoints;
 
@@ -405,13 +526,16 @@ namespace mjpc
 
             BSplineCurve<double> *bspc = new BSplineCurve<double>(
                 m_spline_dimension, m_spline_degree, numControlPoints,
-                m_doftype_property_mappings[dofType],
-                m_measurement_units_property_mappings[units]);
+                doftypePropertyMappings[dofType],
+                measurementUnitsPropertyMappings[units]);
 
             bspc->SetControlData(controlPoints);
 
             m_hand_traj_bspline_properties.push_back(properties);
             m_hand_traj_bspline_curves.push_back(bspc);
+
+            m_residual.m_hand_traj_bspline_properties.push_back(properties);
+            m_residual.m_hand_traj_bspline_curves.push_back(bspc);
         }
 
         if (m_hand_traj_bspline_curves.size() != ALLEGRO_VEL_DOFS)
@@ -430,10 +554,12 @@ namespace mjpc
             string dofType = splineData["type"].GetString();
             string units = splineData["units"].GetString();
 
-            TrajectorySplineProperties properties;
-            properties.numControlPoints = numControlPoints;
-            properties.dofType = m_doftype_property_mappings[dofType];
-            properties.units = m_measurement_units_property_mappings[units];
+            TrajectorySplineProperties *properties =
+                new TrajectorySplineProperties();
+
+            properties->numControlPoints = numControlPoints;
+            properties->dofType = doftypePropertyMappings[dofType];
+            properties->units = measurementUnitsPropertyMappings[units];
 
             vector<double> controlPoints;
 
@@ -451,13 +577,16 @@ namespace mjpc
 
             BSplineCurve<double> *bspc = new BSplineCurve<double>(
                 m_spline_dimension, m_spline_degree, numControlPoints,
-                m_doftype_property_mappings[dofType],
-                m_measurement_units_property_mappings[units]);
+                doftypePropertyMappings[dofType],
+                measurementUnitsPropertyMappings[units]);
 
             bspc->SetControlData(controlPoints);
 
             m_object_traj_bspline_properties.push_back(properties);
             m_object_traj_bspline_curves.push_back(bspc);
+
+            m_residual.m_object_traj_bspline_properties.push_back(properties);
+            m_residual.m_object_traj_bspline_curves.push_back(bspc);
         }
 
         const auto pcData = dPcSplines["data"].GetObject();
@@ -474,10 +603,11 @@ namespace mjpc
             string dofType = pcSplineData["type"].GetString();
             string units = pcSplineData["units"].GetString();
 
-            TrajectorySplineProperties properties;
-            properties.numControlPoints = numControlPoints;
-            properties.dofType = m_doftype_property_mappings[dofType];
-            properties.units = m_measurement_units_property_mappings[units];
+            TrajectorySplineProperties *properties =
+                new TrajectorySplineProperties();
+            properties->numControlPoints = numControlPoints;
+            properties->dofType = doftypePropertyMappings[dofType];
+            properties->units = measurementUnitsPropertyMappings[units];
 
             for (const auto &componentData :
                  pcSplineData["componentData"].GetArray())
@@ -502,8 +632,8 @@ namespace mjpc
 
             BSplineCurve<double> *bspc = new BSplineCurve<double>(
                 m_spline_dimension, m_spline_degree, numControlPoints,
-                m_doftype_property_mappings[dofType],
-                m_measurement_units_property_mappings[units]);
+                doftypePropertyMappings[dofType],
+                measurementUnitsPropertyMappings[units]);
 
             bspc->SetControlData(controlPoints);
 
@@ -523,12 +653,12 @@ namespace mjpc
         double queryTime = fmod(time, m_spline_loopback_time);
         double parametricTime = queryTime / m_spline_loopback_time;
 
-        double rootEulerAngles[3] = {0.0, 0.0, 0.0};
+        double rootEulerAngles[XYZ_BLOCK_SIZE] = {0.0, 0.0, 0.0};
         double curveValue[2];
 
         for (int i = 0; i < 6; i++)
         {
-            TrajectorySplineProperties properties =
+            TrajectorySplineProperties *properties =
                 m_hand_traj_bspline_properties[i];
 
             m_hand_traj_bspline_curves[i]->GetPositionInMeasurementUnits(
@@ -536,7 +666,7 @@ namespace mjpc
 
             double dofValue = curveValue[1];
 
-            switch (properties.dofType)
+            switch (properties->dofType)
             {
             case DofType::DOF_TYPE_ROTATION_BALL_X:
                 rootEulerAngles[0] = dofValue;
@@ -558,7 +688,7 @@ namespace mjpc
                  m_start_clamp_offset);
 
         // Convert root rotation to quaternion
-        double quat[4];
+        double quat[QUAT_BLOCK_SIZE];
         ConvertEulerAnglesToQuat(rootEulerAngles, quat);
 
         for (int i = 0; i < 4; i++)
@@ -587,12 +717,12 @@ namespace mjpc
         double parametricTime = queryTime / m_spline_loopback_time;
 
         // Get root state from original spline - no PC is performed on it
-        double rootEulerAngles[3] = {0.0, 0.0, 0.0};
+        double rootEulerAngles[XYZ_BLOCK_SIZE] = {0.0, 0.0, 0.0};
         double curveValue[2];
 
         for (int i = 0; i < 6; i++)
         {
-            TrajectorySplineProperties properties =
+            TrajectorySplineProperties *properties =
                 m_hand_traj_bspline_properties[i];
 
             m_hand_traj_bspline_curves[i]->GetPositionInMeasurementUnits(
@@ -600,7 +730,7 @@ namespace mjpc
 
             double dofValue = curveValue[1];
 
-            switch (properties.dofType)
+            switch (properties->dofType)
             {
             case DofType::DOF_TYPE_ROTATION_BALL_X:
                 rootEulerAngles[0] = dofValue;
@@ -622,7 +752,7 @@ namespace mjpc
                  m_start_clamp_offset);
 
         // Convert root rotation to quaternion
-        double quat[4];
+        double quat[QUAT_BLOCK_SIZE];
         ConvertEulerAnglesToQuat(rootEulerAngles, quat);
 
         for (int i = 0; i < 4; i++)
@@ -667,21 +797,21 @@ namespace mjpc
         double queryTime = fmod(time, m_spline_loopback_time);
         double parametricTime = queryTime / m_spline_loopback_time;
 
-        double eulerAngles[3] = {0.0, 0.0, 0.0};
+        double eulerAngles[XYZ_BLOCK_SIZE] = {0.0, 0.0, 0.0};
         double curveValue[2];
 
         // Mopcap single body rigid object will have exactly 6 dofs
         for (int i = 0; i < 6; i++)
         {
-            TrajectorySplineProperties properties =
-                m_hand_traj_bspline_properties[i];
+            TrajectorySplineProperties *properties =
+                m_object_traj_bspline_properties[i];
 
             m_object_traj_bspline_curves[i]->GetPositionInMeasurementUnits(
                 parametricTime, curveValue);
 
             double dofValue = curveValue[1];
 
-            switch (properties.dofType)
+            switch (properties->dofType)
             {
             case DofType::DOF_TYPE_ROTATION_BALL_X:
                 eulerAngles[0] = dofValue;
@@ -699,7 +829,7 @@ namespace mjpc
         }
 
         // Convert root rotation to quaternion
-        double quat[4];
+        double quat[QUAT_BLOCK_SIZE];
         ConvertEulerAnglesToQuat(eulerAngles, quat);
 
         for (int i = 0; i < 4; i++)
@@ -712,7 +842,7 @@ namespace mjpc
 
     vector<vector<double>> AllegroTask::GetAgentBSplineControlData(
         int &dimension, int &degree, double &loopbackTime,
-        double translationOffset[3], vector<DofType> &dofTypes,
+        double translationOffset[XYZ_BLOCK_SIZE], vector<DofType> &dofTypes,
         vector<MeasurementUnits> &measurementUnits) const
     {
         vector<vector<double>> bsplineControlData;
@@ -735,7 +865,7 @@ namespace mjpc
             vector<double> dataOriginal =
                 m_hand_traj_bspline_curves[i]->GetControlData();
 
-            TrajectorySplineProperties properties =
+            TrajectorySplineProperties *properties =
                 m_hand_traj_bspline_properties[i];
 
             int numElements = dataOriginal.size();
@@ -747,8 +877,8 @@ namespace mjpc
             }
 
             bsplineControlData.push_back(dataCopy);
-            dofTypes.push_back(properties.dofType);
-            measurementUnits.push_back(properties.units);
+            dofTypes.push_back(properties->dofType);
+            measurementUnits.push_back(properties->units);
         }
 
         return bsplineControlData;
@@ -757,7 +887,7 @@ namespace mjpc
     vector<vector<double>> AllegroTask::GetAgentPCBSplineControlData(
         int &dimension, int &degree, double &loopbackTime, int &numMaxPCs,
         vector<double> &centerData, vector<double> &componentData,
-        double translationOffset[3], vector<DofType> &dofTypes,
+        double translationOffset[XYZ_BLOCK_SIZE], vector<DofType> &dofTypes,
         vector<MeasurementUnits> &measurementUnits) const
     {
         vector<vector<double>> bsplineControlData;
@@ -781,7 +911,7 @@ namespace mjpc
             vector<double> dataOriginal =
                 m_hand_traj_bspline_curves[i]->GetControlData();
 
-            TrajectorySplineProperties properties =
+            TrajectorySplineProperties *properties =
                 m_hand_traj_bspline_properties[i];
 
             int numElements = dataOriginal.size();
@@ -793,8 +923,8 @@ namespace mjpc
             }
 
             bsplineControlData.push_back(dataCopy);
-            dofTypes.push_back(properties.dofType);
-            measurementUnits.push_back(properties.units);
+            dofTypes.push_back(properties->dofType);
+            measurementUnits.push_back(properties->units);
         }
 
         for (int i = 0; i < m_num_pcs; i++)
@@ -804,7 +934,7 @@ namespace mjpc
             vector<double> dataOriginal =
                 m_hand_pc_traj_bspline_curves[i]->GetControlData();
 
-            TrajectorySplineProperties properties =
+            TrajectorySplineProperties *properties =
                 m_hand_pc_traj_bspline_properties[i];
 
             int numElements = dataOriginal.size();
@@ -816,8 +946,8 @@ namespace mjpc
             }
 
             bsplineControlData.push_back(dataCopy);
-            dofTypes.push_back(properties.dofType);
-            measurementUnits.push_back(properties.units);
+            dofTypes.push_back(properties->dofType);
+            measurementUnits.push_back(properties->units);
         }
 
         for (int i = 0; i < m_hand_pc_center.size(); i++)
