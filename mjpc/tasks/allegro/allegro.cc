@@ -21,7 +21,6 @@ namespace mjpc
     //     Residual (0): object_position - object_traj_position
     //     Residual (1): object_orientation - object_traj_orientation
     //     Residual (2): hand joint velocity
-    //     Residual (3): contact alignment
     // ------------------------------------------------------------
 
     // NOTE: Currently unclear how to adapt to non-free objects (e.g. doorknob)
@@ -111,9 +110,9 @@ namespace mjpc
         mju_subQuat(residual + offset, goal_orientation, orientation);
         offset += 3;
 
-        // // ---------- Residual (2) ----------
-        // mju_copy(residual + offset, data->qvel, ALLEGRO_VEL_DOFS);
-        // offset += ALLEGRO_VEL_DOFS;
+        // ---------- Residual (2) ----------
+        mju_copy(residual + offset, data->qvel + 6, ALLEGRO_NON_ROOT_VEL_DOFS);
+        offset += ALLEGRO_NON_ROOT_VEL_DOFS;
 
         // // ---------- Residual (3) ----------
         // double result[ABSOLUTE_MAX_CONTACT_RESULT_BUFF_SIZE];

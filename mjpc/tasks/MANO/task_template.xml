@@ -20,6 +20,7 @@
         <user name="Object Position" dim="3" user="0 1000.0 0 1000"/>
         <user name="Object Orientation" dim="3" user="0 10.0 0 20"/>
         <user name="Contact Alignment" dim="48" user="0 5000.0 0 10000"/>
+        <user name="Hand Velocity" dim="45" user="0 1.0 0 10"/>
     </sensor>
 
     <include file="right_hand_template.xml"/>
