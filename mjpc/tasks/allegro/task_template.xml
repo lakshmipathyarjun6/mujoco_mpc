@@ -17,7 +17,7 @@
         <!-- cost -->
         <user name="Object Position" dim="3" user="0 1000.0 0 1000"/>
         <user name="Object Orientation" dim="3" user="0 10.0 0 20"/>
-        <!-- <user name="Hand Velocity" dim="22" user="0 4.0 0 10"/> -->
+        <user name="Hand Velocity" dim="16" user="0 1.0 0 10"/>
         <!-- <user name="Contact Alignment" dim="19500" user="0 100.0 0 500"/> -->
 
         <!-- Legacy -->

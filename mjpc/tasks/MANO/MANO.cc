@@ -6,6 +6,8 @@ namespace mjpc
     //   Number of residuals: 4
     //     Residual (0): object_position - object_traj_position
     //     Residual (1): object_orientation - object_traj_orientation
+    //     Residual (2): contact alignment
+    //     Residual (3): hand joint velocity
     // ------------------------------------------------------------
     void MANOTask::ResidualFn::Residual(const mjModel *model,
                                         const mjData *data,
@@ -139,6 +141,10 @@ namespace mjpc
         mju_copy(residual + offset, relevant_result,
                  MAX_CONTACTS * XYZ_BLOCK_SIZE);
         offset += MAX_CONTACTS * XYZ_BLOCK_SIZE;
+
+        // ---------- Residual (3) ----------
+        mju_copy(residual + offset, data->qvel + 6, MANO_NON_ROOT_VEL_DOFS);
+        offset += MANO_NON_ROOT_VEL_DOFS;
 
         // sensor dim sanity check
         CheckSensorDim(model, offset);
