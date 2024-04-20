@@ -17,6 +17,7 @@
 #define MANO_NON_ROOT_VEL_DOFS 45
 
 #define XYZ_BLOCK_SIZE 3
+#define QUAT_BLOCK_SIZE 4
 
 #define MANO_ROOT "wrist"
 
@@ -40,56 +41,97 @@ namespace mjpc
         {
         public:
             explicit ResidualFn(const MANOTask *task)
-                : mjpc::BaseResidualFn(task), m_num_active_contacts(0)
+                : mjpc::BaseResidualFn(task), m_total_frames(0),
+                  m_bspline_loopback_time(0.0)
             {
-                fill(begin(m_r_object_mocap_pos_buffer),
-                     end(m_r_object_mocap_pos_buffer), 0);
-                fill(begin(m_r_object_mocap_quat_buffer),
-                     end(m_r_object_mocap_quat_buffer), 0);
-                fill(begin(m_r_hand_contact_position_buffer),
-                     end(m_r_hand_contact_position_buffer), 0);
-                fill(begin(m_r_object_contact_position_buffer),
-                     end(m_r_hand_contact_position_buffer), 0);
+                m_hand_traj_bspline_curves.clear();
+                m_hand_traj_bspline_properties.clear();
+
+                m_object_traj_bspline_curves.clear();
+                m_object_traj_bspline_properties.clear();
+
+                fill(begin(m_start_clamp_offset), end(m_start_clamp_offset), 0);
             }
 
             explicit ResidualFn(
-                const MANOTask *task, int num_active_contacts,
-                const double mocap_object_pos_buffer[3],
-                const double mocap_object_quat_buffer[4],
-                const double
-                    hand_contact_position_buffer[MAX_CONTACTS * XYZ_BLOCK_SIZE],
-                const double object_contact_position_buffer[MAX_CONTACTS *
-                                                            XYZ_BLOCK_SIZE])
+                const MANOTask *task, int total_frames,
+                string object_contact_start_data_name,
+                string hand_contact_start_data_name,
+                double bspline_loopback_time,
+                const double start_clamp_offset[XYZ_BLOCK_SIZE],
+                const vector<BSplineCurve<double> *> hand_traj_bspline_curves,
+                const vector<TrajectorySplineProperties *>
+                    hand_traj_bspline_properties,
+                const vector<BSplineCurve<double> *> object_traj_bspline_curves,
+                const vector<TrajectorySplineProperties *>
+                    object_traj_bspline_properties)
                 : mjpc::BaseResidualFn(task)
             {
-                m_num_active_contacts = num_active_contacts;
+                m_total_frames = total_frames;
+                m_object_contact_start_data_name =
+                    object_contact_start_data_name;
+                m_hand_contact_start_data_name = hand_contact_start_data_name;
 
-                mju_copy3(m_r_object_mocap_pos_buffer, mocap_object_pos_buffer);
-                mju_copy4(m_r_object_mocap_quat_buffer,
-                          mocap_object_quat_buffer);
-                mju_copy(m_r_hand_contact_position_buffer,
-                         hand_contact_position_buffer,
-                         MAX_CONTACTS * XYZ_BLOCK_SIZE);
-                mju_copy(m_r_object_contact_position_buffer,
-                         object_contact_position_buffer,
-                         MAX_CONTACTS * XYZ_BLOCK_SIZE);
+                m_bspline_loopback_time = bspline_loopback_time;
+
+                m_hand_traj_bspline_curves.clear();
+                m_hand_traj_bspline_properties.clear();
+
+                m_object_traj_bspline_curves.clear();
+                m_object_traj_bspline_properties.clear();
+
+                int numHandCurves = hand_traj_bspline_curves.size();
+
+                for (int i = 0; i < numHandCurves; i++)
+                {
+                    m_hand_traj_bspline_curves.push_back(
+                        hand_traj_bspline_curves[i]);
+
+                    m_hand_traj_bspline_properties.push_back(
+                        hand_traj_bspline_properties[i]);
+                }
+
+                int numObjectCurves = object_traj_bspline_curves.size();
+
+                for (int i = 0; i < numObjectCurves; i++)
+                {
+                    m_object_traj_bspline_curves.push_back(
+                        object_traj_bspline_curves[i]);
+
+                    m_object_traj_bspline_properties.push_back(
+                        object_traj_bspline_properties[i]);
+                }
+
+                mju_copy3(m_start_clamp_offset, start_clamp_offset);
             }
 
             void Residual(const mjModel *model, const mjData *data,
                           double *residual) const override;
 
+            // The residual function must be able to perform its own bspline
+            // state queries since it will be called upon by the trajectory to
+            // evaluate a future state cost
+
+            vector<double> GetDesiredAgentState(double time) const;
+
+            vector<double> GetDesiredObjectState(double time) const;
+
         private:
             friend class MANOTask;
 
-            double m_r_object_mocap_pos_buffer[3];
-            double m_r_object_mocap_quat_buffer[4];
+            int m_total_frames;
+            string m_object_contact_start_data_name;
+            string m_hand_contact_start_data_name;
 
-            int m_num_active_contacts;
+            double m_bspline_loopback_time;
+            double m_start_clamp_offset[XYZ_BLOCK_SIZE];
 
-            double
-                m_r_hand_contact_position_buffer[MAX_CONTACTS * XYZ_BLOCK_SIZE];
-            double m_r_object_contact_position_buffer[MAX_CONTACTS *
-                                                      XYZ_BLOCK_SIZE];
+            vector<BSplineCurve<double> *> m_hand_traj_bspline_curves;
+            vector<TrajectorySplineProperties *> m_hand_traj_bspline_properties;
+
+            vector<BSplineCurve<double> *> m_object_traj_bspline_curves;
+            vector<TrajectorySplineProperties *>
+                m_object_traj_bspline_properties;
         };
 
         MANOTask(string objectSimBodyName, string handTrajSplineFile,
@@ -107,13 +149,13 @@ namespace mjpc
 
         vector<vector<double>> GetAgentBSplineControlData(
             int &dimension, int &degree, double &loopbackTime,
-            double translationOffset[3], vector<DofType> &dofTypes,
+            double translationOffset[XYZ_BLOCK_SIZE], vector<DofType> &dofTypes,
             vector<MeasurementUnits> &measurementUnits) const override;
 
         vector<vector<double>> GetAgentPCBSplineControlData(
             int &dimension, int &degree, double &loopbackTime, int &numMaxPCs,
             vector<double> &centerData, vector<double> &componentData,
-            double translationOffset[3], vector<DofType> &dofTypes,
+            double translationOffset[XYZ_BLOCK_SIZE], vector<DofType> &dofTypes,
             vector<MeasurementUnits> &measurementUnits) const override;
 
         // --------------------- Transition for allegro task
@@ -127,11 +169,15 @@ namespace mjpc
         unique_ptr<mjpc::ResidualFn> ResidualLocked() const override
         {
             return make_unique<ResidualFn>(
-                this, m_residual.m_num_active_contacts,
-                m_residual.m_r_object_mocap_pos_buffer,
-                m_residual.m_r_object_mocap_quat_buffer,
-                m_residual.m_r_hand_contact_position_buffer,
-                m_residual.m_r_object_contact_position_buffer);
+                this, m_residual.m_total_frames,
+                m_residual.m_object_contact_start_data_name,
+                m_residual.m_hand_contact_start_data_name,
+                m_residual.m_bspline_loopback_time,
+                m_residual.m_start_clamp_offset,
+                m_residual.m_hand_traj_bspline_curves,
+                m_residual.m_hand_traj_bspline_properties,
+                m_residual.m_object_traj_bspline_curves,
+                m_residual.m_object_traj_bspline_properties);
         }
         ResidualFn *InternalResidual() override { return &m_residual; }
 
@@ -144,28 +190,23 @@ namespace mjpc
         string m_object_contact_start_data_name;
         string m_hand_contact_start_data_name;
 
-        double m_hand_kinematic_buffer[MANO_DOFS];
-
         int m_spline_dimension;
         int m_spline_degree;
 
         vector<BSplineCurve<double> *> m_hand_traj_bspline_curves;
-        vector<TrajectorySplineProperties> m_hand_traj_bspline_properties;
+        vector<TrajectorySplineProperties *> m_hand_traj_bspline_properties;
 
         vector<BSplineCurve<double> *> m_object_traj_bspline_curves;
-        vector<TrajectorySplineProperties> m_object_traj_bspline_properties;
+        vector<TrajectorySplineProperties *> m_object_traj_bspline_properties;
 
         int m_num_pcs;
         vector<double> m_hand_pc_center;
         vector<double> m_hand_pc_component_matrix;
         vector<BSplineCurve<double> *> m_hand_pc_traj_bspline_curves;
-        vector<TrajectorySplineProperties> m_hand_pc_traj_bspline_properties;
+        vector<TrajectorySplineProperties *> m_hand_pc_traj_bspline_properties;
 
         double m_spline_loopback_time;
-        double m_start_clamp_offset[3];
-
-        map<string, DofType> m_doftype_property_mappings;
-        map<string, MeasurementUnits> m_measurement_units_property_mappings;
+        double m_start_clamp_offset[XYZ_BLOCK_SIZE];
     };
 
     class MANOApplePassTask : public MANOTask
