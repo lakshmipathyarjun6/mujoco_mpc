@@ -32,5 +32,3 @@ MJDATA.TXT
 MJMODEL.TXT
 # Python
 python/dist/
-
-mjpc/tasks/allegro/contacts/doorknob_use_1/doorknob_use_1_site_data.xml

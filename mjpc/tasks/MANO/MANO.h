@@ -8,7 +8,7 @@
 
 #include "JSONUtils.hpp"
 
-#define DEFAULT_MOCAP_FPS 120
+#define MANO_DEFAULT_MOCAP_FPS 120
 #define MANO_SLOWDOWN_FACTOR 10
 
 // Not equal due to ball joints
@@ -28,7 +28,7 @@
 #define OBJECT_CONTACT_START_SITE_NAME "contact_site_object_0"
 #define HAND_CONTACT_START_SITE_NAME "contact_site_hand_0"
 
-#define MAX_CONTACTS 16
+#define MANO_MAX_CONTACTS 16
 
 using namespace std;
 

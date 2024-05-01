@@ -22,7 +22,7 @@
 
 #include "JSONUtils.hpp"
 
-#define FPS 12
+#define ALLEGRO_DEFAULT_MOCAP_FPS 120
 #define ALLEGRO_SLOWDOWN_FACTOR 10
 
 #define ABSOLUTE_MAX_CONTACT_SITES 6500
@@ -43,13 +43,11 @@
 #define OBJECT_CURRENT_POSITION "object_position"
 #define OBJECT_CURRENT_ORIENTATION "object_orientation"
 
-#define CONTACT_SITE_DATA_COUNT_FIELD_SIZE                                     \
-    2 // first number gives the offset index, second number gives the number of
-      // discrete points
-
 #define SITE_DATA_START_NAME "contact_numdata_0"
 #define OBJECT_CONTACT_START_SITE_NAME "contact_site_object_0"
 #define HAND_CONTACT_START_SITE_NAME "contact_site_hand_0"
+
+#define ALLEGRO_MAX_CONTACTS 21
 
 using namespace std;
 
@@ -164,7 +162,7 @@ namespace mjpc
         AllegroTask(string objectSimBodyName, string handTrajSplineFile,
                     string objectTrajSplineFile, string pcHandTrajSplineFile,
                     double startClampOffsetX, double startClampOffsetY,
-                    double startClampOffsetZ, int maxContactSites,
+                    double startClampOffsetZ, int totalFrames,
                     string objectContactStartDataName,
                     string handContactStartDataName);
 
@@ -212,7 +210,7 @@ namespace mjpc
 
         string m_object_sim_body_name;
 
-        int m_max_contact_sites;
+        int m_total_frames;
         string m_object_contact_start_data_name;
         string m_hand_contact_start_data_name;
 
@@ -251,7 +249,7 @@ namespace mjpc
                   "/Users/arjunl/mujoco_mpc/mjpc/tasks/allegro/"
                   "pcsplines/apple_pass_1.pcmexp",
                   -0.559216021990488, 1.0061246071752599, 1.3645857582385554,
-                  1987, "contact_pos_object_data_215_0",
+                  703, "contact_pos_object_data_215_0",
                   "contact_pos_hand_data_215_0")
         {
         }
@@ -274,7 +272,7 @@ namespace mjpc
                   "shared_spline_trajectories/doorknob_use_1_object.smexp",
                   "/Users/arjunl/mujoco_mpc/mjpc/tasks/allegro/"
                   "pcsplines/doorknob_use_1.pcmexp",
-                  -1.05350866, 0.30617798, 1.28931948, 6455,
+                  -1.05350866, 0.30617798, 1.28931948, 1040,
                   "contact_pos_object_data_252_0",
                   "contact_pos_hand_data_252_0")
         {
