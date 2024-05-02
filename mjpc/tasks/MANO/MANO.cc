@@ -17,7 +17,7 @@ namespace mjpc
 
         // TODO: Find way to remove
         // Don't know how to turn contacts into continuous time queries
-        double fps = DEFAULT_MOCAP_FPS / MANO_SLOWDOWN_FACTOR;
+        double fps = MANO_DEFAULT_MOCAP_FPS / MANO_SLOWDOWN_FACTOR;
         double rounded_index = floor(data->time * fps);
         int contact_frame_index = int(rounded_index) % m_total_frames;
 
@@ -62,13 +62,13 @@ namespace mjpc
         int contactDataOffset = int(metadataData[0]);
         int numActiveContacts = int(metadataData[1]);
 
-        double object_contact_position_buffer[MAX_CONTACTS * XYZ_BLOCK_SIZE] = {
-            0};
-        double hand_contact_position_buffer[MAX_CONTACTS * XYZ_BLOCK_SIZE] = {
-            0};
+        double object_contact_position_buffer[MANO_MAX_CONTACTS *
+                                              XYZ_BLOCK_SIZE] = {0};
+        double hand_contact_position_buffer[MANO_MAX_CONTACTS *
+                                            XYZ_BLOCK_SIZE] = {0};
 
-        double full_result[MAX_CONTACTS * XYZ_BLOCK_SIZE] = {0};
-        double relevant_result[MAX_CONTACTS * XYZ_BLOCK_SIZE] = {0};
+        double full_result[MANO_MAX_CONTACTS * XYZ_BLOCK_SIZE] = {0};
+        double relevant_result[MANO_MAX_CONTACTS * XYZ_BLOCK_SIZE] = {0};
 
         // Load object contact data
         int objectContactStartSiteId =
@@ -131,7 +131,8 @@ namespace mjpc
         }
 
         mju_sub(full_result, hand_contact_position_buffer,
-                object_contact_position_buffer, MAX_CONTACTS * XYZ_BLOCK_SIZE);
+                object_contact_position_buffer,
+                MANO_MAX_CONTACTS * XYZ_BLOCK_SIZE);
 
         for (int i = 0; i < numActiveContacts; i++)
         {
@@ -139,8 +140,8 @@ namespace mjpc
         }
 
         mju_copy(residual + offset, relevant_result,
-                 MAX_CONTACTS * XYZ_BLOCK_SIZE);
-        offset += MAX_CONTACTS * XYZ_BLOCK_SIZE;
+                 MANO_MAX_CONTACTS * XYZ_BLOCK_SIZE);
+        offset += MANO_MAX_CONTACTS * XYZ_BLOCK_SIZE;
 
         // ---------- Residual (3) ----------
         mju_copy(residual + offset, data->qvel + 6, MANO_NON_ROOT_VEL_DOFS);
@@ -303,7 +304,7 @@ namespace mjpc
     {
         // TODO: Find way to remove
         // Don't know how to turn contacts into continuous time queries
-        double fps = DEFAULT_MOCAP_FPS / MANO_SLOWDOWN_FACTOR;
+        double fps = MANO_DEFAULT_MOCAP_FPS / MANO_SLOWDOWN_FACTOR;
         double rounded_index = floor(data->time * fps);
         int contact_frame_index = int(rounded_index) % m_total_frames;
 
@@ -312,15 +313,15 @@ namespace mjpc
 
         // Object mocap is first in config
         mju_copy3(data->mocap_pos, splineObjectPos.data());
-        mju_copy4(data->mocap_quat, splineObjectPos.data() + 3);
+        mju_copy4(data->mocap_quat, splineObjectPos.data() + XYZ_BLOCK_SIZE);
 
         // Fetch hand data
         int handRootBodyId = mj_name2id(model, mjOBJ_BODY, MANO_ROOT);
         int bodyJointAdr = model->body_jntadr[handRootBodyId];
         int handQPosAdr = model->jnt_qposadr[bodyJointAdr];
 
-        int handWristXPosOffset = 3 * handRootBodyId;
-        int handWristXQuatOffset = 4 * handRootBodyId;
+        int handWristXPosOffset = XYZ_BLOCK_SIZE * handRootBodyId;
+        int handWristXQuatOffset = QUAT_BLOCK_SIZE * handRootBodyId;
 
         // Reference hand loading
         vector<double> splineQPos = GetDesiredAgentState(data->time);
@@ -330,15 +331,17 @@ namespace mjpc
         mju_copy(hand_kinematic_buffer, data->qpos + handQPosAdr, MANO_DOFS);
         mju_copy(data->qpos + handQPosAdr, splineQPos.data(), MANO_DOFS);
         mj_kinematics(model, data);
-        mju_copy(data->mocap_pos + 3, data->xpos + handWristXPosOffset,
-                 3 * (model->nmocap - 1));
-        mju_copy(data->mocap_quat + 4, data->xquat + handWristXQuatOffset,
-                 4 * (model->nmocap - 1));
+        mju_copy(data->mocap_pos + XYZ_BLOCK_SIZE,
+                 data->xpos + handWristXPosOffset,
+                 XYZ_BLOCK_SIZE * (model->nmocap - 1));
+        mju_copy(data->mocap_quat + QUAT_BLOCK_SIZE,
+                 data->xquat + handWristXQuatOffset,
+                 QUAT_BLOCK_SIZE * (model->nmocap - 1));
         mju_copy(data->qpos + handQPosAdr, hand_kinematic_buffer, MANO_DOFS);
         mj_kinematics(model, data);
 
         // Contact loading
-        mju_zero(model->site_pos, MAX_CONTACTS * XYZ_BLOCK_SIZE * 2);
+        mju_zero(model->site_pos, MANO_MAX_CONTACTS * XYZ_BLOCK_SIZE * 2);
 
         // Set sameframe byte to 0 so actual offset will be computed
         for (int sid = 0; sid < model->nsite; sid++)
@@ -358,7 +361,6 @@ namespace mjpc
         // Load object contact site data
         int objectContactStartSiteId =
             mj_name2id(model, mjOBJ_SITE, OBJECT_CONTACT_START_SITE_NAME);
-        // int objectBodyIndex = model->site_bodyid[objectContactStartSiteId];
         int objectContactDataStartId = mj_name2id(
             model, mjOBJ_NUMERIC, m_object_contact_start_data_name.c_str());
 
@@ -403,10 +405,8 @@ namespace mjpc
 
         mj_kinematics(model, data);
 
-        double loopedQueryTime = fmod(data->time, m_spline_loopback_time);
-
         // Reset
-        if (loopedQueryTime == 0)
+        if (contact_frame_index == 0)
         {
             int simObjBodyId =
                 mj_name2id(model, mjOBJ_BODY, m_object_sim_body_name.c_str());
@@ -425,8 +425,8 @@ namespace mjpc
                 {
                     // Reset configuration to first mocap frame
                     mju_copy3(data->qpos + objQposadr, splineObjectPos.data());
-                    mju_copy4(data->qpos + objQposadr + 3,
-                              splineObjectPos.data() + 3);
+                    mju_copy4(data->qpos + objQposadr + XYZ_BLOCK_SIZE,
+                              splineObjectPos.data() + XYZ_BLOCK_SIZE);
                 }
                 else
                 {
