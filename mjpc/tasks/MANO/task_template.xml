@@ -16,7 +16,7 @@
 
     <!-- <See https://github.com/lakshmipathyarjun6/mujoco_mpc/blob/c5c7ead065b7f4034ab265a13023231900dbfaa7/docs/OVERVIEW.md for user sensors used as residuals> -->
     <sensor>
-        <!-- cost -->
+        <!-- cost terms -->
         <user name="Object Position" dim="3" user="0 1000.0 0 1000"/>
         <user name="Object Orientation" dim="3" user="0 10.0 0 20"/>
         <user name="Contact Alignment" dim="48" user="0 5000.0 0 10000"/>

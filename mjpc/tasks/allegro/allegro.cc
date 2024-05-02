@@ -20,67 +20,23 @@ namespace mjpc
     //   Number of residuals: 4
     //     Residual (0): object_position - object_traj_position
     //     Residual (1): object_orientation - object_traj_orientation
-    //     Residual (2): hand joint velocity
+    //     Residual (2): contact alignment
+    //     Residual (3): hand joint velocity
     // ------------------------------------------------------------
-
-    // NOTE: Currently unclear how to adapt to non-free objects (e.g. doorknob)
     void AllegroTask::ResidualFn::Residual(const mjModel *model,
                                            const mjData *data,
                                            double *residual) const
     {
         int offset = 0;
 
+        // TODO: Find way to remove
+        // Don't know how to turn contacts into continuous time queries
+        double fps = ALLEGRO_DEFAULT_MOCAP_FPS / ALLEGRO_SLOWDOWN_FACTOR;
+        double rounded_index = floor(data->time * fps);
+        int contact_frame_index = int(rounded_index) % m_total_frames;
+
         // Query reference traj. bsplines for desired states
         vector<double> splineObjectPos = GetDesiredObjectState(data->time);
-
-        // bool agent_object_collision_detected = false;
-        vector<mjContact *> agent_object_collisions;
-
-        // Get all collisions
-        for (int c = 0; c < data->ncon; c++)
-        {
-            int *colliding_geoms = data->contact[c].geom; // size 2
-
-            string colliding_geom_1 =
-                model->names + model->name_geomadr[colliding_geoms[0]];
-            string colliding_geom_2 =
-                model->names + model->name_geomadr[colliding_geoms[1]];
-
-            // Check for agent-object collisions only
-            // Breaking into separate clauses for readability
-            if (colliding_geom_1.compare(0, AGENT_GEOM_COLLIDER_PREFIX.size(),
-                                         AGENT_GEOM_COLLIDER_PREFIX) == 0 &&
-                colliding_geom_2.compare(0, SIM_GEOM_COLLIDER_PREFIX.size(),
-                                         SIM_GEOM_COLLIDER_PREFIX) == 0)
-            {
-                // agent_object_collision_detected = true;
-                agent_object_collisions.push_back(&data->contact[c]);
-            }
-            else if (colliding_geom_2.compare(
-                         0, AGENT_GEOM_COLLIDER_PREFIX.size(),
-                         AGENT_GEOM_COLLIDER_PREFIX) == 0 &&
-                     colliding_geom_1.compare(0,
-                                              SIM_GEOM_COLLIDER_PREFIX.size(),
-                                              SIM_GEOM_COLLIDER_PREFIX) == 0)
-            {
-                // agent_object_collision_detected = true;
-                agent_object_collisions.push_back(&data->contact[c]);
-            }
-        }
-
-        // if (agent_object_collision_detected)
-        // {
-        //     cout << "Agent object collision(s) found" << endl;
-        //     for (int c = 0; c < agent_object_collisions.size(); c++)
-        //     {
-        //         cout << "Collision #" << c << ": " << endl;
-        //         cout << "\tGeometry 1: " << model->names +
-        //         model->name_geomadr[agent_object_collisions[c]->geom[0]] <<
-        //         endl; cout << "\tGeometry 2: " << model->names +
-        //         model->name_geomadr[agent_object_collisions[c]->geom[1]] <<
-        //         endl;
-        //     }
-        // }
 
         // ---------- Residual (0) ----------
         // goal position
@@ -111,48 +67,99 @@ namespace mjpc
         offset += 3;
 
         // ---------- Residual (2) ----------
+        int siteMetadataStartId =
+            mj_name2id(model, mjOBJ_NUMERIC, SITE_DATA_START_NAME);
+        int siteMetadataOffset = siteMetadataStartId + contact_frame_index;
+
+        mjtNum *metadataData =
+            model->numeric_data + model->numeric_adr[siteMetadataOffset];
+        int contactDataOffset = int(metadataData[0]);
+        int numActiveContacts = int(metadataData[1]);
+
+        double object_contact_position_buffer[ALLEGRO_MAX_CONTACTS *
+                                              XYZ_BLOCK_SIZE] = {0};
+        double hand_contact_position_buffer[ALLEGRO_MAX_CONTACTS *
+                                            XYZ_BLOCK_SIZE] = {0};
+
+        double full_result[ALLEGRO_MAX_CONTACTS * XYZ_BLOCK_SIZE] = {0};
+        double relevant_result[ALLEGRO_MAX_CONTACTS * XYZ_BLOCK_SIZE] = {0};
+
+        // Load object contact data
+        int objectContactStartSiteId =
+            mj_name2id(model, mjOBJ_SITE, OBJECT_CONTACT_START_SITE_NAME);
+        int objectBodyIndex = model->site_bodyid[objectContactStartSiteId];
+        int objectContactDataStartId = mj_name2id(
+            model, mjOBJ_NUMERIC, m_object_contact_start_data_name.c_str());
+
+        int objectContactDataStart =
+            objectContactDataStartId + contactDataOffset;
+
+        for (int objectContactDataIndex = objectContactDataStart;
+             objectContactDataIndex <
+             objectContactDataStart + numActiveContacts;
+             objectContactDataIndex++)
+        {
+            mjtNum *objectContactDataBlock =
+                model->numeric_data +
+                model->numeric_adr[objectContactDataIndex];
+
+            double localCoords[XYZ_BLOCK_SIZE];
+            mju_copy3(localCoords, objectContactDataBlock);
+
+            int bufferRelativeOffset =
+                objectContactDataIndex - objectContactDataStart;
+            int fullBufferOffset = bufferRelativeOffset * XYZ_BLOCK_SIZE;
+
+            mju_rotVecMat(object_contact_position_buffer + fullBufferOffset,
+                          localCoords, data->xmat + 9 * objectBodyIndex);
+            mju_addTo3(object_contact_position_buffer + fullBufferOffset,
+                       data->xpos + XYZ_BLOCK_SIZE * objectBodyIndex);
+        }
+
+        // Load hand contact data
+        int handContactDataStartId = mj_name2id(
+            model, mjOBJ_NUMERIC, m_hand_contact_start_data_name.c_str());
+
+        int handContactDataStart = handContactDataStartId + contactDataOffset;
+
+        for (int handContactDataIndex = handContactDataStart;
+             handContactDataIndex < handContactDataStart + numActiveContacts;
+             handContactDataIndex++)
+        {
+            mjtNum *handContactDataBlock =
+                model->numeric_data + model->numeric_adr[handContactDataIndex];
+
+            int handBodyIndex = handContactDataBlock[0];
+
+            double localCoords[XYZ_BLOCK_SIZE];
+            mju_copy3(localCoords, handContactDataBlock + 1);
+
+            int bufferRelativeOffset =
+                handContactDataIndex - handContactDataStart;
+            int fullBufferOffset = bufferRelativeOffset * XYZ_BLOCK_SIZE;
+
+            mju_rotVecMat(hand_contact_position_buffer + fullBufferOffset,
+                          localCoords, data->xmat + 9 * handBodyIndex);
+            mju_addTo3(hand_contact_position_buffer + fullBufferOffset,
+                       data->xpos + XYZ_BLOCK_SIZE * handBodyIndex);
+        }
+
+        mju_sub(full_result, hand_contact_position_buffer,
+                object_contact_position_buffer,
+                ALLEGRO_MAX_CONTACTS * XYZ_BLOCK_SIZE);
+
+        for (int i = 0; i < numActiveContacts; i++)
+        {
+            relevant_result[i] = full_result[i];
+        }
+
+        mju_copy(residual + offset, relevant_result,
+                 ALLEGRO_MAX_CONTACTS * XYZ_BLOCK_SIZE);
+        offset += ALLEGRO_MAX_CONTACTS * XYZ_BLOCK_SIZE;
+
+        // ---------- Residual (3) ----------
         mju_copy(residual + offset, data->qvel + 6, ALLEGRO_NON_ROOT_VEL_DOFS);
         offset += ALLEGRO_NON_ROOT_VEL_DOFS;
-
-        // // ---------- Residual (3) ----------
-        // double result[ABSOLUTE_MAX_CONTACT_RESULT_BUFF_SIZE];
-        // mju_sub(result, m_r_contact_position_buffer,
-        // m_r_contact_position_buffer + ABSOLUTE_MAX_CONTACT_RESULT_BUFF_SIZE,
-        // ABSOLUTE_MAX_CONTACT_RESULT_BUFF_SIZE);
-
-        // for(int i = 0; i < ABSOLUTE_MAX_CONTACT_RESULT_BUFF_SIZE; i++)
-        // {
-        //     result[i] *= m_r_contact_indicator_buffer[i];
-        // }
-
-        // mju_copy(residual + offset, result,
-        // ABSOLUTE_MAX_CONTACT_RESULT_BUFF_SIZE); offset +=
-        // ABSOLUTE_MAX_CONTACT_RESULT_BUFF_SIZE;
-
-        // BELOW HERE IS LEGACY
-        // // ---------- Residual (2) ----------
-        // int handRootBodyId = mj_name2id(model, mjOBJ_BODY, ALLEGRO_ROOT);
-        // int bodyJointAdr = model->body_jntadr[handRootBodyId];
-        // int handQPosAdr = model->jnt_qposadr[bodyJointAdr];
-
-        // mju_sub(residual + offset, data->qpos + handQPosAdr, m_r_qpos_buffer,
-        // 3);
-
-        // offset += 3;
-
-        // // ---------- Residual (3) ----------
-        // int rootOffset = 3;
-        // mju_sub(residual + offset, data->qpos + handQPosAdr + rootOffset,
-        // m_r_qpos_buffer + rootOffset, 3);
-
-        // offset += 3;
-
-        // // ---------- Residual (4) ----------
-        // rootOffset = 6;
-        // mju_sub(residual + offset, data->qpos + handQPosAdr + rootOffset,
-        // m_r_qpos_buffer + rootOffset, ALLEGRO_DOFS - 6);
-
-        // offset += ALLEGRO_DOFS - 6;
 
         // sensor dim sanity check
         CheckSensorDim(model, offset);
@@ -476,6 +483,12 @@ namespace mjpc
 
         m_spline_loopback_time *= ALLEGRO_SLOWDOWN_FACTOR;
 
+        m_residual.m_total_frames = totalFrames;
+        m_residual.m_object_contact_start_data_name =
+            m_object_contact_start_data_name;
+        m_residual.m_hand_contact_start_data_name =
+            m_hand_contact_start_data_name;
+
         m_residual.m_bspline_loopback_time = m_spline_loopback_time;
 
         m_num_pcs = dPcSplines["numComponents"].GetInt();
@@ -519,16 +532,6 @@ namespace mjpc
 
             m_residual.m_hand_traj_bspline_properties.push_back(properties);
             m_residual.m_hand_traj_bspline_curves.push_back(bspc);
-        }
-
-        if (m_hand_traj_bspline_curves.size() != ALLEGRO_VEL_DOFS)
-        {
-            cout << "ERROR: Expected " << ALLEGRO_VEL_DOFS << " dofs but read "
-                 << m_hand_traj_bspline_curves.size() << " dofs." << endl;
-        }
-        else
-        {
-            cout << "Done" << endl;
         }
 
         for (const auto &splineData : dObjectSplines["data"].GetArray())
@@ -628,6 +631,16 @@ namespace mjpc
         mju_transpose(m_hand_pc_component_matrix.data(),
                       m_hand_pc_component_matrix.data(), m_num_pcs,
                       ALLEGRO_NON_ROOT_VEL_DOFS);
+
+        if (m_hand_traj_bspline_curves.size() != ALLEGRO_VEL_DOFS)
+        {
+            cout << "ERROR: Expected " << ALLEGRO_VEL_DOFS << " dofs but read "
+                 << m_hand_traj_bspline_curves.size() << " dofs." << endl;
+        }
+        else
+        {
+            cout << "Done" << endl;
+        }
     }
 
     vector<double> AllegroTask::GetDesiredAgentState(double time) const
