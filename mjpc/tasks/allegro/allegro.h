@@ -60,7 +60,8 @@ namespace mjpc
         {
         public:
             explicit ResidualFn(const AllegroTask *task)
-                : mjpc::BaseResidualFn(task), m_bspline_loopback_time(0.0)
+                : mjpc::BaseResidualFn(task), m_total_frames(0),
+                  m_bspline_loopback_time(0.0)
             {
                 m_hand_traj_bspline_curves.clear();
                 m_hand_traj_bspline_properties.clear();
@@ -69,28 +70,27 @@ namespace mjpc
                 m_object_traj_bspline_properties.clear();
 
                 fill(begin(m_start_clamp_offset), end(m_start_clamp_offset), 0);
-
-                fill(begin(m_r_contact_indicator_buffer),
-                     end(m_r_contact_indicator_buffer), 0);
-                fill(begin(m_r_contact_position_buffer),
-                     end(m_r_contact_position_buffer), 0);
             }
 
             explicit ResidualFn(
-                const AllegroTask *task, double bspline_loopback_time,
+                const AllegroTask *task, int total_frames,
+                string object_contact_start_data_name,
+                string hand_contact_start_data_name,
+                double bspline_loopback_time,
                 const double start_clamp_offset[XYZ_BLOCK_SIZE],
                 const vector<BSplineCurve<double> *> hand_traj_bspline_curves,
                 const vector<TrajectorySplineProperties *>
                     hand_traj_bspline_properties,
                 const vector<BSplineCurve<double> *> object_traj_bspline_curves,
                 const vector<TrajectorySplineProperties *>
-                    object_traj_bspline_properties,
-                const double contact_indicator_buffer
-                    [ABSOLUTE_MAX_CONTACT_RESULT_BUFF_SIZE],
-                const double
-                    contact_position_buffer[ABSOLUTE_MAX_CONTACT_POS_BUFF_SIZE])
+                    object_traj_bspline_properties)
                 : mjpc::BaseResidualFn(task)
             {
+                m_total_frames = total_frames;
+                m_object_contact_start_data_name =
+                    object_contact_start_data_name;
+                m_hand_contact_start_data_name = hand_contact_start_data_name;
+
                 m_bspline_loopback_time = bspline_loopback_time;
 
                 m_hand_traj_bspline_curves.clear();
@@ -122,11 +122,6 @@ namespace mjpc
                 }
 
                 mju_copy3(m_start_clamp_offset, start_clamp_offset);
-
-                mju_copy(m_r_contact_indicator_buffer, contact_indicator_buffer,
-                         ABSOLUTE_MAX_CONTACT_RESULT_BUFF_SIZE);
-                mju_copy(m_r_contact_position_buffer, contact_position_buffer,
-                         ABSOLUTE_MAX_CONTACT_POS_BUFF_SIZE);
             }
 
             void Residual(const mjModel *model, const mjData *data,
@@ -143,6 +138,10 @@ namespace mjpc
         private:
             friend class AllegroTask;
 
+            int m_total_frames;
+            string m_object_contact_start_data_name;
+            string m_hand_contact_start_data_name;
+
             double m_bspline_loopback_time;
             double m_start_clamp_offset[XYZ_BLOCK_SIZE];
 
@@ -152,11 +151,6 @@ namespace mjpc
             vector<BSplineCurve<double> *> m_object_traj_bspline_curves;
             vector<TrajectorySplineProperties *>
                 m_object_traj_bspline_properties;
-
-            double m_r_contact_indicator_buffer
-                [ABSOLUTE_MAX_CONTACT_RESULT_BUFF_SIZE];
-            double
-                m_r_contact_position_buffer[ABSOLUTE_MAX_CONTACT_POS_BUFF_SIZE];
         };
 
         AllegroTask(string objectSimBodyName, string handTrajSplineFile,
@@ -194,14 +188,15 @@ namespace mjpc
         unique_ptr<mjpc::ResidualFn> ResidualLocked() const override
         {
             return make_unique<ResidualFn>(
-                this, m_residual.m_bspline_loopback_time,
+                this, m_residual.m_total_frames,
+                m_residual.m_object_contact_start_data_name,
+                m_residual.m_hand_contact_start_data_name,
+                m_residual.m_bspline_loopback_time,
                 m_residual.m_start_clamp_offset,
                 m_residual.m_hand_traj_bspline_curves,
                 m_residual.m_hand_traj_bspline_properties,
                 m_residual.m_object_traj_bspline_curves,
-                m_residual.m_object_traj_bspline_properties,
-                m_residual.m_r_contact_indicator_buffer,
-                m_residual.m_r_contact_position_buffer);
+                m_residual.m_object_traj_bspline_properties);
         }
         ResidualFn *InternalResidual() override { return &m_residual; }
 
