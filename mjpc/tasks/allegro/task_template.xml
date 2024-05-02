@@ -7,7 +7,7 @@
         <numeric name="agent_horizon" data="2.5" />
         <numeric name="agent_timestep" data="0.01" />
         <numeric name="agent_policy_width" data="0.005" />
-        <numeric name="sampling_trajectories" data="10" />
+        <numeric name="sampling_trajectories" data="128" />
         <numeric name="root_ball_motor_kp" data="10" />
         <numeric name="root_ball_motor_kd" data="0.1" />
     </custom>
