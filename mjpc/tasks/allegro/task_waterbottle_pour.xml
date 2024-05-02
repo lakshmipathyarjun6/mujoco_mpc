@@ -1,0 +1,17 @@
+<mujoco model="Allegro Waterbottle Pour Task">
+
+    <include file="./task_template.xml"/>
+    <include file="../shared_task_templates/task_waterbottle_pour.xml"/>
+
+    <include file="./contacts/data/waterbottle_pour_1.xml"/>
+
+    <worldbody>
+        <body name="hand_startclamp" pos="-0.45637235839190967 1.0530724555477113 1.2488375856211994">
+            <include file="right_hand_body.xml"/>
+        </body>
+        <include file="right_hand_mocap_vis.xml"/>
+        <include file="../shared_task_templates/waterbottle_sim_body.xml" />
+        <include file="./contacts/sites/hand_contact_sites.xml"/>
+    </worldbody>
+
+</mujoco>

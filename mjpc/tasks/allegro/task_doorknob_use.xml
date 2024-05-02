@@ -3,15 +3,15 @@
     <include file="./task_template.xml"/>
     <include file="../shared_task_templates/task_doorknob_use.xml"/>
 
-    <include file="./contacts/doorknob_use_1/doorknob_use_1_site_data.xml"/>
+    <include file="./contacts/data/doorknob_use_1.xml"/>
 
     <worldbody>
-        <body name="hand_startclamp" pos="-1.05350866 0.30617798 1.28931948">
+        <body name="hand_startclamp" pos="-1.0543771773975556 0.30091857905335375 1.28798410204936">
             <include file="right_hand_body.xml"/>
         </body>
         <include file="right_hand_mocap_vis.xml"/>
         <include file="../shared_task_templates/doorknob_sim_body.xml"/>
-        <include file="./contacts/doorknob_use_1/doorknob_use_1_hand_sites.xml"/>
+        <include file="./contacts/sites/hand_contact_sites.xml"/>
     </worldbody>
 
 </mujoco>

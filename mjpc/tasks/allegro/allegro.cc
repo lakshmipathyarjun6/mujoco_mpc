@@ -977,4 +977,14 @@ namespace mjpc
         return "Allegro Doorknob Use";
     }
 
+    string AllegroWaterbottlePourTask::XmlPath() const
+    {
+        return GetModelPath("allegro/task_waterbottle_pour.xml");
+    }
+
+    string AllegroWaterbottlePourTask::Name() const
+    {
+        return "Allegro Waterbottle Pour";
+    }
+
 } // namespace mjpc
