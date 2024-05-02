@@ -243,13 +243,11 @@ namespace mjpc
                   "shared_spline_trajectories/apple_pass_1_object.smexp",
                   "/Users/arjunl/mujoco_mpc/mjpc/tasks/allegro/"
                   "pcsplines/apple_pass_1.pcmexp",
-                  -0.559216021990488, 1.0061246071752599, 1.3645857582385554,
+                  -0.559059652010766, 1.009854895156828, 1.3654812428175624,
                   703, "contact_pos_object_data_215_0",
                   "contact_pos_hand_data_215_0")
         {
         }
-
-    private:
     };
 
     class AllegroDoorknobUseTask : public AllegroTask
@@ -267,9 +265,31 @@ namespace mjpc
                   "shared_spline_trajectories/doorknob_use_1_object.smexp",
                   "/Users/arjunl/mujoco_mpc/mjpc/tasks/allegro/"
                   "pcsplines/doorknob_use_1.pcmexp",
-                  -1.05350866, 0.30617798, 1.28931948, 1040,
-                  "contact_pos_object_data_252_0",
+                  -1.0543771773975556, 0.30091857905335375, 1.28798410204936,
+                  1040, "contact_pos_object_data_252_0",
                   "contact_pos_hand_data_252_0")
+        {
+        }
+    };
+
+    class AllegroWaterbottlePourTask : public AllegroTask
+    {
+    public:
+        string Name() const override;
+        string XmlPath() const override;
+
+        AllegroWaterbottlePourTask()
+            : AllegroTask(
+                  "waterbottle_sim",
+                  "/Users/arjunl/mujoco_mpc/mjpc/tasks/allegro/"
+                  "splinetrajectories/waterbottle_pour_1_hand.smexp",
+                  "/Users/arjunl/mujoco_mpc/mjpc/tasks/"
+                  "shared_spline_trajectories/waterbottle_pour_1_object.smexp",
+                  "/Users/arjunl/mujoco_mpc/mjpc/tasks/allegro/"
+                  "pcsplines/waterbottle_pour_1.pcmexp",
+                  -0.45637235839190967, 1.0530724555477113, 1.2488375856211994,
+                  927, "contact_pos_object_data_185_0",
+                  "contact_pos_hand_data_185_0")
         {
         }
     };

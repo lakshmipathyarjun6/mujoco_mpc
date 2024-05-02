@@ -3,15 +3,15 @@
     <include file="./task_template.xml"/>
     <include file="../shared_task_templates/task_apple_pass.xml"/>
 
-    <include file="./contacts/apple_pass_1/apple_pass_1_site_data.xml"/>
+    <include file="./contacts/data/apple_pass_1.xml"/>
 
     <worldbody>
-        <body name="hand_startclamp" pos="-0.559216021990488 1.0061246071752599 1.3645857582385554">
+        <body name="hand_startclamp" pos="-0.559059652010766 1.009854895156828 1.3654812428175624">
             <include file="right_hand_body.xml"/>
         </body>
         <include file="right_hand_mocap_vis.xml"/>
         <include file="../shared_task_templates/apple_sim_body.xml" />
-        <include file="./contacts/apple_pass_1/apple_pass_1_hand_sites.xml"/>
+        <include file="./contacts/sites/hand_contact_sites.xml"/>
     </worldbody>
 
 </mujoco>
