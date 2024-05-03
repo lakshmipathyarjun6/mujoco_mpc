@@ -22,6 +22,9 @@
 
 #include "JSONUtils.hpp"
 
+// Apple near success: Slowdown factor 8
+// Waterbottle success: Slowdown factor 5
+
 #define ALLEGRO_DEFAULT_MOCAP_FPS 120
 #define ALLEGRO_SLOWDOWN_FACTOR 10
 
