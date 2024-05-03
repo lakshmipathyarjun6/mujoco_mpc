@@ -1,4 +1,8 @@
 <mujoco>
+
+    <!-- baseline density: 1250 -->
+    <!-- infill percetnage: 100% -->
+
     <body name="doorknob_attachment" pos="-0.0825822262763977 -0.6478415727615356 0.9384804964065552">
         <body name="doorknob_sim" gravcomp="1" pos="-0.047 0 0" quat="0.47815212453295514 0.5128687163825603 -0.5009253359069297 -0.5073559237924161">
             <joint axis="0 0 1" limited="true" range="0 1" type="slide"/>
@@ -9,4 +13,5 @@
             <include file="./contacts/sites/object_contact_sites.xml"/>
         </body>
     </body>
+
 </mujoco>
