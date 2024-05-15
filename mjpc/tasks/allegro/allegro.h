@@ -241,11 +241,11 @@ namespace mjpc
         AllegroApplePassTask()
             : AllegroTask(
                   "apple_sim",
-                  "/Users/arjunl/mujoco_mpc/mjpc/tasks/allegro/"
+                  "/Users/arjun/mujoco_mpc/mjpc/tasks/allegro/"
                   "splinetrajectories/apple_pass_1_hand.smexp",
-                  "/Users/arjunl/mujoco_mpc/mjpc/tasks/"
+                  "/Users/arjun/mujoco_mpc/mjpc/tasks/"
                   "shared_spline_trajectories/apple_pass_1_object.smexp",
-                  "/Users/arjunl/mujoco_mpc/mjpc/tasks/allegro/"
+                  "/Users/arjun/mujoco_mpc/mjpc/tasks/allegro/"
                   "pcsplines/apple_pass_1.pcmexp",
                   -0.559059652010766, 1.009854895156828, 1.3654812428175624,
                   703, "contact_pos_object_data_215_0",
@@ -263,11 +263,11 @@ namespace mjpc
         AllegroDoorknobUseTask()
             : AllegroTask(
                   "doorknob_sim",
-                  "/Users/arjunl/mujoco_mpc/mjpc/tasks/allegro/"
+                  "/Users/arjun/mujoco_mpc/mjpc/tasks/allegro/"
                   "splinetrajectories/doorknob_use_1_hand.smexp",
-                  "/Users/arjunl/mujoco_mpc/mjpc/tasks/"
+                  "/Users/arjun/mujoco_mpc/mjpc/tasks/"
                   "shared_spline_trajectories/doorknob_use_1_object.smexp",
-                  "/Users/arjunl/mujoco_mpc/mjpc/tasks/allegro/"
+                  "/Users/arjun/mujoco_mpc/mjpc/tasks/allegro/"
                   "pcsplines/doorknob_use_1.pcmexp",
                   -1.0543771773975556, 0.30091857905335375, 1.28798410204936,
                   1040, "contact_pos_object_data_252_0",
@@ -285,11 +285,11 @@ namespace mjpc
         AllegroWaterbottlePourTask()
             : AllegroTask(
                   "waterbottle_sim",
-                  "/Users/arjunl/mujoco_mpc/mjpc/tasks/allegro/"
+                  "/Users/arjun/mujoco_mpc/mjpc/tasks/allegro/"
                   "splinetrajectories/waterbottle_pour_1_hand.smexp",
-                  "/Users/arjunl/mujoco_mpc/mjpc/tasks/"
+                  "/Users/arjun/mujoco_mpc/mjpc/tasks/"
                   "shared_spline_trajectories/waterbottle_pour_1_object.smexp",
-                  "/Users/arjunl/mujoco_mpc/mjpc/tasks/allegro/"
+                  "/Users/arjun/mujoco_mpc/mjpc/tasks/allegro/"
                   "pcsplines/waterbottle_pour_1.pcmexp",
                   -0.45637235839190967, 1.0530724555477113, 1.2488375856211994,
                   927, "contact_pos_object_data_185_0",

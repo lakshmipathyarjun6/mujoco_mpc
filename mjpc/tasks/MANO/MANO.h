@@ -217,11 +217,11 @@ namespace mjpc
 
         MANOApplePassTask()
             : MANOTask("apple_sim",
-                       "/Users/arjunl/mujoco_mpc/mjpc/tasks/MANO/"
+                       "/Users/arjun/mujoco_mpc/mjpc/tasks/MANO/"
                        "splinetrajectories/apple_pass_1_hand.smexp",
-                       "/Users/arjunl/mujoco_mpc/mjpc/tasks/"
+                       "/Users/arjun/mujoco_mpc/mjpc/tasks/"
                        "shared_spline_trajectories/apple_pass_1_object.smexp",
-                       "/Users/arjunl/mujoco_mpc/mjpc/tasks/MANO/"
+                       "/Users/arjun/mujoco_mpc/mjpc/tasks/MANO/"
                        "pcsplines/apple_pass_1.pcmexp",
                        -0.58147233724594119, 1.0124462842941284,
                        1.3647385835647584, 703, "contact_pos_object_data_215_0",
@@ -240,11 +240,11 @@ namespace mjpc
 
         MANODoorknobUseTask()
             : MANOTask("doorknob_sim",
-                       "/Users/arjunl/mujoco_mpc/mjpc/tasks/MANO/"
+                       "/Users/arjun/mujoco_mpc/mjpc/tasks/MANO/"
                        "splinetrajectories/doorknob_use_1_hand.smexp",
-                       "/Users/arjunl/mujoco_mpc/mjpc/tasks/"
+                       "/Users/arjun/mujoco_mpc/mjpc/tasks/"
                        "shared_spline_trajectories/doorknob_use_1_object.smexp",
-                       "/Users/arjunl/mujoco_mpc/mjpc/tasks/MANO/"
+                       "/Users/arjun/mujoco_mpc/mjpc/tasks/MANO/"
                        "pcsplines/doorknob_use_1.pcmexp",
                        -1.0741884708404541, 0.31418800354003908,
                        1.298376441001892, 1040, "contact_pos_object_data_252_0",
@@ -262,11 +262,11 @@ namespace mjpc
         MANOFlashlightOnTask()
             : MANOTask(
                   "flashlight_sim",
-                  "/Users/arjunl/mujoco_mpc/mjpc/tasks/MANO/"
+                  "/Users/arjun/mujoco_mpc/mjpc/tasks/MANO/"
                   "splinetrajectories/flashlight_on_1_hand.smexp",
-                  "/Users/arjunl/mujoco_mpc/mjpc/tasks/"
+                  "/Users/arjun/mujoco_mpc/mjpc/tasks/"
                   "shared_spline_trajectories/flashlight_on_1_object.smexp",
-                  "/Users/arjunl/mujoco_mpc/mjpc/tasks/MANO/"
+                  "/Users/arjun/mujoco_mpc/mjpc/tasks/MANO/"
                   "pcsplines/flashlight_on_1.pcmexp",
                   -0.6258119344711304, 0.8344507813453675, 1.3911676406860352,
                   1040, "contact_pos_object_data_205_0",
@@ -283,11 +283,11 @@ namespace mjpc
 
         MANOHammerUseTask()
             : MANOTask("hammer_sim",
-                       "/Users/arjunl/mujoco_mpc/mjpc/tasks/MANO/"
+                       "/Users/arjun/mujoco_mpc/mjpc/tasks/MANO/"
                        "splinetrajectories/hammer_use_2_hand.smexp",
-                       "/Users/arjunl/mujoco_mpc/mjpc/tasks/"
+                       "/Users/arjun/mujoco_mpc/mjpc/tasks/"
                        "shared_spline_trajectories/hammer_use_2_object.smexp",
-                       "/Users/arjunl/mujoco_mpc/mjpc/tasks/MANO/"
+                       "/Users/arjun/mujoco_mpc/mjpc/tasks/MANO/"
                        "pcsplines/hammer_use_2.pcmexp",
                        -0.7610342502593994, 0.60684651136398318,
                        1.355204939842224, 768, "contact_pos_object_data_139_0",
@@ -304,11 +304,11 @@ namespace mjpc
 
         MANOPhoneCallTask()
             : MANOTask("phone_sim",
-                       "/Users/arjunl/mujoco_mpc/mjpc/tasks/MANO/"
+                       "/Users/arjun/mujoco_mpc/mjpc/tasks/MANO/"
                        "splinetrajectories/phone_call_1_hand.smexp",
-                       "/Users/arjunl/mujoco_mpc/mjpc/tasks/"
+                       "/Users/arjun/mujoco_mpc/mjpc/tasks/"
                        "shared_spline_trajectories/phone_call_1_object.smexp",
-                       "/Users/arjunl/mujoco_mpc/mjpc/tasks/MANO/"
+                       "/Users/arjun/mujoco_mpc/mjpc/tasks/MANO/"
                        "pcsplines/phone_call_1.pcmexp",
                        -0.7065898180007935, 0.3405895233154297,
                        1.313579797744751, 1145, "contact_pos_object_data_198_0",
@@ -326,11 +326,11 @@ namespace mjpc
         MANOStaplerStapleTask()
             : MANOTask(
                   "stapler_sim",
-                  "/Users/arjunl/mujoco_mpc/mjpc/tasks/MANO/"
+                  "/Users/arjun/mujoco_mpc/mjpc/tasks/MANO/"
                   "splinetrajectories/stapler_staple_2_hand.smexp",
-                  "/Users/arjunl/mujoco_mpc/mjpc/tasks/"
+                  "/Users/arjun/mujoco_mpc/mjpc/tasks/"
                   "shared_spline_trajectories/stapler_staple_2_object.smexp",
-                  "/Users/arjunl/mujoco_mpc/mjpc/tasks/MANO/"
+                  "/Users/arjun/mujoco_mpc/mjpc/tasks/MANO/"
                   "pcsplines/stapler_staple_2.pcmexp",
                   -0.4984360337257385, 0.5916348099708557, 1.2731690406799317,
                   877, "contact_pos_object_data_230_0",
@@ -348,11 +348,11 @@ namespace mjpc
         MANOWaterbottlePourTask()
             : MANOTask(
                   "waterbottle_sim",
-                  "/Users/arjunl/mujoco_mpc/mjpc/tasks/MANO/"
+                  "/Users/arjun/mujoco_mpc/mjpc/tasks/MANO/"
                   "splinetrajectories/waterbottle_pour_1_hand.smexp",
-                  "/Users/arjunl/mujoco_mpc/mjpc/tasks/"
+                  "/Users/arjun/mujoco_mpc/mjpc/tasks/"
                   "shared_spline_trajectories/waterbottle_pour_1_object.smexp",
-                  "/Users/arjunl/mujoco_mpc/mjpc/tasks/MANO/"
+                  "/Users/arjun/mujoco_mpc/mjpc/tasks/MANO/"
                   "pcsplines/waterbottle_pour_1.pcmexp",
                   -0.4804867506027222, 1.0599700212478638, 1.2646256685256958,
                   927, "contact_pos_object_data_185_0",
