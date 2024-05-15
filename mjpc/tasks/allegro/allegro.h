@@ -276,6 +276,28 @@ namespace mjpc
         }
     };
 
+    class AllegroStaplerStapleTask : public AllegroTask
+    {
+    public:
+        string Name() const override;
+        string XmlPath() const override;
+
+        AllegroStaplerStapleTask()
+            : AllegroTask(
+                  "stapler_sim",
+                  "/Users/arjun/mujoco_mpc/mjpc/tasks/allegro/"
+                  "splinetrajectories/stapler_staple_2_hand.smexp",
+                  "/Users/arjun/mujoco_mpc/mjpc/tasks/"
+                  "shared_spline_trajectories/stapler_staple_2_object.smexp",
+                  "/Users/arjun/mujoco_mpc/mjpc/tasks/allegro/"
+                  "pcsplines/stapler_staple_2.pcmexp",
+                  -0.4805667866948928, 0.58770014610545768, 1.2733766645971997,
+                  877, "contact_pos_object_data_230_0",
+                  "contact_pos_hand_data_230_0")
+        {
+        }
+    };
+
     class AllegroWaterbottlePourTask : public AllegroTask
     {
     public:
