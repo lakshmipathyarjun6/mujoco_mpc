@@ -977,6 +977,16 @@ namespace mjpc
         return "Allegro Doorknob Use";
     }
 
+    string AllegroStaplerStapleTask::XmlPath() const
+    {
+        return GetModelPath("allegro/task_stapler_staple.xml");
+    }
+
+    string AllegroStaplerStapleTask::Name() const
+    {
+        return "Allegro Stapler Staple";
+    }
+
     string AllegroWaterbottlePourTask::XmlPath() const
     {
         return GetModelPath("allegro/task_waterbottle_pour.xml");

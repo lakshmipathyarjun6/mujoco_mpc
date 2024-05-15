@@ -1,0 +1,42 @@
+<mujoco model="Allegro Stapler Staple Task">
+
+    <include file="./task_template.xml"/>
+    <include file="../shared_task_templates/task_stapler_staple.xml"/>
+
+    <include file="./contacts/data/stapler_staple_2.xml"/>
+
+    <worldbody>
+        <body name="hand_startclamp" pos="-0.4805667866948928 0.58770014610545768 1.2733766645971997">
+            <include file="right_hand_body.xml"/>
+        </body>
+        <include file="right_hand_mocap_vis.xml"/>
+        <include file="../shared_task_templates/stapler_sim_body.xml" />
+        <include file="./contacts/sites/hand_contact_sites.xml"/>
+    </worldbody>
+
+    <contact>
+        <exclude body1="wrist" body2="tablebody"/>
+        <exclude body1="palm" body2="tablebody"/>
+        <exclude body1="th_base" body2="tablebody"/>
+        <exclude body1="th_proximal" body2="tablebody"/>
+        <exclude body1="th_medial" body2="tablebody"/>
+        <exclude body1="th_distal" body2="tablebody"/>
+        <exclude body1="th_tip" body2="tablebody"/>
+        <exclude body1="ff_base" body2="tablebody"/>
+        <exclude body1="ff_proximal" body2="tablebody"/>
+        <exclude body1="ff_medial" body2="tablebody"/>
+        <exclude body1="ff_distal" body2="tablebody"/>
+        <exclude body1="ff_tip" body2="tablebody"/>
+        <exclude body1="mf_base" body2="tablebody"/>
+        <exclude body1="mf_proximal" body2="tablebody"/>
+        <exclude body1="mf_medial" body2="tablebody"/>
+        <exclude body1="mf_distal" body2="tablebody"/>
+        <exclude body1="mf_tip" body2="tablebody"/>
+        <exclude body1="rf_base" body2="tablebody"/>
+        <exclude body1="rf_proximal" body2="tablebody"/>
+        <exclude body1="rf_medial" body2="tablebody"/>
+        <exclude body1="rf_distal" body2="tablebody"/>
+        <exclude body1="rf_tip" body2="tablebody"/>
+    </contact>
+
+</mujoco>
