@@ -119,6 +119,12 @@ namespace mjpc
         private:
             friend class MANOTask;
 
+            // Some scenes require additional bodies inserted before the agent,
+            // such as the table. This is really only necessary when we need to
+            // do something "special" such as exclude collisions to force mocap
+            // alignment
+            int m_hand_link_body_index_offset;
+
             int m_total_frames;
             string m_object_contact_start_data_name;
             string m_hand_contact_start_data_name;
@@ -139,7 +145,8 @@ namespace mjpc
                  double startClampOffsetX, double startClampOffsetY,
                  double startClampOffsetZ, int totalFrames,
                  string objectContactStartDataName,
-                 string handContactStartDataName);
+                 string handContactStartDataName,
+                 int handLinkBodyIndexOffset = 0);
 
         vector<double> GetDesiredAgentState(double time) const;
 
@@ -185,6 +192,12 @@ namespace mjpc
         ResidualFn m_residual;
 
         string m_object_sim_body_name;
+
+        // Some scenes require additional bodies inserted before the agent,
+        // such as the table. This is really only necessary when we need to do
+        // something "special" such as exclude collisions to force mocap
+        // alignment
+        int m_hand_link_body_index_offset;
 
         int m_total_frames;
         string m_object_contact_start_data_name;
@@ -334,7 +347,7 @@ namespace mjpc
                   "pcsplines/stapler_staple_2.pcmexp",
                   -0.4984360337257385, 0.5916348099708557, 1.2731690406799317,
                   877, "contact_pos_object_data_230_0",
-                  "contact_pos_hand_data_230_0")
+                  "contact_pos_hand_data_230_0", 1)
         {
         }
     };
