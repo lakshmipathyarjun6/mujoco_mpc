@@ -129,7 +129,8 @@ namespace mjpc
             mjtNum *handContactDataBlock =
                 model->numeric_data + model->numeric_adr[handContactDataIndex];
 
-            int handBodyIndex = handContactDataBlock[0];
+            int handBodyIndex =
+                handContactDataBlock[0] + m_hand_link_body_index_offset;
 
             double localCoords[XYZ_BLOCK_SIZE];
             mju_copy3(localCoords, handContactDataBlock + 1);
@@ -373,7 +374,8 @@ namespace mjpc
             mjtNum *handContactDataBlock =
                 model->numeric_data + model->numeric_adr[handContactDataIndex];
 
-            int handBodyIndex = handContactDataBlock[0];
+            int handBodyIndex =
+                handContactDataBlock[0] + m_hand_link_body_index_offset;
 
             double localCoords[XYZ_BLOCK_SIZE];
             mju_copy3(localCoords, handContactDataBlock + 1);
@@ -438,8 +440,10 @@ namespace mjpc
                              double startClampOffsetX, double startClampOffsetY,
                              double startClampOffsetZ, int totalFrames,
                              string objectContactStartDataName,
-                             string handContactStartDataName)
+                             string handContactStartDataName,
+                             int handLinkBodyIndexOffset)
         : m_residual(this), m_object_sim_body_name(objectSimBodyName),
+          m_hand_link_body_index_offset(handLinkBodyIndexOffset),
           m_total_frames(totalFrames),
           m_object_contact_start_data_name(objectContactStartDataName),
           m_hand_contact_start_data_name(handContactStartDataName)
@@ -488,6 +492,8 @@ namespace mjpc
             m_object_contact_start_data_name;
         m_residual.m_hand_contact_start_data_name =
             m_hand_contact_start_data_name;
+        m_residual.m_hand_link_body_index_offset =
+            m_hand_link_body_index_offset;
 
         m_residual.m_bspline_loopback_time = m_spline_loopback_time;
 
