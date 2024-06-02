@@ -3,6 +3,7 @@
     <worldbody>
         <light pos="0 -0.1 0.5" dir="0 0.2 -1" diffuse="0.7 0.7 0.7" specular="0.3 0.3 0.3"
             directional="true" castshadow="true"/>
+        <camera name="Recording" mode="fixed" pos="-0.108 -1.802 1.575" xyaxes="0.972 -0.236 0.000 0.112 0.462 0.880"/>
         <body name="stapler_mocap" mocap="true">
             <geom type="mesh" mesh="stapler" contype="0" conaffinity="0" rgba="0 1 0 1.0"/>
         </body>

@@ -3,6 +3,7 @@
     <worldbody>
         <light pos="0 -0.1 0.5" dir="0 0.2 -1" diffuse="0.7 0.7 0.7" specular="0.3 0.3 0.3"
             directional="true" castshadow="true"/>
+        <camera name="Recording" mode="fixed" pos="1.394 -0.328 1.947" xyaxes="0.281 0.960 -0.000 -0.603 0.176 0.778"/>
         <body name="apple_mocap" mocap="true">
             <geom type="mesh" mesh="apple" contype="0" conaffinity="0" rgba="0 1 0 1.0"/>
         </body>
