@@ -68,7 +68,7 @@ enum {
   SECT_WATCH,
   SECT_TASK,
   SECT_AGENT,
-  SECT_ESTIMATOR,
+  // SECT_ESTIMATOR,
   SECT_PHYSICS,
   SECT_RENDERING,
   SECT_GROUP,
@@ -1272,10 +1272,11 @@ void UiEvent(mjuiState* state) {
       sim->agent->AgentEvent(it, sim->d, sim->uiloadrequest, sim->run);
     }
 
-    // estimator section
-    else if (it && it->sectionid == SECT_ESTIMATOR) {
-      sim->agent->EstimatorEvent(it, sim->d, sim->uiloadrequest, sim->run);
-    }
+    // // estimator section
+    // else if (it && it->sectionid == SECT_ESTIMATOR) {
+    //   cout << "Called estimator section" << endl;
+    //   sim->agent->EstimatorEvent(it, sim->d, sim->uiloadrequest, sim->run);
+    // }
 
     // physics section
     else if (it && it->sectionid==SECT_PHYSICS) {
