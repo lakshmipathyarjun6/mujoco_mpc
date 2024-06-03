@@ -24,37 +24,6 @@ target_link_libraries(
 )
 target_include_directories(threadpool PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
 
-find_package(Protobuf REQUIRED)
-include_directories(${Protobuf_INCLUDE_DIRS})
-
-get_filename_component(agent_state_proto "./agent_state.proto" ABSOLUTE)
-get_filename_component(agent_state_proto_path "${agent_state_proto}" PATH)
-set(agent_state_proto_srcs "${CMAKE_CURRENT_BINARY_DIR}/agent_state.pb.cc")
-set(agent_state_proto_hdrs "${CMAKE_CURRENT_BINARY_DIR}/agent_state.pb.h")
-
-add_custom_command(
-  OUTPUT
-  "${agent_state_proto_srcs}"
-  "${agent_state_proto_hdrs}"
-  COMMAND ${Protobuf_PROTOC_EXECUTABLE}
-  ARGS
-  --cpp_out "${CMAKE_CURRENT_BINARY_DIR}"
-  -I "${agent_state_proto_path}"
-  "${agent_state_proto}"
-  DEPENDS
-  "${agent_state_proto}"
-)
-
-add_library(agent_state_proto_lib STATIC
-  "${agent_state_proto_srcs}"
-  "${agent_state_proto_hdrs}"
-)
-
-target_link_libraries(
-  agent_state_proto_lib
-  ${Protobuf_LIBRARIES}
-)
-
 add_library(
   libmjpc STATIC
   ${CMAKE_CURRENT_SOURCE_DIR}/../${JSON_LIB}/JSONUtils.hpp
@@ -180,7 +149,6 @@ target_link_libraries(
   lodepng
   mujoco::mujoco
   mujoco::platform_ui_adapter
-  ${_PROTOBUF_LIBPROTOBUF}
   threadpool
   Threads::Threads
 )
@@ -201,10 +169,8 @@ target_link_libraries(
   absl::flags_parse
   absl::random_random
   absl::strings
-  agent_state_proto_lib
   libmjpc
   mujoco::mujoco
-  ${_PROTOBUF_LIBPROTOBUF}
   threadpool
   Threads::Threads
 )
@@ -217,22 +183,32 @@ if(APPLE)
   target_link_libraries(mjpc "-framework Cocoa")
 endif()
 
-add_executable(
-  testspeed
+add_library(
+  libtestspeed STATIC
   testspeed_app.cc
   testspeed.h
   testspeed.cc
 )
 target_link_libraries(
-  testspeed
-  absl::flags
-  absl::flags_parse
+  libtestspeed
   absl::random_random
   absl::strings
   libmjpc
   mujoco::mujoco
   threadpool
   Threads::Threads
+)
+target_include_directories(libtestspeed PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
+
+add_executable(
+  testspeed
+  testspeed_app.cc
+)
+target_link_libraries(
+  testspeed
+  libtestspeed
+  absl::flags
+  absl::flags_parse
 )
 target_include_directories(testspeed PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
 target_compile_options(testspeed PUBLIC ${MJPC_COMPILE_OPTIONS})
