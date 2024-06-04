@@ -416,6 +416,14 @@ namespace mjpc
 
             bool objectSimBodyExists = simObjBodyId != -1;
 
+            string dataDumpPath =
+                PROJECT_DATA_DUMP_PATH + string(MANO_AGENT_NAME);
+
+            if (!filesystem::is_directory(dataDumpPath))
+            {
+                filesystem::create_directory(dataDumpPath);
+            }
+
             if (objectSimBodyExists)
             {
                 int objQposadr =
@@ -491,9 +499,13 @@ namespace mjpc
 
         mju_copy3(m_residual.m_start_clamp_offset, m_start_clamp_offset);
 
-        Document dFullHandSplines = loadJSON(handTrajSplineFile);
-        Document dObjectSplines = loadJSON(objectTrajSplineFile);
-        Document dPcSplines = loadJSON(pcHandTrajSplineFile);
+        string fullHandSplinesPath = PROJECT_ROOT + handTrajSplineFile;
+        string objectSplinesPath = PROJECT_ROOT + objectTrajSplineFile;
+        string pcSplinesPath = PROJECT_ROOT + pcHandTrajSplineFile;
+
+        Document dFullHandSplines = loadJSON(fullHandSplinesPath);
+        Document dObjectSplines = loadJSON(objectSplinesPath);
+        Document dPcSplines = loadJSON(pcSplinesPath);
 
         m_spline_dimension = dFullHandSplines["dimension"].GetInt();
         m_spline_degree = dFullHandSplines["degree"].GetInt();

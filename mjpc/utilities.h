@@ -17,6 +17,7 @@
 
 #include <atomic>
 #include <chrono>
+#include <filesystem>
 #include <functional>
 #include <memory>
 #include <optional>
@@ -27,6 +28,9 @@
 
 #include <absl/container/flat_hash_map.h>
 #include <mujoco/mujoco.h>
+
+#define PROJECT_ROOT "/Users/arjun/mujoco_mpc/"
+#define PROJECT_DATA_DUMP_PATH "/Users/arjun/mujoco_mpc/datadumps/"
 
 namespace mjpc
 {
@@ -423,9 +427,9 @@ namespace mjpc
     // infinity norm
     template <typename T> T InfinityNorm(T *x, int n)
     {
-        return std::abs(*std::max_element(
-            x, x + n,
-            [](T a, T b) -> bool { return (std::abs(a) < std::abs(b)); }));
+        return std::abs(
+            *std::max_element(x, x + n, [](T a, T b) -> bool
+                              { return (std::abs(a) < std::abs(b)); }));
     }
 
     // trace of square matrix

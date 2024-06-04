@@ -43,7 +43,7 @@ namespace mjpc
         double goal_position[XYZ_BLOCK_SIZE];
         mju_copy3(goal_position, splineObjectPos.data());
 
-        // system's position
+        // object's position
         double *position = SensorByName(model, data, OBJECT_CURRENT_POSITION);
 
         // position error
@@ -55,7 +55,7 @@ namespace mjpc
         double goal_orientation[QUAT_BLOCK_SIZE];
         mju_copy4(goal_orientation, splineObjectPos.data() + 3);
 
-        // system's orientation
+        // object's orientation
         double *orientation =
             SensorByName(model, data, OBJECT_CURRENT_ORIENTATION);
 
@@ -400,6 +400,78 @@ namespace mjpc
 
             bool objectSimBodyExists = simObjBodyId != -1;
 
+            string dataDumpPath =
+                PROJECT_DATA_DUMP_PATH + string(ALLEGRO_AGENT_NAME);
+
+            if (!filesystem::is_directory(dataDumpPath))
+            {
+                filesystem::create_directory(dataDumpPath);
+            }
+
+            string dataDumpTaskPath = dataDumpPath + "/" + m_task_name;
+
+            if (!filesystem::is_directory(dataDumpTaskPath))
+            {
+                filesystem::create_directory(dataDumpTaskPath);
+            }
+
+            if (!m_data_write_buffer.empty())
+            {
+                Document d;
+                d.SetObject();
+
+                Document::AllocatorType &allocator = d.GetAllocator();
+
+                // Number of hand vertices
+                Value numEntriesCount(kNumberType);
+                numEntriesCount.SetInt(m_data_write_buffer.size());
+                d.AddMember("numDataEntries", numEntriesCount, allocator);
+
+                Value allDataEntries(kArrayType);
+
+                for (int i = 0; i < m_data_write_buffer.size(); i++)
+                {
+                    vector<double> dataEntry = m_data_write_buffer[i];
+
+                    // Entry is structured as:
+                    // 0: timestamp
+                    // 1-3: euclidian position
+                    // 4-7: world-relative orientation
+                    for (int j = 0; j < dataEntry.size(); j++)
+                    {
+                        double dataEntryValue = dataEntry[j];
+
+                        Value dataEntryVal(kNumberType);
+                        dataEntryVal.SetDouble(dataEntryValue);
+
+                        allDataEntries.PushBack(dataEntryVal, allocator);
+                    }
+                }
+
+                // All time series data
+                d.AddMember("data", allDataEntries, allocator);
+
+                string writeFilePath =
+                    dataDumpTaskPath + "/" + DATA_DUMP_FILE_NAME_PREFIX +
+                    to_string(m_data_dump_write_suffix) + DATA_DUMP_FILE_TYPE;
+
+                while (filesystem::exists(writeFilePath))
+                {
+                    m_data_dump_write_suffix++;
+                    writeFilePath = dataDumpTaskPath + "/" +
+                                    DATA_DUMP_FILE_NAME_PREFIX +
+                                    to_string(m_data_dump_write_suffix) +
+                                    DATA_DUMP_FILE_TYPE;
+                }
+
+                writeJSON(d, writeFilePath);
+
+                cout << "Wrote " << m_data_write_buffer.size()
+                     << " entries to file " << writeFilePath << endl;
+
+                m_data_write_buffer.clear();
+            }
+
             if (objectSimBodyExists)
             {
                 int objQposadr =
@@ -431,9 +503,27 @@ namespace mjpc
             mju_zero(data->qfrc_applied, model->nv);
             mju_zero(data->xfrc_applied, model->nbody * 6);
         }
+        else
+        {
+            vector<double> dataEntry(1 + XYZ_BLOCK_SIZE + QUAT_BLOCK_SIZE);
+
+            // object's position
+            double *objectPosition =
+                SensorByName(model, data, OBJECT_CURRENT_POSITION);
+
+            // object's orientation
+            double *objectOrientation =
+                SensorByName(model, data, OBJECT_CURRENT_ORIENTATION);
+
+            dataEntry[0] = data->time;
+            mju_copy3(dataEntry.data() + 1, objectPosition);
+            mju_copy4(dataEntry.data() + 1 + XYZ_BLOCK_SIZE, objectOrientation);
+
+            m_data_write_buffer.push_back(dataEntry);
+        }
     }
 
-    AllegroTask::AllegroTask(string objectSimBodyName,
+    AllegroTask::AllegroTask(string objectSimBodyName, string taskName,
                              string handTrajSplineFile,
                              string objectTrajSplineFile,
                              string pcHandTrajSplineFile,
@@ -443,10 +533,12 @@ namespace mjpc
                              string handContactStartDataName,
                              int handLinkBodyIndexOffset)
         : m_residual(this), m_object_sim_body_name(objectSimBodyName),
+          m_task_name(taskName),
           m_hand_link_body_index_offset(handLinkBodyIndexOffset),
           m_total_frames(totalFrames),
           m_object_contact_start_data_name(objectContactStartDataName),
-          m_hand_contact_start_data_name(handContactStartDataName)
+          m_hand_contact_start_data_name(handContactStartDataName),
+          m_data_dump_write_suffix(0)
     {
         map<string, DofType> doftypePropertyMappings;
         map<string, MeasurementUnits> measurementUnitsPropertyMappings;
@@ -477,9 +569,13 @@ namespace mjpc
 
         mju_copy3(m_residual.m_start_clamp_offset, m_start_clamp_offset);
 
-        Document dFullHandSplines = loadJSON(handTrajSplineFile);
-        Document dObjectSplines = loadJSON(objectTrajSplineFile);
-        Document dPcSplines = loadJSON(pcHandTrajSplineFile);
+        string fullHandSplinesPath = PROJECT_ROOT + handTrajSplineFile;
+        string objectSplinesPath = PROJECT_ROOT + objectTrajSplineFile;
+        string pcSplinesPath = PROJECT_ROOT + pcHandTrajSplineFile;
+
+        Document dFullHandSplines = loadJSON(fullHandSplinesPath);
+        Document dObjectSplines = loadJSON(objectSplinesPath);
+        Document dPcSplines = loadJSON(pcSplinesPath);
 
         m_spline_dimension = dFullHandSplines["dimension"].GetInt();
         m_spline_degree = dFullHandSplines["degree"].GetInt();

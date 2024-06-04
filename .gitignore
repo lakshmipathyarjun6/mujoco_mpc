@@ -18,6 +18,8 @@
 *.egg-info/
 build/
 build_cmake/
+# Exclude data folders
+datadumps/
 # Exclude macOS folder attributes
 .DS_Store
 # Exclude macOS Info.framework.plist
