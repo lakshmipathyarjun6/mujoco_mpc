@@ -177,6 +177,8 @@ namespace mjpc
         std::vector<double> norm_parameter;
         double risk;
 
+        bool has_failed = false;
+
         // residual parameters
         std::vector<double> parameters;
 
