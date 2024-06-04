@@ -125,6 +125,11 @@ cmake .. -DCMAKE_BUILD_TYPE:STRING=Release -G Ninja -DCMAKE_C_COMPILER:STRING=cl
 cmake --build . --config=Release
 ```
 
+5. Create a folder called "datadumps"
+```sh
+mkdir ../datadumps
+```
+
 6. Run GUI application
 ```sh
 cd bin

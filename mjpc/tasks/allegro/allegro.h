@@ -41,6 +41,11 @@
 #define XYZ_BLOCK_SIZE 3
 #define QUAT_BLOCK_SIZE 4
 
+#define DATA_DUMP_FILE_NAME_PREFIX "agent_run_"
+#define DATA_DUMP_FILE_TYPE ".json"
+
+#define ALLEGRO_AGENT_NAME "allegro"
+
 #define ALLEGRO_ROOT "wrist"
 #define ALLEGRO_MOCAP_ROOT "palm"
 
@@ -163,11 +168,11 @@ namespace mjpc
                 m_object_traj_bspline_properties;
         };
 
-        AllegroTask(string objectSimBodyName, string handTrajSplineFile,
-                    string objectTrajSplineFile, string pcHandTrajSplineFile,
-                    double startClampOffsetX, double startClampOffsetY,
-                    double startClampOffsetZ, int totalFrames,
-                    string objectContactStartDataName,
+        AllegroTask(string objectSimBodyName, string taskName,
+                    string handTrajSplineFile, string objectTrajSplineFile,
+                    string pcHandTrajSplineFile, double startClampOffsetX,
+                    double startClampOffsetY, double startClampOffsetZ,
+                    int totalFrames, string objectContactStartDataName,
                     string handContactStartDataName,
                     int handLinkBodyIndexOffset = 0);
 
@@ -215,6 +220,7 @@ namespace mjpc
         ResidualFn m_residual;
 
         string m_object_sim_body_name;
+        string m_task_name;
 
         // Some scenes require additional bodies inserted before the agent,
         // such as the table. This is really only necessary when we need to do
@@ -243,6 +249,9 @@ namespace mjpc
 
         double m_spline_loopback_time;
         double m_start_clamp_offset[XYZ_BLOCK_SIZE];
+
+        int m_data_dump_write_suffix;
+        vector<vector<double>> m_data_write_buffer;
     };
 
     class AllegroApplePassTask : public AllegroTask
@@ -252,17 +261,16 @@ namespace mjpc
         string XmlPath() const override;
 
         AllegroApplePassTask()
-            : AllegroTask(
-                  "apple_sim",
-                  "/Users/arjun/mujoco_mpc/mjpc/tasks/allegro/"
-                  "splinetrajectories/apple_pass_1_hand.smexp",
-                  "/Users/arjun/mujoco_mpc/mjpc/tasks/"
-                  "shared_spline_trajectories/apple_pass_1_object.smexp",
-                  "/Users/arjun/mujoco_mpc/mjpc/tasks/allegro/"
-                  "pcsplines/apple_pass_1.pcmexp",
-                  -0.559059652010766, 1.009854895156828, 1.3654812428175624,
-                  703, "contact_pos_object_data_215_0",
-                  "contact_pos_hand_data_215_0")
+            : AllegroTask("apple_sim", "apple_pass_1",
+                          "mjpc/tasks/allegro/splinetrajectories/"
+                          "apple_pass_1_hand.smexp",
+                          "mjpc/tasks/shared_spline_trajectories/"
+                          "apple_pass_1_object.smexp",
+                          "mjpc/tasks/allegro/pcsplines/apple_pass_1.pcmexp",
+                          -0.559059652010766, 1.009854895156828,
+                          1.3654812428175624, 703,
+                          "contact_pos_object_data_215_0",
+                          "contact_pos_hand_data_215_0")
         {
         }
     };
@@ -274,17 +282,16 @@ namespace mjpc
         string XmlPath() const override;
 
         AllegroDoorknobUseTask()
-            : AllegroTask(
-                  "doorknob_sim",
-                  "/Users/arjun/mujoco_mpc/mjpc/tasks/allegro/"
-                  "splinetrajectories/doorknob_use_1_hand.smexp",
-                  "/Users/arjun/mujoco_mpc/mjpc/tasks/"
-                  "shared_spline_trajectories/doorknob_use_1_object.smexp",
-                  "/Users/arjun/mujoco_mpc/mjpc/tasks/allegro/"
-                  "pcsplines/doorknob_use_1.pcmexp",
-                  -1.0543771773975556, 0.30091857905335375, 1.28798410204936,
-                  1040, "contact_pos_object_data_252_0",
-                  "contact_pos_hand_data_252_0")
+            : AllegroTask("doorknob_sim", "doorknob_use_1",
+                          "mjpc/tasks/allegro/splinetrajectories/"
+                          "doorknob_use_1_hand.smexp",
+                          "mjpc/tasks/shared_spline_trajectories/"
+                          "doorknob_use_1_object.smexp",
+                          "mjpc/tasks/allegro/pcsplines/doorknob_use_1.pcmexp",
+                          -1.0543771773975556, 0.30091857905335375,
+                          1.28798410204936, 1040,
+                          "contact_pos_object_data_252_0",
+                          "contact_pos_hand_data_252_0")
         {
         }
     };
@@ -297,13 +304,12 @@ namespace mjpc
 
         AllegroStaplerStapleTask()
             : AllegroTask(
-                  "stapler_sim",
-                  "/Users/arjun/mujoco_mpc/mjpc/tasks/allegro/"
-                  "splinetrajectories/stapler_staple_2_hand.smexp",
-                  "/Users/arjun/mujoco_mpc/mjpc/tasks/"
-                  "shared_spline_trajectories/stapler_staple_2_object.smexp",
-                  "/Users/arjun/mujoco_mpc/mjpc/tasks/allegro/"
-                  "pcsplines/stapler_staple_2.pcmexp",
+                  "stapler_sim", "stapler_staple_2",
+                  "mjpc/tasks/allegro/splinetrajectories/"
+                  "stapler_staple_2_hand.smexp",
+                  "mjpc/tasks/shared_spline_trajectories/"
+                  "stapler_staple_2_object.smexp",
+                  "mjpc/tasks/allegro/pcsplines/stapler_staple_2.pcmexp",
                   -0.4805667866948928, 0.58770014610545768, 1.2733766645971997,
                   877, "contact_pos_object_data_230_0",
                   "contact_pos_hand_data_230_0", 1)
@@ -319,13 +325,12 @@ namespace mjpc
 
         AllegroWaterbottlePourTask()
             : AllegroTask(
-                  "waterbottle_sim",
-                  "/Users/arjun/mujoco_mpc/mjpc/tasks/allegro/"
-                  "splinetrajectories/waterbottle_pour_1_hand.smexp",
-                  "/Users/arjun/mujoco_mpc/mjpc/tasks/"
-                  "shared_spline_trajectories/waterbottle_pour_1_object.smexp",
-                  "/Users/arjun/mujoco_mpc/mjpc/tasks/allegro/"
-                  "pcsplines/waterbottle_pour_1.pcmexp",
+                  "waterbottle_sim", "waterbottle_pour_1",
+                  "mjpc/tasks/allegro/splinetrajectories/"
+                  "waterbottle_pour_1_hand.smexp",
+                  "mjpc/tasks/shared_spline_trajectories/"
+                  "waterbottle_pour_1_object.smexp",
+                  "mjpc/tasks/allegro/pcsplines/waterbottle_pour_1.pcmexp",
                   -0.45637235839190967, 1.0530724555477113, 1.2488375856211994,
                   927, "contact_pos_object_data_185_0",
                   "contact_pos_hand_data_185_0")
