@@ -463,6 +463,13 @@ namespace
                     sim.agent->state.Set(m, d);
                 }
             }
+
+            if (sim.agent->ActiveTask()->has_failed)
+            {
+                cout << "Task has failed - resetting" << endl;
+                sim.Reset(m, d);
+                sim.agent->ActiveTask()->has_failed = false;
+            }
         }
     }
 } // namespace
