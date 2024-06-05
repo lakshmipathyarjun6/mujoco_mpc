@@ -15,28 +15,28 @@
     </worldbody>
 
     <contact>
-        <exclude body1="wrist" body2="tablebody"/>
-        <exclude body1="palm" body2="tablebody"/>
-        <exclude body1="th_base" body2="tablebody"/>
-        <exclude body1="th_proximal" body2="tablebody"/>
-        <exclude body1="th_medial" body2="tablebody"/>
-        <exclude body1="th_distal" body2="tablebody"/>
-        <exclude body1="th_tip" body2="tablebody"/>
-        <exclude body1="ff_base" body2="tablebody"/>
-        <exclude body1="ff_proximal" body2="tablebody"/>
-        <exclude body1="ff_medial" body2="tablebody"/>
-        <exclude body1="ff_distal" body2="tablebody"/>
-        <exclude body1="ff_tip" body2="tablebody"/>
-        <exclude body1="mf_base" body2="tablebody"/>
-        <exclude body1="mf_proximal" body2="tablebody"/>
-        <exclude body1="mf_medial" body2="tablebody"/>
-        <exclude body1="mf_distal" body2="tablebody"/>
-        <exclude body1="mf_tip" body2="tablebody"/>
-        <exclude body1="rf_base" body2="tablebody"/>
-        <exclude body1="rf_proximal" body2="tablebody"/>
-        <exclude body1="rf_medial" body2="tablebody"/>
-        <exclude body1="rf_distal" body2="tablebody"/>
-        <exclude body1="rf_tip" body2="tablebody"/>
+        <exclude body1="allegro_wrist" body2="tablebody"/>
+        <exclude body1="allegro_palm" body2="tablebody"/>
+        <exclude body1="allegro_th_base" body2="tablebody"/>
+        <exclude body1="allegro_th_proximal" body2="tablebody"/>
+        <exclude body1="allegro_th_medial" body2="tablebody"/>
+        <exclude body1="allegro_th_distal" body2="tablebody"/>
+        <exclude body1="allegro_th_tip" body2="tablebody"/>
+        <exclude body1="allegro_ff_base" body2="tablebody"/>
+        <exclude body1="allegro_ff_proximal" body2="tablebody"/>
+        <exclude body1="allegro_ff_medial" body2="tablebody"/>
+        <exclude body1="allegro_ff_distal" body2="tablebody"/>
+        <exclude body1="allegro_ff_tip" body2="tablebody"/>
+        <exclude body1="allegro_mf_base" body2="tablebody"/>
+        <exclude body1="allegro_mf_proximal" body2="tablebody"/>
+        <exclude body1="allegro_mf_medial" body2="tablebody"/>
+        <exclude body1="allegro_mf_distal" body2="tablebody"/>
+        <exclude body1="allegro_mf_tip" body2="tablebody"/>
+        <exclude body1="allegro_rf_base" body2="tablebody"/>
+        <exclude body1="allegro_rf_proximal" body2="tablebody"/>
+        <exclude body1="allegro_rf_medial" body2="tablebody"/>
+        <exclude body1="allegro_rf_distal" body2="tablebody"/>
+        <exclude body1="allegro_rf_tip" body2="tablebody"/>
     </contact>
 
 </mujoco>

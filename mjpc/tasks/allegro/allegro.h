@@ -29,10 +29,6 @@
 #define ALLEGRO_DEFAULT_MOCAP_FPS 120
 #define ALLEGRO_SLOWDOWN_FACTOR 10
 
-#define ABSOLUTE_MAX_CONTACT_SITES 6500
-#define ABSOLUTE_MAX_CONTACT_RESULT_BUFF_SIZE ABSOLUTE_MAX_CONTACT_SITES * 3
-#define ABSOLUTE_MAX_CONTACT_POS_BUFF_SIZE ABSOLUTE_MAX_CONTACT_SITES * 3 * 2
-
 // Not equal due to root quaternion
 #define ALLEGRO_DOFS 23
 #define ALLEGRO_VEL_DOFS 22
@@ -41,13 +37,16 @@
 #define XYZ_BLOCK_SIZE 3
 #define QUAT_BLOCK_SIZE 4
 
+#define ALLEGRO_ACTIVE_CONTACT_FAILURE_THRESHOLD 6
+#define ALLEGRO_MAX_CONSECUTIVE_FAILURE_TOLERANCES 500
+
 #define DATA_DUMP_FILE_NAME_PREFIX "agent_run_"
 #define DATA_DUMP_FILE_TYPE ".json"
 
 #define ALLEGRO_AGENT_NAME "allegro"
 
-#define ALLEGRO_ROOT "wrist"
-#define ALLEGRO_MOCAP_ROOT "palm"
+#define ALLEGRO_ROOT "allegro_wrist"
+#define ALLEGRO_MOCAP_ROOT "allegro_palm"
 
 #define OBJECT_CURRENT_POSITION "object_position"
 #define OBJECT_CURRENT_ORIENTATION "object_orientation"
@@ -249,6 +248,8 @@ namespace mjpc
 
         double m_spline_loopback_time;
         double m_start_clamp_offset[XYZ_BLOCK_SIZE];
+
+        int m_failure_counter;
 
         int m_data_dump_write_suffix;
         vector<vector<double>> m_data_write_buffer;

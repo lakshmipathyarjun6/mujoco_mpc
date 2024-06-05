@@ -14,6 +14,10 @@
 
 #include "mjpc/tasks/allegro/allegro.h"
 
+// Sample name lookup:
+// int body1Id = model->geom_bodyid[data->contact[i].geom[0]];
+// string body1Name = model->names + model->name_bodyadr[body1Id];
+
 namespace mjpc
 {
     // ---------- Residuals for allegro hand manipulation task ---------
@@ -391,6 +395,51 @@ namespace mjpc
 
         mj_kinematics(model, data);
 
+        bool handObjectInContact = false;
+
+        for (int i = 0; i < data->ncon; i++)
+        {
+            int body1Id = model->geom_bodyid[data->contact[i].geom[0]];
+            int body2Id = model->geom_bodyid[data->contact[i].geom[1]];
+
+            string body1Name = model->names + model->name_bodyadr[body1Id];
+            string body2Name = model->names + model->name_bodyadr[body2Id];
+
+            if (body1Name.find(m_object_sim_body_name) != string::npos)
+            {
+                if (body2Name.find(ALLEGRO_AGENT_NAME) != string::npos)
+                {
+                    handObjectInContact = true;
+                }
+            }
+            else if (body2Name.find(m_object_sim_body_name) != string::npos)
+            {
+                if (body1Name.find(ALLEGRO_AGENT_NAME) != string::npos)
+                {
+                    handObjectInContact = true;
+                }
+            }
+        }
+
+        if (numActiveContacts > ALLEGRO_ACTIVE_CONTACT_FAILURE_THRESHOLD &&
+            !handObjectInContact)
+        {
+            if (m_failure_counter <= ALLEGRO_MAX_CONSECUTIVE_FAILURE_TOLERANCES)
+            {
+                m_failure_counter++;
+                cout << m_failure_counter << endl;
+            }
+            else 
+            {
+                cout << "Task has failed - resetting" << endl;
+            }
+        }
+        else
+        {
+            m_failure_counter = 0;
+            cout << m_failure_counter << endl;
+        }
+
         // Reset
         if (contact_frame_index == 0)
         {
@@ -538,7 +587,7 @@ namespace mjpc
           m_total_frames(totalFrames),
           m_object_contact_start_data_name(objectContactStartDataName),
           m_hand_contact_start_data_name(handContactStartDataName),
-          m_data_dump_write_suffix(0)
+          m_failure_counter(0), m_data_dump_write_suffix(0)
     {
         map<string, DofType> doftypePropertyMappings;
         map<string, MeasurementUnits> measurementUnitsPropertyMappings;

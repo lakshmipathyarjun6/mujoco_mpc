@@ -127,11 +127,11 @@
     </asset>
 
     <contact>
-        <exclude body1="palm" body2="ff_base"/>
-        <exclude body1="palm" body2="mf_base"/>
-        <exclude body1="palm" body2="rf_base"/>
-        <exclude body1="palm" body2="th_base"/>
-        <exclude body1="palm" body2="th_proximal"/>
+        <exclude body1="allegro_palm" body2="allegro_ff_base"/>
+        <exclude body1="allegro_palm" body2="allegro_mf_base"/>
+        <exclude body1="allegro_palm" body2="allegro_rf_base"/>
+        <exclude body1="allegro_palm" body2="allegro_th_base"/>
+        <exclude body1="allegro_palm" body2="allegro_th_proximal"/>
     </contact>
 
     <actuator>
