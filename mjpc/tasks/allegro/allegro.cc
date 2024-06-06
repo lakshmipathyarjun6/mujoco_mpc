@@ -427,17 +427,15 @@ namespace mjpc
             if (m_failure_counter <= ALLEGRO_MAX_CONSECUTIVE_FAILURE_TOLERANCES)
             {
                 m_failure_counter++;
-                cout << m_failure_counter << endl;
             }
             else 
             {
-                cout << "Task has failed - resetting" << endl;
+                has_failed = true;
             }
         }
         else
         {
             m_failure_counter = 0;
-            cout << m_failure_counter << endl;
         }
 
         // Reset
@@ -538,7 +536,7 @@ namespace mjpc
                 else
                 {
                     // Otherwise zero out the configuration
-                    mju_zero(data->qvel + objQposadr, simObjDofs);
+                    mju_zero(data->qpos + objQposadr, simObjDofs);
                 }
             }
 
