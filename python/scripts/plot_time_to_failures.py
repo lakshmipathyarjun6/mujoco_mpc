@@ -1,6 +1,5 @@
 import argparse
 import glob
-import json
 import numpy as np
 import os
 
@@ -11,7 +10,7 @@ from utils import assignColorsToDataset, loadRunDataFromFile
 def plotTimeToFailureData(groupedData, contactStartTime, contactEndTime):
     datasetColors = assignColorsToDataset(groupedData)
 
-    fig, ax = plt.subplots(figsize=(12,4))
+    _, ax = plt.subplots(figsize=(12,4))
 
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
@@ -20,7 +19,7 @@ def plotTimeToFailureData(groupedData, contactStartTime, contactEndTime):
     ax.spines['bottom'].set_position('zero')
     ax.spines['bottom'].set_alpha(0.2)
 
-    ax.set_xlabel('Contact Trajactory Completed Before Failure (%)')
+    ax.set_xlabel('Contact Trajectory Completed Before Failure (%)')
     
     contactTimeDiff = contactEndTime - contactStartTime
     
@@ -67,10 +66,6 @@ def plotTimeToFailureData(groupedData, contactStartTime, contactEndTime):
     # changing style of fliers
     for flier, color in zip(bp['fliers'], plotColors):
         flier.set(marker='o',markeredgecolor=color,markerfacecolor=color)
-
-    # ax.set_xlim([0.0, 102.0])
-    # ax.axvline(0.0, color='k', lw=2, linestyle='solid')
-    # ax.axvline(100.0, color='k', lw=2, linestyle='solid')
 
     plt.show()
 
