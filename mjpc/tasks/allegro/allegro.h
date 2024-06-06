@@ -298,7 +298,7 @@ namespace mjpc
                           -1.0543771773975556, 0.30091857905335375,
                           1.28798410204936, 1040,
                           "contact_pos_object_data_252_0",
-                          "contact_pos_hand_data_252_0", 10.0)
+                          "contact_pos_hand_data_252_0", 8.0)
         {
         }
     };
