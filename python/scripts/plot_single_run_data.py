@@ -4,6 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import quaternion
 
+from utils import loadRunDataFromFile
+
 from scipy.interpolate import BSpline
 
 ENTRY_SIZE = 8
@@ -206,14 +208,7 @@ if __name__ == '__main__':
     
     bsplines = constructBSplines(splineControlData, splineDegree)
     
-    f = open(filepath)
-    jsf = json.load(f)
-
-    numDataEntries = int(jsf['numDataEntries'])
-    data = np.array(jsf['data'])
-    
-    fullDataArr = np.reshape(data, (numDataEntries, ENTRY_SIZE))
-    fullDataArr = fullDataArr.T
+    fullDataArr = loadRunDataFromFile(filepath)
     
     plotResults(bsplines, fullDataArr, splineRuntime)
     
