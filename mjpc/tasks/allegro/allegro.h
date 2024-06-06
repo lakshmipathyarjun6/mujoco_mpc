@@ -24,6 +24,7 @@
 
 // Apple near success: Slowdown factor 8
 // Doorknob success: Slowdown factor 5-10
+// Stapler success: Slowdown factor 7
 // Waterbottle success: Slowdown factor 5
 
 #define ALLEGRO_DEFAULT_MOCAP_FPS 120
