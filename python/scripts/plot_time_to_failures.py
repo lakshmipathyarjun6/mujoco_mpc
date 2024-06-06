@@ -7,6 +7,8 @@ from matplotlib import pyplot as plt
 
 from utils import assignColorsToDataset, loadRunDataFromFile
 
+ENTRY_SIZE = 8
+
 def plotTimeToFailureData(groupedData, contactStartTime, contactEndTime):
     datasetColors = assignColorsToDataset(groupedData)
 
@@ -108,7 +110,7 @@ if __name__ == '__main__':
         print()
         
         for runFile in runFiles:
-            runDataArr = loadRunDataFromFile(runFile)
+            runDataArr = loadRunDataFromFile(runFile, ENTRY_SIZE)
             timestamps = runDataArr[0,:]
             timeToFailure = timestamps[-1]
             

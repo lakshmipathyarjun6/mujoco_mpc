@@ -3,7 +3,7 @@
     <include file="../common.xml"/>
 
     <custom>
-        <numeric name="agent_planner" data="1" />
+        <numeric name="agent_planner" data="3" />
         <numeric name="agent_horizon" data="2.5" />
         <numeric name="agent_timestep" data="0.01" />
         <numeric name="agent_policy_width" data="0.005" />

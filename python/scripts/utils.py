@@ -1,8 +1,6 @@
 import json
 import numpy as np
 
-ENTRY_SIZE = 8
-
 def assignColorsToDataset(groupedData):
     numKeys = len(groupedData.keys())
     
@@ -17,14 +15,26 @@ def assignColorsToDataset(groupedData):
     
     return datasetColors
 
-def loadRunDataFromFile(dataFilepath):
+def extractRelevantContactBounds(timestamps, contactStartTime, contactEndTime):
+    startIndex = 0
+    endIndex = len(timestamps) - 1
+    
+    while timestamps[startIndex] < contactStartTime:
+        startIndex += 1
+    
+    while timestamps[endIndex] > contactEndTime:
+        endIndex -= 1
+    
+    return startIndex, endIndex
+
+def loadRunDataFromFile(dataFilepath, entrySize):
     f = open(dataFilepath)
     jsf = json.load(f)
 
     numDataEntries = int(jsf['numDataEntries'])
     data = np.array(jsf['data'])
     
-    fullDataArr = np.reshape(data, (numDataEntries, ENTRY_SIZE))
+    fullDataArr = np.reshape(data, (numDataEntries, entrySize))
     fullDataArr = fullDataArr.T
     
     return fullDataArr
