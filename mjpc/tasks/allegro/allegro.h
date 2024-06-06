@@ -28,7 +28,7 @@
 // Waterbottle success: Slowdown factor 5
 
 #define ALLEGRO_DEFAULT_MOCAP_FPS 120
-#define ALLEGRO_SLOWDOWN_FACTOR 10
+#define ALLEGRO_DEFAULT_SLOWDOWN_FACTOR 10.0
 
 // Not equal due to root quaternion
 #define ALLEGRO_DOFS 23
@@ -70,6 +70,7 @@ namespace mjpc
         public:
             explicit ResidualFn(const AllegroTask *task)
                 : mjpc::BaseResidualFn(task), m_total_frames(0),
+                  m_slowdown_factor(ALLEGRO_DEFAULT_SLOWDOWN_FACTOR),
                   m_bspline_loopback_time(0.0)
             {
                 m_hand_traj_bspline_curves.clear();
@@ -83,7 +84,7 @@ namespace mjpc
 
             explicit ResidualFn(
                 const AllegroTask *task, int total_frames,
-                string object_contact_start_data_name,
+                double slowdown_factor, string object_contact_start_data_name,
                 string hand_contact_start_data_name,
                 double bspline_loopback_time,
                 const double start_clamp_offset[XYZ_BLOCK_SIZE],
@@ -96,6 +97,7 @@ namespace mjpc
                 : mjpc::BaseResidualFn(task)
             {
                 m_total_frames = total_frames;
+                m_slowdown_factor = slowdown_factor;
                 m_object_contact_start_data_name =
                     object_contact_start_data_name;
                 m_hand_contact_start_data_name = hand_contact_start_data_name;
@@ -154,6 +156,7 @@ namespace mjpc
             int m_hand_link_body_index_offset;
 
             int m_total_frames;
+            double m_slowdown_factor;
             string m_object_contact_start_data_name;
             string m_hand_contact_start_data_name;
 
@@ -174,6 +177,7 @@ namespace mjpc
                     double startClampOffsetY, double startClampOffsetZ,
                     int totalFrames, string objectContactStartDataName,
                     string handContactStartDataName,
+                    double slowdownFactor = ALLEGRO_DEFAULT_SLOWDOWN_FACTOR,
                     int handLinkBodyIndexOffset = 0);
 
         vector<double> GetDesiredAgentState(double time) const;
@@ -204,7 +208,7 @@ namespace mjpc
         unique_ptr<mjpc::ResidualFn> ResidualLocked() const override
         {
             return make_unique<ResidualFn>(
-                this, m_residual.m_total_frames,
+                this, m_residual.m_total_frames, m_residual.m_slowdown_factor,
                 m_residual.m_object_contact_start_data_name,
                 m_residual.m_hand_contact_start_data_name,
                 m_residual.m_bspline_loopback_time,
@@ -229,6 +233,7 @@ namespace mjpc
         int m_hand_link_body_index_offset;
 
         int m_total_frames;
+        double m_slowdown_factor;
         string m_object_contact_start_data_name;
         string m_hand_contact_start_data_name;
 
@@ -272,7 +277,7 @@ namespace mjpc
                           -0.559059652010766, 1.009854895156828,
                           1.3654812428175624, 703,
                           "contact_pos_object_data_215_0",
-                          "contact_pos_hand_data_215_0")
+                          "contact_pos_hand_data_215_0", 8.0)
         {
         }
     };
@@ -293,7 +298,7 @@ namespace mjpc
                           -1.0543771773975556, 0.30091857905335375,
                           1.28798410204936, 1040,
                           "contact_pos_object_data_252_0",
-                          "contact_pos_hand_data_252_0")
+                          "contact_pos_hand_data_252_0", 10.0)
         {
         }
     };
@@ -314,7 +319,7 @@ namespace mjpc
                   "mjpc/tasks/allegro/pcsplines/stapler_staple_2.pcmexp",
                   -0.4805667866948928, 0.58770014610545768, 1.2733766645971997,
                   877, "contact_pos_object_data_230_0",
-                  "contact_pos_hand_data_230_0", 1)
+                  "contact_pos_hand_data_230_0", 7.0, 1)
         {
         }
     };
@@ -335,7 +340,7 @@ namespace mjpc
                   "mjpc/tasks/allegro/pcsplines/waterbottle_pour_1.pcmexp",
                   -0.45637235839190967, 1.0530724555477113, 1.2488375856211994,
                   927, "contact_pos_object_data_185_0",
-                  "contact_pos_hand_data_185_0")
+                  "contact_pos_hand_data_185_0", 5.0)
         {
         }
     };

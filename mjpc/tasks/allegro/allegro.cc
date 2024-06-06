@@ -35,7 +35,7 @@ namespace mjpc
 
         // TODO: Find way to remove
         // Don't know how to turn contacts into continuous time queries
-        double fps = ALLEGRO_DEFAULT_MOCAP_FPS / ALLEGRO_SLOWDOWN_FACTOR;
+        double fps = ALLEGRO_DEFAULT_MOCAP_FPS / m_slowdown_factor;
         double rounded_index = floor(data->time * fps);
         int contact_frame_index = int(rounded_index) % m_total_frames;
 
@@ -293,7 +293,7 @@ namespace mjpc
     {
         // TODO: Find way to remove
         // Don't know how to turn contacts into continuous time queries
-        double fps = ALLEGRO_DEFAULT_MOCAP_FPS / ALLEGRO_SLOWDOWN_FACTOR;
+        double fps = ALLEGRO_DEFAULT_MOCAP_FPS / m_slowdown_factor;
         double rounded_index = floor(data->time * fps);
         int contact_frame_index = int(rounded_index) % m_total_frames;
 
@@ -428,7 +428,7 @@ namespace mjpc
             {
                 m_failure_counter++;
             }
-            else 
+            else
             {
                 has_failed = true;
             }
@@ -578,11 +578,11 @@ namespace mjpc
                              double startClampOffsetZ, int totalFrames,
                              string objectContactStartDataName,
                              string handContactStartDataName,
-                             int handLinkBodyIndexOffset)
+                             double slowdownFactor, int handLinkBodyIndexOffset)
         : m_residual(this), m_object_sim_body_name(objectSimBodyName),
           m_task_name(taskName),
           m_hand_link_body_index_offset(handLinkBodyIndexOffset),
-          m_total_frames(totalFrames),
+          m_total_frames(totalFrames), m_slowdown_factor(slowdownFactor),
           m_object_contact_start_data_name(objectContactStartDataName),
           m_hand_contact_start_data_name(handContactStartDataName),
           m_failure_counter(0), m_data_dump_write_suffix(0)
@@ -628,9 +628,10 @@ namespace mjpc
         m_spline_degree = dFullHandSplines["degree"].GetInt();
         m_spline_loopback_time = dFullHandSplines["time"].GetDouble();
 
-        m_spline_loopback_time *= ALLEGRO_SLOWDOWN_FACTOR;
+        m_spline_loopback_time *= m_slowdown_factor;
 
         m_residual.m_total_frames = totalFrames;
+        m_residual.m_slowdown_factor = m_slowdown_factor;
         m_residual.m_object_contact_start_data_name =
             m_object_contact_start_data_name;
         m_residual.m_hand_contact_start_data_name =
@@ -666,7 +667,7 @@ namespace mjpc
 
             for (int i = 0; i < numControlPoints; i++)
             {
-                controlPoints[i * 2] *= ALLEGRO_SLOWDOWN_FACTOR;
+                controlPoints[i * 2] *= m_slowdown_factor;
             }
 
             BSplineCurve<double> *bspc = new BSplineCurve<double>(
@@ -707,7 +708,7 @@ namespace mjpc
 
             for (int i = 0; i < numControlPoints; i++)
             {
-                controlPoints[i * 2] *= ALLEGRO_SLOWDOWN_FACTOR;
+                controlPoints[i * 2] *= m_slowdown_factor;
             }
 
             BSplineCurve<double> *bspc = new BSplineCurve<double>(
@@ -763,7 +764,7 @@ namespace mjpc
 
             for (int i = 0; i < numControlPoints; i++)
             {
-                controlPoints[i * 2] *= ALLEGRO_SLOWDOWN_FACTOR;
+                controlPoints[i * 2] *= m_slowdown_factor;
             }
 
             BSplineCurve<double> *bspc = new BSplineCurve<double>(
