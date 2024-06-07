@@ -12,7 +12,7 @@ ENTRY_SIZE = 8
 def plotTimeToFailureData(groupedData, contactStartTime, contactEndTime):
     datasetColors = assignColorsToDataset(groupedData)
 
-    _, ax = plt.subplots(figsize=(12,4))
+    _, ax = plt.subplots(figsize=(5,4))
 
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
@@ -20,8 +20,6 @@ def plotTimeToFailureData(groupedData, contactStartTime, contactEndTime):
     ax.get_yaxis().set_visible(False)
     ax.spines['bottom'].set_position('zero')
     ax.spines['bottom'].set_alpha(0.2)
-
-    ax.set_xlabel('Contact Trajectory Completed Before Failure (%)')
     
     contactTimeDiff = contactEndTime - contactStartTime
     
