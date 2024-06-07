@@ -52,6 +52,52 @@ def loadBSplinesFromFile(dataFilepath, slowdown):
 
     return bsplines, splineRuntime
 
+def loadBSplinesFromPCFile(dataFilepath, slowdown):
+    f = open(dataFilepath)
+    js = json.load(f)
+
+    splineDegree = int(js["degree"])
+    splineDimension = int(js["dimension"])
+    splineRuntime = float(js["time"]) * slowdown
+    
+    data = js['data']
+    componentData = data['components']
+    
+    bsplineControlData = []
+    
+    for componentIndex in range(len(componentData)):
+        componentIndexData = componentData[componentIndex]
+        splineControlData = loadBSplineControlPoints(componentIndexData, splineDimension)
+        
+        bsplineControlData.append(splineControlData)
+        
+    bsplineControlData = np.array(bsplineControlData)
+
+    bsplines = constructBSplines(bsplineControlData, splineDegree)
+
+    return bsplines, splineRuntime
+
+def loadPCMatrixData(dataFilepath):
+    f = open(dataFilepath)
+    js = json.load(f)
+    
+    numComponents = int(js['numComponents'])
+    data = js['data']
+    
+    center = np.array(data['center'])
+    componentData = data['components']
+    
+    componentMatrix = np.zeros((numComponents, numComponents))
+    
+    for componentIndex in range(len(componentData)):
+        componentIndexData = componentData[componentIndex]
+        
+        componentIndexVec = np.array(componentIndexData['componentData'])
+        
+        componentMatrix[componentIndex,:] = componentIndexVec
+    
+    return componentMatrix, center
+
 def loadRunDataFromFile(dataFilepath, entrySize):
     f = open(dataFilepath)
     js = json.load(f)
