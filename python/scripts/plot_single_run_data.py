@@ -4,9 +4,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import quaternion
 
-from utils import loadRunDataFromFile
-
 from scipy.interpolate import BSpline
+
+from utils import loadRunDataFromFile
 
 ENTRY_SIZE = 8
 SCALE_FACTOR = 1.0 / 100.0
@@ -208,7 +208,7 @@ if __name__ == '__main__':
     
     bsplines = constructBSplines(splineControlData, splineDegree)
     
-    fullDataArr = loadRunDataFromFile(filepath)
+    fullDataArr = loadRunDataFromFile(filepath, ENTRY_SIZE)
     
     plotResults(bsplines, fullDataArr, splineRuntime)
     
