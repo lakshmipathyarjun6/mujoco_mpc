@@ -58,6 +58,8 @@
 
 #define ALLEGRO_MAX_CONTACTS 21
 
+// #define RECORD_ALLEGRO_AGENT_DOFS
+
 using namespace std;
 
 namespace mjpc
