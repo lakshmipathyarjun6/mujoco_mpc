@@ -887,7 +887,7 @@
             ]
         },
         {
-            "type": "rotationBallX",
+            "type": "rotation",
             "units": "degrees",
             "numControlPoints": 70,
             "controlPointData": [
@@ -1034,7 +1034,7 @@
             ]
         },
         {
-            "type": "rotationBallY",
+            "type": "rotation",
             "units": "degrees",
             "numControlPoints": 70,
             "controlPointData": [
@@ -1181,7 +1181,7 @@
             ]
         },
         {
-            "type": "rotationBallZ",
+            "type": "rotation",
             "units": "degrees",
             "numControlPoints": 70,
             "controlPointData": [
@@ -1328,7 +1328,7 @@
             ]
         },
         {
-            "type": "rotationBallX",
+            "type": "rotation",
             "units": "degrees",
             "numControlPoints": 70,
             "controlPointData": [
@@ -1475,7 +1475,7 @@
             ]
         },
         {
-            "type": "rotationBallY",
+            "type": "rotation",
             "units": "degrees",
             "numControlPoints": 70,
             "controlPointData": [
@@ -1622,7 +1622,7 @@
             ]
         },
         {
-            "type": "rotationBallZ",
+            "type": "rotation",
             "units": "degrees",
             "numControlPoints": 70,
             "controlPointData": [
@@ -1769,7 +1769,7 @@
             ]
         },
         {
-            "type": "rotationBallX",
+            "type": "rotation",
             "units": "degrees",
             "numControlPoints": 70,
             "controlPointData": [
@@ -1916,7 +1916,7 @@
             ]
         },
         {
-            "type": "rotationBallY",
+            "type": "rotation",
             "units": "degrees",
             "numControlPoints": 70,
             "controlPointData": [
@@ -2063,7 +2063,7 @@
             ]
         },
         {
-            "type": "rotationBallZ",
+            "type": "rotation",
             "units": "degrees",
             "numControlPoints": 70,
             "controlPointData": [
@@ -2210,7 +2210,7 @@
             ]
         },
         {
-            "type": "rotationBallX",
+            "type": "rotation",
             "units": "degrees",
             "numControlPoints": 70,
             "controlPointData": [
@@ -2357,7 +2357,7 @@
             ]
         },
         {
-            "type": "rotationBallY",
+            "type": "rotation",
             "units": "degrees",
             "numControlPoints": 70,
             "controlPointData": [
@@ -2504,7 +2504,7 @@
             ]
         },
         {
-            "type": "rotationBallZ",
+            "type": "rotation",
             "units": "degrees",
             "numControlPoints": 70,
             "controlPointData": [
@@ -2651,7 +2651,7 @@
             ]
         },
         {
-            "type": "rotationBallX",
+            "type": "rotation",
             "units": "degrees",
             "numControlPoints": 70,
             "controlPointData": [
@@ -2798,7 +2798,7 @@
             ]
         },
         {
-            "type": "rotationBallY",
+            "type": "rotation",
             "units": "degrees",
             "numControlPoints": 70,
             "controlPointData": [
@@ -2945,7 +2945,7 @@
             ]
         },
         {
-            "type": "rotationBallZ",
+            "type": "rotation",
             "units": "degrees",
             "numControlPoints": 70,
             "controlPointData": [
@@ -3092,7 +3092,7 @@
             ]
         },
         {
-            "type": "rotationBallX",
+            "type": "rotation",
             "units": "degrees",
             "numControlPoints": 70,
             "controlPointData": [
