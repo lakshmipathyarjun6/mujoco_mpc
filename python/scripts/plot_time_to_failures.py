@@ -20,8 +20,6 @@ def plotTimeToFailureData(groupedData, contactStartTime, contactEndTime):
     ax.get_yaxis().set_visible(False)
     ax.spines['bottom'].set_position('zero')
     ax.spines['bottom'].set_alpha(0.2)
-
-    ax.set_xlabel('Contact Trajectory Completed Before Failure (%)')
     
     contactTimeDiff = contactEndTime - contactStartTime
     
@@ -105,6 +103,9 @@ if __name__ == '__main__':
         
         dataset = dataDir.split("/")[-2]
         timeToFailures = []
+        
+        if "DOF" in dataset:
+            continue
         
         print(dataset)
         print()
