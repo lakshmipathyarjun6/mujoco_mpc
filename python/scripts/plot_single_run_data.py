@@ -1,12 +1,9 @@
 import argparse
-import json
 import numpy as np
 import matplotlib.pyplot as plt
 import quaternion
 
-from utils import loadRunDataFromFile
-
-from scipy.interpolate import BSpline
+from utils import loadBSplinesFromFile, loadRunDataFromFile, standardizeEulerAngles
 
 ENTRY_SIZE = 8
 SCALE_FACTOR = 1.0 / 100.0
@@ -33,28 +30,6 @@ def convertEulerAnglesToQuat(eulerAngles):
     quat = quaternion.as_quat_array(quatVec)
     
     return quat
-
-def constructBSplines(controlPointData, splineDegree):
-    numSplines, numControlPoints, _ = controlPointData.shape
-    
-    uniformKnots = np.linspace(0, 1, numControlPoints - splineDegree + 1)
-    uniformKnots = np.concatenate((np.zeros(splineDegree), uniformKnots, np.ones(splineDegree)))
-    
-    bsplines = []
-    
-    for splineDataIndex in range(numSplines):
-        bspline = BSpline(uniformKnots, controlPointData[splineDataIndex], splineDegree)
-        bsplines.append(bspline)
-    
-    return bsplines
-    
-def loadSplineControlPoints(splineData, splineDimension):
-    numControlPoints = int(splineData["numControlPoints"])
-    controlPointData = np.array(splineData["controlPointData"])
-    
-    splineArr = np.reshape(controlPointData, (numControlPoints, splineDimension))
-    
-    return splineArr
 
 def plotResults(bsplines, fullDataArr, totalRuntime):
     timestamps = fullDataArr[0,:]
@@ -94,11 +69,15 @@ def plotResults(bsplines, fullDataArr, totalRuntime):
     orientations = fullDataArr[4:,:]
     qsOrientations = quaternion.as_quat_array(orientations.T)
     
-    xeulerReference = np.array([orientationBSplines[0](ts / totalRuntime) for ts in timestamps])
-    yeulerReference = np.array([orientationBSplines[1](ts / totalRuntime) for ts in timestamps])
-    zeulerReference = np.array([orientationBSplines[2](ts / totalRuntime) for ts in timestamps])
+    xeulerReference = np.array([orientationBSplines[0](ts / totalRuntime) for ts in timestamps])[:,1]
+    yeulerReference = np.array([orientationBSplines[1](ts / totalRuntime) for ts in timestamps])[:,1]
+    zeulerReference = np.array([orientationBSplines[2](ts / totalRuntime) for ts in timestamps])[:,1]
     
-    referenceOrientations = standardizeEulerAngles(np.vstack((xeulerReference[:,1], yeulerReference[:,1], zeulerReference[:,1])))
+    xeulerReference = standardizeEulerAngles(xeulerReference)
+    yeulerReference = standardizeEulerAngles(yeulerReference)
+    zeulerReference = standardizeEulerAngles(zeulerReference)
+    
+    referenceOrientations = np.vstack((xeulerReference, yeulerReference, zeulerReference))
     
     qsReferenceOrientations = []
     
@@ -145,27 +124,6 @@ def plotResults(bsplines, fullDataArr, totalRuntime):
     plt.legend()
     plt.show()
 
-def standardizeEulerAngles(anglesArr):
-    # All reference angles are in degrees and not necessarily clamped
-
-    for dofIndex in range(len(anglesArr)):
-        angleArr = anglesArr[dofIndex]
-    
-        for i in range(len(angleArr)):
-            dofValue = angleArr[i]
-            
-            while (dofValue > 360.0):
-                dofValue -= 360.0
-            while (dofValue < -360.0):
-                dofValue += 360.0
-            
-            dofValue *= np.pi / 180.0
-            angleArr[i] = dofValue
-            
-        anglesArr[dofIndex] = angleArr
-    
-    return anglesArr
-
 def subtractQuaternionsAsVelocities(q1, q2):
     q2Conj = q2.conjugate()
     qdif = q2Conj * q1
@@ -197,16 +155,7 @@ if __name__ == '__main__':
     filepath = args.filepath
     slowdown = args.slowdown
     
-    r = open(reference)
-    jsr = json.load(r)
-    
-    numSplines = int(jsr["numDofs"])
-    splineDegree = int(jsr["degree"])
-    splineDimension = int(jsr["dimension"])
-    splineRuntime = float(jsr["time"]) * slowdown
-    splineControlData = np.array([loadSplineControlPoints(entry, splineDimension) for entry in jsr["data"]])
-    
-    bsplines = constructBSplines(splineControlData, splineDegree)
+    bsplines, splineRuntime = loadBSplinesFromFile(reference, slowdown)
     
     fullDataArr = loadRunDataFromFile(filepath, ENTRY_SIZE)
     
