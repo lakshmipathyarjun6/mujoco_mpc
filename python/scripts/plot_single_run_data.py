@@ -208,7 +208,7 @@ if __name__ == '__main__':
     
     bsplines = constructBSplines(splineControlData, splineDegree)
     
-    fullDataArr = loadRunDataFromFile(filepath)
+    fullDataArr = loadRunDataFromFile(filepath, ENTRY_SIZE)
     
     plotResults(bsplines, fullDataArr, splineRuntime)
     
