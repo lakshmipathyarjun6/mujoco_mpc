@@ -552,6 +552,16 @@ namespace mjpc
         }
         else
         {
+#ifdef RECORD_ALLEGRO_AGENT_DOFS
+            vector<double> dataEntry(1 + ALLEGRO_NON_ROOT_VEL_DOFS);
+
+            int nonRootDofOffset = ALLEGRO_DOFS - ALLEGRO_NON_ROOT_VEL_DOFS;
+
+            dataEntry[0] = fmod(data->time, m_spline_loopback_time);
+            mju_copy(dataEntry.data() + 1,
+                     data->qpos + handQPosAdr + nonRootDofOffset,
+                     ALLEGRO_NON_ROOT_VEL_DOFS);
+#else
             vector<double> dataEntry(1 + XYZ_BLOCK_SIZE + QUAT_BLOCK_SIZE);
 
             // object's position
@@ -565,6 +575,7 @@ namespace mjpc
             dataEntry[0] = fmod(data->time, m_spline_loopback_time);
             mju_copy3(dataEntry.data() + 1, objectPosition);
             mju_copy4(dataEntry.data() + 1 + XYZ_BLOCK_SIZE, objectOrientation);
+#endif
 
             m_data_write_buffer.push_back(dataEntry);
         }
