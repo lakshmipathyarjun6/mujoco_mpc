@@ -562,7 +562,7 @@ namespace mjpc
             double *objectOrientation =
                 SensorByName(model, data, OBJECT_CURRENT_ORIENTATION);
 
-            dataEntry[0] = data->time;
+            dataEntry[0] = fmod(data->time, m_spline_loopback_time);
             mju_copy3(dataEntry.data() + 1, objectPosition);
             mju_copy4(dataEntry.data() + 1 + XYZ_BLOCK_SIZE, objectOrientation);
 
