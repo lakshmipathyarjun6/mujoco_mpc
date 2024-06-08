@@ -42,16 +42,20 @@ def plotTimeToFailureData(groupedData, contactStartTime, contactEndTime):
         
         allDataToPlot.append(dataToPlot)
         plotColors.append(color)
-        names.append(datasetName)
+    
+    # TODO: Redo when more runs available
+    displayOrder = [0, 2, 1]
+    reorderedDataToPlot = [allDataToPlot[i] for i in displayOrder]
+    reorderedColors = [plotColors[i] for i in displayOrder]
         
-    bp = ax.boxplot(allDataToPlot, patch_artist=True, notch=True, vert = False)
+    bp = ax.boxplot(reorderedDataToPlot, patch_artist=True, notch=True, vert = False)
         
     colorsDoubled = []
-    for color in plotColors:
+    for color in reorderedColors:
         colorsDoubled.append(color)
         colorsDoubled.append(color)
         
-    for patch, color in zip(bp['boxes'], plotColors):
+    for patch, color in zip(bp['boxes'], reorderedColors):
         patch.set_facecolor(color)
         
     for whisker, color in zip(bp['whiskers'], colorsDoubled):
@@ -64,7 +68,7 @@ def plotTimeToFailureData(groupedData, contactStartTime, contactEndTime):
         median.set(color='orange', linewidth = 4)
     
     # changing style of fliers
-    for flier, color in zip(bp['fliers'], plotColors):
+    for flier, color in zip(bp['fliers'], reorderedColors):
         flier.set(marker='o',markeredgecolor=color,markerfacecolor=color)
 
     plt.show()

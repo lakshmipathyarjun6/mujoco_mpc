@@ -41,8 +41,11 @@ def plotOverlaidDofDistributions(originalTrajectories, runtime, dofData1, dofDat
         
         ax = fig.add_subplot(numRows, numCols, dofIndex + 1)
 
-        ax.hist(dataToPlot1, alpha=0.7, color="tab:blue")
-        ax.hist(dataToPlot2, alpha=0.7, color="tab:orange")
+        # Use PC data since it has fewer samples
+        bins = np.histogram(dataToPlot2)[1]
+
+        ax.hist(dataToPlot1, bins=bins, alpha=0.7, color="tab:blue")
+        ax.hist(dataToPlot2, bins=bins, alpha=0.7, color="tab:orange")
         
     plt.subplots_adjust(wspace=0.6)
     plt.show()
@@ -79,7 +82,6 @@ if __name__ == '__main__':
         dofData2 = np.hstack((dofData2, runDataArr))        
     
     originalTrajectories, runtime = loadBSplinesFromFile(reference, slowdown)
-
     originalTrajectories = originalTrajectories[ROOT_DOFS:]
         
     plotOverlaidDofDistributions(originalTrajectories, runtime, dofData1, dofData2)
