@@ -148,7 +148,10 @@ namespace mjpc
                  double startClampOffsetZ, int totalFrames,
                  string objectContactStartDataName,
                  string handContactStartDataName,
-                 int handLinkBodyIndexOffset = 0);
+                 int handLinkBodyIndexOffset = 0,
+                 double objectSimStartXOffset = 0.0,
+                 double objectSimStartYOffset = 0.0,
+                 double objectSimStartZOffset = 0.0);
 
         vector<double> GetDesiredAgentState(double time) const;
 
@@ -201,6 +204,10 @@ namespace mjpc
         // alignment
         int m_hand_link_body_index_offset;
 
+        // Hack to get mocap and sim body to align. Allow sim body to start
+        // slightly inside table geom
+        double m_object_sim_start_offset[XYZ_BLOCK_SIZE];
+
         int m_total_frames;
         string m_object_contact_start_data_name;
         string m_hand_contact_start_data_name;
@@ -239,7 +246,7 @@ namespace mjpc
                   "mjpc/tasks/MANO/pcsplines/apple_pass_1.pcmexp",
                   -0.58147233724594119, 1.0124462842941284, 1.3647385835647584,
                   703, "contact_pos_object_data_215_0",
-                  "contact_pos_hand_data_215_0")
+                  "contact_pos_hand_data_215_0", 0, 0, 0.012, 0)
         {
         }
 
@@ -282,7 +289,7 @@ namespace mjpc
                        -0.6258119344711304, 0.8344507813453675,
                        1.3911676406860352, 1040,
                        "contact_pos_object_data_205_0",
-                       "contact_pos_hand_data_205_0")
+                       "contact_pos_hand_data_205_0", 1, 0, 0, -0.015)
         {
         }
     };
