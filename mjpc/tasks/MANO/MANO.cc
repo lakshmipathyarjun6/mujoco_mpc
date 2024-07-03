@@ -433,6 +433,10 @@ namespace mjpc
                 // due to it needing to be based off the world frame
                 if (simObjDofs == 7)
                 {
+                    // Add sim body start offset
+                    mju_addTo3(splineObjectPos.data(),
+                               m_object_sim_start_offset);
+
                     // Reset configuration to first mocap frame
                     mju_copy3(data->qpos + objQposadr, splineObjectPos.data());
                     mju_copy4(data->qpos + objQposadr + XYZ_BLOCK_SIZE,
@@ -463,7 +467,10 @@ namespace mjpc
                        double startClampOffsetZ, int totalFrames,
                        string objectContactStartDataName,
                        string handContactStartDataName,
-                       int handLinkBodyIndexOffset)
+                       int handLinkBodyIndexOffset,
+                       double objectSimStartXOffset,
+                       double objectSimStartYOffset,
+                       double objectSimStartZOffset)
         : m_residual(this), m_object_sim_body_name(objectSimBodyName),
           m_hand_link_body_index_offset(handLinkBodyIndexOffset),
           m_total_frames(totalFrames),
@@ -496,6 +503,10 @@ namespace mjpc
         m_start_clamp_offset[0] = startClampOffsetX;
         m_start_clamp_offset[1] = startClampOffsetY;
         m_start_clamp_offset[2] = startClampOffsetZ;
+
+        m_object_sim_start_offset[0] = objectSimStartXOffset;
+        m_object_sim_start_offset[1] = objectSimStartYOffset;
+        m_object_sim_start_offset[2] = objectSimStartZOffset;
 
         mju_copy3(m_residual.m_start_clamp_offset, m_start_clamp_offset);
 

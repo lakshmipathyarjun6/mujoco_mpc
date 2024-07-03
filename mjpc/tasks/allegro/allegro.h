@@ -180,7 +180,10 @@ namespace mjpc
                     int totalFrames, string objectContactStartDataName,
                     string handContactStartDataName,
                     double slowdownFactor = ALLEGRO_DEFAULT_SLOWDOWN_FACTOR,
-                    int handLinkBodyIndexOffset = 0);
+                    int handLinkBodyIndexOffset = 0,
+                    double objectSimStartXOffset = 0.0,
+                    double objectSimStartYOffset = 0.0,
+                    double objectSimStartZOffset = 0.0);
 
         vector<double> GetDesiredAgentState(double time) const;
 
@@ -234,6 +237,10 @@ namespace mjpc
         // alignment
         int m_hand_link_body_index_offset;
 
+        // Hack to get mocap and sim body to align. Allow sim body to start
+        // slightly inside table geom
+        double m_object_sim_start_offset[XYZ_BLOCK_SIZE];
+
         int m_total_frames;
         double m_slowdown_factor;
         string m_object_contact_start_data_name;
@@ -279,7 +286,7 @@ namespace mjpc
                           -0.559059652010766, 1.009854895156828,
                           1.3654812428175624, 703,
                           "contact_pos_object_data_215_0",
-                          "contact_pos_hand_data_215_0", 8.0)
+                          "contact_pos_hand_data_215_0", 8.0, 0, 0, 0.012, 0)
         {
         }
     };
