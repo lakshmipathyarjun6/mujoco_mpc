@@ -27,6 +27,8 @@
 #define AGENT_GEOM_COLLIDER_PREFIX string("agent_collider_")
 #define SIM_GEOM_COLLIDER_PREFIX string("sim_geom_")
 
+// #define WRITE_RUN_DATA
+
 using namespace std;
 
 namespace mjpc

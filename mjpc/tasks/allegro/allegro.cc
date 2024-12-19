@@ -464,6 +464,8 @@ namespace mjpc
 
             if (!m_data_write_buffer.empty())
             {
+
+#ifdef WRITE_RUN_DATA
                 Document d;
                 d.SetObject();
 
@@ -515,6 +517,9 @@ namespace mjpc
 
                 cout << "Wrote " << m_data_write_buffer.size()
                      << " entries to file " << writeFilePath << endl;
+#else
+                m_data_dump_write_suffix = 0; // To stop compilation error
+#endif
 
                 m_data_write_buffer.clear();
             }
