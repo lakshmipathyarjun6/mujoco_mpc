@@ -16,6 +16,8 @@
 #include <iostream>
 #include <numbers>
 
+#define DEFAULT_FRAMERATE 120.0
+
 using namespace std;
 
 namespace mjpc
@@ -47,8 +49,10 @@ namespace mjpc
         // where t[d] and t[n] are knots with d the degree and n the number of
         // control points.
         BSplineCurve(int32_t dimension, int32_t degree, int32_t numControls,
-                     DofType dofType, MeasurementUnits measurementUnits)
-            : mDimension(dimension),
+                     DofType dofType, MeasurementUnits measurementUnits,
+                     Real frameRate =
+                         DEFAULT_FRAMERATE) // TODO: Remove default framerate
+            : mDimension(dimension), mFramerate(frameRate),
               mControlData(static_cast<size_t>(dimension) *
                            static_cast<size_t>(numControls))
         {
@@ -114,12 +118,13 @@ namespace mjpc
             int32_t imin, imax;
             mBasis.Evaluate(t, order, imin, imax);
 
-            Real const *source =
-                &mControlData[static_cast<size_t>(mDimension) * imin];
+            int index = mDimension * imin;
+
             Real basisValue = mBasis.GetValue(order, imin);
             for (int32_t j = 0; j < mDimension; ++j)
             {
-                value[j] = basisValue * (*source++);
+                value[j] = basisValue * mControlData[index];
+                index++;
             }
 
             for (int32_t i = imin + 1; i <= imax; ++i)
@@ -127,14 +132,10 @@ namespace mjpc
                 basisValue = mBasis.GetValue(order, i);
                 for (int32_t j = 0; j < mDimension; ++j)
                 {
-                    value[j] += basisValue * (*source++);
+                    value[j] += basisValue * mControlData[index];
+                    index++;
                 }
             }
-        }
-
-        void GetPosition(Real t, Real *position) const
-        {
-            Evaluate(t, 0, position);
         }
 
         void GetContributingControlPointRangeForTime(
@@ -147,13 +148,28 @@ namespace mjpc
             endControlIndex = tKnotIndex;
         }
 
-        // Get position, but evaluate using the dof type and measurement units
-        // Assume dof value is in last dimension of spline curve
-        void GetPositionInMeasurementUnits(Real t, Real *position)
+        // Get position and velocity, but evaluate using the dof type and
+        // measurement units Assume dof value is in last dimension of spline
+        // curve
+        void GetPositionAndVelocityInMeasurementUnits(Real t, Real &position,
+                                                      Real &velocity)
         {
-            Evaluate(t, 0, position);
+            vector<double> posBuff;
+            posBuff.resize(mDimension);
 
-            double dofValue = position[mDimension - 1];
+            vector<double> velBuff;
+            velBuff.resize(mDimension);
+
+            Evaluate(t, 0, posBuff.data());
+            Evaluate(t, 1, velBuff.data());
+
+            double posValue = posBuff[mDimension - 1];
+            double velValue = velBuff[mDimension - 1];
+
+            double frameTimesteps = velBuff[0];
+
+            velValue /= frameTimesteps;
+            velValue *= mFramerate;
 
             switch (mDofType)
             {
@@ -164,25 +180,26 @@ namespace mjpc
                 switch (mMeasurementUnits)
                 {
                 case MeasurementUnits::ROT_UNIT_RADIANS: // default mujoco units
-                    while (dofValue > 2 * numbers::pi)
+                    while (posValue > 2 * numbers::pi)
                     {
-                        dofValue -= 2 * numbers::pi;
+                        posValue -= 2 * numbers::pi;
                     }
-                    while (dofValue < -2 * numbers::pi)
+                    while (posValue < -2 * numbers::pi)
                     {
-                        dofValue += 2 * numbers::pi;
+                        posValue += 2 * numbers::pi;
                     }
                     break;
                 case MeasurementUnits::ROT_UNIT_DEGREES:
-                    while (dofValue > 360.0)
+                    while (posValue > 360.0)
                     {
-                        dofValue -= 360.0;
+                        posValue -= 360.0;
                     }
-                    while (dofValue < -360.0)
+                    while (posValue < -360.0)
                     {
-                        dofValue += 360.0;
+                        posValue += 360.0;
                     }
-                    dofValue *= numbers::pi / 180.0;
+                    posValue *= numbers::pi / 180.0;
+                    velValue *= numbers::pi / 180.0;
                     break;
                 default:
                     break;
@@ -195,10 +212,12 @@ namespace mjpc
                                                           // units
                     break;
                 case MeasurementUnits::TRANS_UNIT_CENTIMETERS:
-                    dofValue *= 0.01;
+                    posValue *= 0.01;
+                    velValue *= 0.01;
                     break;
                 case MeasurementUnits::TRANS_UNIT_MILLIMETERS:
-                    dofValue *= 0.001;
+                    posValue *= 0.001;
+                    velValue *= 0.001;
                     break;
                 default:
                     break;
@@ -209,11 +228,13 @@ namespace mjpc
                 break;
             }
 
-            position[mDimension - 1] = dofValue;
+            position = posValue;
+            velocity = velValue;
         }
 
     private:
         int32_t mDimension;
+        Real mFramerate;
         BasisFunction<Real> mBasis;
         vector<Real> mControlData;
         DofType mDofType;

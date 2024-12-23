@@ -160,31 +160,31 @@ namespace mjpc
         double parametricTime = queryTime / m_bspline_loopback_time;
 
         double eulerAngles[XYZ_BLOCK_SIZE] = {0.0, 0.0, 0.0};
-        double curveValue[2];
+
+        double position, velocity;
 
         for (int i = 0; i < 6; i++)
         {
             TrajectorySplineProperties *properties =
                 m_hand_traj_bspline_properties[i];
 
-            m_hand_traj_bspline_curves[i]->GetPositionInMeasurementUnits(
-                parametricTime, curveValue);
-
-            double dofValue = curveValue[1];
+            m_hand_traj_bspline_curves[i]
+                ->GetPositionAndVelocityInMeasurementUnits(parametricTime,
+                                                           position, velocity);
 
             switch (properties->dofType)
             {
             case DofType::DOF_TYPE_ROTATION_BALL_X:
-                eulerAngles[0] = dofValue;
+                eulerAngles[0] = position;
                 break;
             case DofType::DOF_TYPE_ROTATION_BALL_Y:
-                eulerAngles[1] = dofValue;
+                eulerAngles[1] = position;
                 break;
             case DofType::DOF_TYPE_ROTATION_BALL_Z:
-                eulerAngles[2] = dofValue;
+                eulerAngles[2] = position;
                 break;
             default:
-                desiredState.push_back(dofValue);
+                desiredState.push_back(position);
                 break;
             }
         }
@@ -213,21 +213,20 @@ namespace mjpc
                 TrajectorySplineProperties *properties =
                     m_hand_traj_bspline_properties[j];
 
-                m_hand_traj_bspline_curves[j]->GetPositionInMeasurementUnits(
-                    parametricTime, curveValue);
-
-                double dofValue = curveValue[1];
+                m_hand_traj_bspline_curves[i]
+                    ->GetPositionAndVelocityInMeasurementUnits(
+                        parametricTime, position, velocity);
 
                 switch (properties->dofType)
                 {
                 case DofType::DOF_TYPE_ROTATION_BALL_X:
-                    eulerAngles[0] = dofValue;
+                    eulerAngles[0] = position;
                     break;
                 case DofType::DOF_TYPE_ROTATION_BALL_Y:
-                    eulerAngles[1] = dofValue;
+                    eulerAngles[1] = position;
                     break;
                 case DofType::DOF_TYPE_ROTATION_BALL_Z:
-                    eulerAngles[2] = dofValue;
+                    eulerAngles[2] = position;
                     break;
                 default:
                     cout << "ERROR: Unknown non-root dof type" << endl;
@@ -255,7 +254,8 @@ namespace mjpc
         double parametricTime = queryTime / m_bspline_loopback_time;
 
         double eulerAngles[XYZ_BLOCK_SIZE] = {0.0, 0.0, 0.0};
-        double curveValue[2];
+
+        double position, velocity;
 
         // Mopcap single body rigid object will have exactly 6 dofs
         for (int i = 0; i < 6; i++)
@@ -263,24 +263,23 @@ namespace mjpc
             TrajectorySplineProperties *properties =
                 m_object_traj_bspline_properties[i];
 
-            m_object_traj_bspline_curves[i]->GetPositionInMeasurementUnits(
-                parametricTime, curveValue);
-
-            double dofValue = curveValue[1];
+            m_object_traj_bspline_curves[i]
+                ->GetPositionAndVelocityInMeasurementUnits(parametricTime,
+                                                           position, velocity);
 
             switch (properties->dofType)
             {
             case DofType::DOF_TYPE_ROTATION_BALL_X:
-                eulerAngles[0] = dofValue;
+                eulerAngles[0] = position;
                 break;
             case DofType::DOF_TYPE_ROTATION_BALL_Y:
-                eulerAngles[1] = dofValue;
+                eulerAngles[1] = position;
                 break;
             case DofType::DOF_TYPE_ROTATION_BALL_Z:
-                eulerAngles[2] = dofValue;
+                eulerAngles[2] = position;
                 break;
             default:
-                desiredState.push_back(dofValue);
+                desiredState.push_back(position);
                 break;
             }
         }
@@ -566,7 +565,8 @@ namespace mjpc
             BSplineCurve<double> *bspc = new BSplineCurve<double>(
                 m_spline_dimension, m_spline_degree, numControlPoints,
                 doftypePropertyMappings[dofType],
-                measurementUnitsPropertyMappings[units]);
+                measurementUnitsPropertyMappings[units],
+                MANO_DEFAULT_MOCAP_FPS);
 
             bspc->SetControlData(controlPoints);
 
@@ -607,7 +607,8 @@ namespace mjpc
             BSplineCurve<double> *bspc = new BSplineCurve<double>(
                 m_spline_dimension, m_spline_degree, numControlPoints,
                 doftypePropertyMappings[dofType],
-                measurementUnitsPropertyMappings[units]);
+                measurementUnitsPropertyMappings[units],
+                MANO_DEFAULT_MOCAP_FPS);
 
             bspc->SetControlData(controlPoints);
 
@@ -663,7 +664,8 @@ namespace mjpc
             BSplineCurve<double> *bspc = new BSplineCurve<double>(
                 m_spline_dimension, m_spline_degree, numControlPoints,
                 doftypePropertyMappings[dofType],
-                measurementUnitsPropertyMappings[units]);
+                measurementUnitsPropertyMappings[units],
+                MANO_DEFAULT_MOCAP_FPS);
 
             bspc->SetControlData(controlPoints);
 
@@ -694,31 +696,31 @@ namespace mjpc
         double parametricTime = queryTime / m_spline_loopback_time;
 
         double eulerAngles[XYZ_BLOCK_SIZE] = {0.0, 0.0, 0.0};
-        double curveValue[2];
+
+        double position, velocity;
 
         for (int i = 0; i < 6; i++)
         {
             TrajectorySplineProperties *properties =
                 m_hand_traj_bspline_properties[i];
 
-            m_hand_traj_bspline_curves[i]->GetPositionInMeasurementUnits(
-                parametricTime, curveValue);
-
-            double dofValue = curveValue[1];
+            m_hand_traj_bspline_curves[i]
+                ->GetPositionAndVelocityInMeasurementUnits(parametricTime,
+                                                           position, velocity);
 
             switch (properties->dofType)
             {
             case DofType::DOF_TYPE_ROTATION_BALL_X:
-                eulerAngles[0] = dofValue;
+                eulerAngles[0] = position;
                 break;
             case DofType::DOF_TYPE_ROTATION_BALL_Y:
-                eulerAngles[1] = dofValue;
+                eulerAngles[1] = position;
                 break;
             case DofType::DOF_TYPE_ROTATION_BALL_Z:
-                eulerAngles[2] = dofValue;
+                eulerAngles[2] = position;
                 break;
             default:
-                desiredState.push_back(dofValue);
+                desiredState.push_back(position);
                 break;
             }
         }
@@ -747,21 +749,20 @@ namespace mjpc
                 TrajectorySplineProperties *properties =
                     m_hand_traj_bspline_properties[j];
 
-                m_hand_traj_bspline_curves[j]->GetPositionInMeasurementUnits(
-                    parametricTime, curveValue);
-
-                double dofValue = curveValue[1];
+                m_hand_traj_bspline_curves[i]
+                    ->GetPositionAndVelocityInMeasurementUnits(
+                        parametricTime, position, velocity);
 
                 switch (properties->dofType)
                 {
                 case DofType::DOF_TYPE_ROTATION_BALL_X:
-                    eulerAngles[0] = dofValue;
+                    eulerAngles[0] = position;
                     break;
                 case DofType::DOF_TYPE_ROTATION_BALL_Y:
-                    eulerAngles[1] = dofValue;
+                    eulerAngles[1] = position;
                     break;
                 case DofType::DOF_TYPE_ROTATION_BALL_Z:
-                    eulerAngles[2] = dofValue;
+                    eulerAngles[2] = position;
                     break;
                 default:
                     cout << "ERROR: Unknown non-root dof type" << endl;
@@ -789,31 +790,31 @@ namespace mjpc
 
         // Get root state from original spline - no PC is performed on it
         double eulerAngles[XYZ_BLOCK_SIZE] = {0.0, 0.0, 0.0};
-        double curveValue[2];
+
+        double position, velocity;
 
         for (int i = 0; i < 6; i++)
         {
             TrajectorySplineProperties *properties =
                 m_hand_traj_bspline_properties[i];
 
-            m_hand_traj_bspline_curves[i]->GetPositionInMeasurementUnits(
-                parametricTime, curveValue);
-
-            double dofValue = curveValue[1];
+            m_hand_traj_bspline_curves[i]
+                ->GetPositionAndVelocityInMeasurementUnits(parametricTime,
+                                                           position, velocity);
 
             switch (properties->dofType)
             {
             case DofType::DOF_TYPE_ROTATION_BALL_X:
-                eulerAngles[0] = dofValue;
+                eulerAngles[0] = position;
                 break;
             case DofType::DOF_TYPE_ROTATION_BALL_Y:
-                eulerAngles[1] = dofValue;
+                eulerAngles[1] = position;
                 break;
             case DofType::DOF_TYPE_ROTATION_BALL_Z:
-                eulerAngles[2] = dofValue;
+                eulerAngles[2] = position;
                 break;
             default:
-                desiredState.push_back(dofValue);
+                desiredState.push_back(position);
                 break;
             }
         }
@@ -836,10 +837,11 @@ namespace mjpc
 
         for (int i = 0; i < m_num_pcs; i++)
         {
-            m_hand_pc_traj_bspline_curves[i]->GetPositionInMeasurementUnits(
-                parametricTime, curveValue);
+            m_hand_pc_traj_bspline_curves[i]
+                ->GetPositionAndVelocityInMeasurementUnits(parametricTime,
+                                                           position, velocity);
 
-            pcState[i] = curveValue[1];
+            pcState[i] = position;
         }
 
         vector<double> uncompressedState;
@@ -901,7 +903,8 @@ namespace mjpc
         double parametricTime = queryTime / m_spline_loopback_time;
 
         double eulerAngles[XYZ_BLOCK_SIZE] = {0.0, 0.0, 0.0};
-        double curveValue[2];
+
+        double position, velocity;
 
         // Mopcap single body rigid object will have exactly 6 dofs
         for (int i = 0; i < 6; i++)
@@ -909,24 +912,23 @@ namespace mjpc
             TrajectorySplineProperties *properties =
                 m_object_traj_bspline_properties[i];
 
-            m_object_traj_bspline_curves[i]->GetPositionInMeasurementUnits(
-                parametricTime, curveValue);
-
-            double dofValue = curveValue[1];
+            m_object_traj_bspline_curves[i]
+                ->GetPositionAndVelocityInMeasurementUnits(parametricTime,
+                                                           position, velocity);
 
             switch (properties->dofType)
             {
             case DofType::DOF_TYPE_ROTATION_BALL_X:
-                eulerAngles[0] = dofValue;
+                eulerAngles[0] = position;
                 break;
             case DofType::DOF_TYPE_ROTATION_BALL_Y:
-                eulerAngles[1] = dofValue;
+                eulerAngles[1] = position;
                 break;
             case DofType::DOF_TYPE_ROTATION_BALL_Z:
-                eulerAngles[2] = dofValue;
+                eulerAngles[2] = position;
                 break;
             default:
-                desiredState.push_back(dofValue);
+                desiredState.push_back(position);
                 break;
             }
         }

@@ -105,13 +105,22 @@ namespace mjpc
                                  double time) const
     {
         // Do bsplinepd
-        vector<double> desiredState = ComputeDesiredAgentState(time);
+        vector<double> positions;
+        vector<double> velocities;
+
+        ComputeDesiredAgentState(time, positions, velocities);
 
         // For now, assume translation and hinge joints are servo controlled
         // while attitude is motor controlled
 
         int posDofIndex = 0;
         int velDofIndex = 0;
+
+        // TODO: Use to construct Hermite
+        vector<double> velData;
+        velData.resize(m_model->nv);
+
+        mju_copy(velData.data(), state + m_model->nq, velData.size());
 
         for (int jointIndex = 0; jointIndex < m_num_agent_joints; jointIndex++)
         {
@@ -124,7 +133,7 @@ namespace mjpc
                 double q_current[4];
                 double q_error[3];
 
-                mju_copy4(q_desired, desiredState.data() + posDofIndex);
+                mju_copy4(q_desired, positions.data() + posDofIndex);
                 mju_copy4(q_current, state + posDofIndex);
 
                 mju_subQuat(q_error, q_desired, q_current);
@@ -171,8 +180,8 @@ namespace mjpc
                 // implicitly
                 // applied, that leaves only q_desired
 
-                mju_copy(action + velDofIndex,
-                         desiredState.data() + posDofIndex, 1);
+                mju_copy(action + velDofIndex, positions.data() + posDofIndex,
+                         1);
 
                 posDofIndex += 1;
                 velDofIndex += 1;
@@ -193,25 +202,33 @@ namespace mjpc
 
     // Begin private methods
 
-    vector<double> BSplinePDPolicy::ComputeDesiredAgentState(double time) const
+    void
+    BSplinePDPolicy::ComputeDesiredAgentState(double time,
+                                              vector<double> &positions,
+                                              vector<double> &velocities) const
     {
-        vector<double> desiredState;
+        positions.clear();
+        velocities.clear();
 
         double queryTime = fmod(time, m_bspline_loopback_time);
         double parametricTime = queryTime / m_bspline_loopback_time;
 
-        vector<double> curveValue;
-        curveValue.resize(m_bspline_dimension);
+        double position, velocity;
 
-        vector<double> rawSplineVals;
-        rawSplineVals.resize(m_model->nu);
+        vector<double> rawSplinePositions;
+        rawSplinePositions.resize(m_model->nu);
+
+        vector<double> rawSplineVelocities;
+        rawSplineVelocities.resize(m_model->nu);
 
         for (int i = 0; i < m_model->nu; i++)
         {
-            m_control_bspline_curves[i]->GetPositionInMeasurementUnits(
-                parametricTime, curveValue.data());
+            m_control_bspline_curves[i]
+                ->GetPositionAndVelocityInMeasurementUnits(parametricTime,
+                                                           position, velocity);
 
-            rawSplineVals[i] = curveValue[1];
+            rawSplinePositions[i] = position;
+            rawSplineVelocities[i] = velocity;
         }
 
         int dofIndex = 0;
@@ -229,7 +246,7 @@ namespace mjpc
                 jointIndex += 1;
 
                 double ballAngles[3];
-                mju_copy3(ballAngles, rawSplineVals.data() + dofIndex);
+                mju_copy3(ballAngles, rawSplinePositions.data() + dofIndex);
 
                 // Convert to quaternion
                 double quat[4];
@@ -237,7 +254,15 @@ namespace mjpc
 
                 for (int j = 0; j < 4; j++)
                 {
-                    desiredState.push_back(quat[j]);
+                    positions.push_back(quat[j]);
+                }
+
+                double ballVels[3];
+                mju_copy3(ballVels, rawSplineVelocities.data() + dofIndex);
+
+                for (int j = 0; j < 3; j++)
+                {
+                    velocities.push_back(ballVels[j]);
                 }
             }
             break;
@@ -252,20 +277,25 @@ namespace mjpc
                     jointIndex += 3;
 
                     double transDof[3];
-                    mju_copy3(transDof, rawSplineVals.data() + dofIndex);
+                    mju_copy3(transDof, rawSplinePositions.data() + dofIndex);
+
+                    double transVel[3];
+                    mju_copy3(transVel, rawSplineVelocities.data() + dofIndex);
 
                     // Correct for start clamp offset
                     mju_sub3(transDof, transDof, m_bspline_translation_offset);
 
                     for (int j = 0; j < 3; j++)
                     {
-                        desiredState.push_back(transDof[j]);
+                        positions.push_back(transDof[j]);
+                        velocities.push_back(transVel[j]);
                     }
                 }
                 else
                 {
                     readSize = 1;
-                    desiredState.push_back(rawSplineVals[dofIndex]);
+                    positions.push_back(rawSplinePositions[dofIndex]);
+                    velocities.push_back(rawSplineVelocities[dofIndex]);
                 }
             }
             break;
@@ -274,21 +304,19 @@ namespace mjpc
                 readSize = 1;
                 jointIndex += 1;
 
-                desiredState.push_back(rawSplineVals[dofIndex]);
+                positions.push_back(rawSplinePositions[dofIndex]);
+                velocities.push_back(rawSplineVelocities[dofIndex]);
             }
             break;
             default:
             {
                 cout << "Unsupported joint type" << endl;
-                return desiredState;
             }
             break;
             }
 
             dofIndex += readSize;
         }
-
-        return desiredState;
     }
 
     void BSplinePDPolicy::GenerateBSplineControlData()
