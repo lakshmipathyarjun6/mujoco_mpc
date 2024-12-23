@@ -447,6 +447,7 @@ namespace mjpc
 
             bool objectSimBodyExists = simObjBodyId != -1;
 
+#ifdef WRITE_RUN_DATA
             string dataDumpPath =
                 PROJECT_DATA_DUMP_PATH + string(ALLEGRO_AGENT_NAME);
 
@@ -461,6 +462,8 @@ namespace mjpc
             {
                 filesystem::create_directory(dataDumpTaskPath);
             }
+
+#endif
 
             if (!m_data_write_buffer.empty())
             {
