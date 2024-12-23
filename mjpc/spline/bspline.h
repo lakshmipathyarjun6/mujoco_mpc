@@ -140,26 +140,11 @@ namespace mjpc
         void GetContributingControlPointRangeForTime(
             Real t, int32_t &startControlIndex, int32_t &endControlIndex) const
         {
-            int32_t imin, imax;
-            mBasis.Evaluate(t, 0, imin, imax);
+            int32_t tKnotIndex = mBasis.GetIndex(t);
+            int degree = mBasis.GetDegree();
 
-            int sourceIndex = static_cast<size_t>(mDimension) * imin;
-            startControlIndex = sourceIndex / mDimension;
-
-            for (int32_t j = 0; j < mDimension; ++j)
-            {
-                sourceIndex++;
-            }
-
-            for (int32_t i = imin + 1; i <= imax; ++i)
-            {
-                for (int32_t j = 0; j < mDimension; ++j)
-                {
-                    sourceIndex++;
-                }
-            }
-
-            endControlIndex = sourceIndex / mDimension - 1;
+            startControlIndex = tKnotIndex - degree;
+            endControlIndex = tKnotIndex;
         }
 
         // Get position, but evaluate using the dof type and measurement units
