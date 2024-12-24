@@ -38,7 +38,8 @@ namespace mjpc
 
     private:
         // assemble complete desired agent state
-        vector<double> ComputeDesiredAgentState(double time) const;
+        void ComputeDesiredAgentState(double time, vector<double> &positions,
+                                      vector<double> &velocities) const;
 
         // generate spline curves from control data
         void GenerateBSplineControlData();

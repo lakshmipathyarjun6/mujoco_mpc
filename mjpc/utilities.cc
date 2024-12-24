@@ -405,6 +405,20 @@ namespace mjpc
         quat[3] = cr * cp * sy - sr * sp * cy;
     }
 
+    void ConvertQuatToEulerAngles(double quat[4], double eulerAngles[3])
+    {
+        double x = quat[1];
+        double y = quat[2];
+        double z = quat[3];
+        double w = quat[0];
+
+        eulerAngles[0] =
+            atan2(2.0 * (y * z + w * x), w * w - x * x - y * y + z * z);
+        eulerAngles[1] = asin(-2.0 * (x * z - w * y));
+        eulerAngles[2] =
+            atan2(2.0 * (x * y + w * z), w * w + x * x - y * y - z * z);
+    }
+
     // return a power transformed sequence
     void PowerSequence(double *t, double t_step, double t1, double t2, double p,
                        double N)

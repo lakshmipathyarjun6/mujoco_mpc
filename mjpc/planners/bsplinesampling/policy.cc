@@ -229,18 +229,22 @@ namespace mjpc
         double queryTime = fmod(time, m_bspline_loopback_time);
         double parametricTime = queryTime / m_bspline_loopback_time;
 
-        vector<double> curveValue;
-        curveValue.resize(m_bspline_dimension);
+        double position, velocity;
 
-        vector<double> rawSplineVals;
-        rawSplineVals.resize(m_model->nu);
+        vector<double> rawSplinePositions;
+        rawSplinePositions.resize(m_model->nu);
+
+        vector<double> rawSplineVelocities;
+        rawSplineVelocities.resize(m_model->nu);
 
         for (int i = 0; i < m_model->nu; i++)
         {
-            m_control_bspline_curves[i]->GetPositionInMeasurementUnits(
-                parametricTime, curveValue.data());
+            m_control_bspline_curves[i]
+                ->GetPositionAndVelocityInMeasurementUnits(parametricTime,
+                                                           position, velocity);
 
-            rawSplineVals[i] = curveValue[1];
+            rawSplinePositions[i] = position;
+            rawSplineVelocities[i] = velocity;
         }
 
         int dofIndex = 0;
@@ -258,7 +262,7 @@ namespace mjpc
                 jointIndex += 1;
 
                 double ballAngles[3];
-                mju_copy3(ballAngles, rawSplineVals.data() + dofIndex);
+                mju_copy3(ballAngles, rawSplinePositions.data() + dofIndex);
 
                 // Convert to quaternion
                 double quat[4];
@@ -281,7 +285,7 @@ namespace mjpc
                     jointIndex += 3;
 
                     double transDof[3];
-                    mju_copy3(transDof, rawSplineVals.data() + dofIndex);
+                    mju_copy3(transDof, rawSplinePositions.data() + dofIndex);
 
                     // Correct for start clamp offset
                     mju_sub3(transDof, transDof, m_bspline_translation_offset);
@@ -294,7 +298,7 @@ namespace mjpc
                 else
                 {
                     readSize = 1;
-                    desiredState.push_back(rawSplineVals[dofIndex]);
+                    desiredState.push_back(rawSplinePositions[dofIndex]);
                 }
             }
             break;
@@ -303,7 +307,7 @@ namespace mjpc
                 readSize = 1;
                 jointIndex += 1;
 
-                desiredState.push_back(rawSplineVals[dofIndex]);
+                desiredState.push_back(rawSplinePositions[dofIndex]);
             }
             break;
             default:

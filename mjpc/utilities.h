@@ -143,8 +143,11 @@ namespace mjpc
     double *KeyMQuatByName(const mjModel *m, const mjData *d,
                            const std::string &name);
 
-    // convert euler angels to quaternion - assume XYZ order
+    // convert euler angles to quaternion - assume XYZ order
     void ConvertEulerAnglesToQuat(double eulerAngles[3], double quat[4]);
+
+    // convert quaternion to euler angles - assume XYZ order
+    void ConvertQuatToEulerAngles(double quat[4], double eulerAngles[3]);
 
     // return a power transformed sequence
     void PowerSequence(double *t, double t_step, double t1, double t2, double p,
