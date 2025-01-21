@@ -213,7 +213,7 @@ namespace mjpc
                 TrajectorySplineProperties *properties =
                     m_hand_traj_bspline_properties[j];
 
-                m_hand_traj_bspline_curves[i]
+                m_hand_traj_bspline_curves[j]
                     ->GetPositionAndVelocityInMeasurementUnits(
                         parametricTime, position, velocity);
 
@@ -749,7 +749,7 @@ namespace mjpc
                 TrajectorySplineProperties *properties =
                     m_hand_traj_bspline_properties[j];
 
-                m_hand_traj_bspline_curves[i]
+                m_hand_traj_bspline_curves[j]
                     ->GetPositionAndVelocityInMeasurementUnits(
                         parametricTime, position, velocity);
 
